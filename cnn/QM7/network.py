@@ -8,36 +8,112 @@ from e3nn import o3
 from e3nn.nn import FullyConnectedNet, Gate
 from e3nn.math import soft_one_hot_linspace
 
+def print_network(net):
+    from prettytable import PrettyTable
+    table = PrettyTable(["Modules", "Parameters"])
+    total_params = 0
+    for name, parameter in net.named_parameters():
+        if not parameter.requires_grad: continue
+        params = parameter.numel()
+        table.add_row([name, params])
+        total_params+=params
+    print(table)
+    print(f"Total Trainable Params: {total_params}")
+    return total_params
 
 class convolution(torch.nn.Module):
     def __init__(self,
         irreps_node,
+        irreps_node_attributes,
         irreps_filter, 
         irreps_out,
         neurons,
-        num_neighbor
+        num_neighbor,
+        use_alpha,
+        skip_connection
     ) -> None:
         super().__init__()
 
+        if use_alpha == True: skip_connection = True
+
         self.irreps_node = o3.Irreps(irreps_node)
+        self.irreps_node_attributes = o3.Irreps(irreps_node_attributes)
         self.irreps_filter = o3.Irreps(irreps_filter)
         self.irreps_out = o3.Irreps(irreps_out)
+        self.skip_connection = skip_connection
+        self.use_alpha = use_alpha
 
-        self.tp = o3.FullyConnectedTensorProduct(self.irreps_node, self.irreps_filter, self.irreps_out, shared_weights = False)
+        if self.skip_connection:
+            self.sc = o3.FullyConnectedTensorProduct(self.irreps_node, self.irreps_node_attributes, self.irreps_out)
+
+        self.self_interaction = o3.FullyConnectedTensorProduct(self.irreps_node, self.irreps_node_attributes, self.irreps_node)
+
+
+        irreps_mid = []
+        instructions = []
+        for i, (mul, ir_in) in enumerate(self.irreps_node):
+            for j, (_, ir_edge) in enumerate(self.irreps_filter):
+                for ir_out in ir_in * ir_edge:
+                    if ir_out in self.irreps_out or ir_out == o3.Irrep(0, 1):
+                        k = len(irreps_mid)
+                        irreps_mid.append((mul, ir_out))
+                        instructions.append((i, j, k, 'uvu', True))
+        irreps_mid = o3.Irreps(irreps_mid)
+        irreps_mid, p, _ = irreps_mid.sort()
+
+        assert irreps_mid.dim > 0, f"irreps_node_input={self.irreps_node} time irreps_edge_attr={self.irreps_filter} produces nothing in irreps_node_output={self.irreps_out}"
+
+        instructions = [
+            (i_1, i_2, p[i_out], mode, train)
+            for i_1, i_2, i_out, mode, train in instructions
+        ]
+        
+        self.tp = o3.TensorProduct(
+            self.irreps_node, 
+            self.irreps_filter, 
+            irreps_mid, 
+            instructions,
+            internal_weights = False,
+            shared_weights = False
+        )
 
         self.fullyconnected = FullyConnectedNet(
             neurons + [self.tp.weight_numel],
             torch.nn.functional.silu
         )
+
+        self.linear_out = o3.FullyConnectedTensorProduct(irreps_mid, self.irreps_node_attributes, self.irreps_out)
+
+        if self.use_alpha:
+            self.alpha = o3.FullyConnectedTensorProduct(irreps_mid, self.irreps_node_attributes, '1x0e')
+            with torch.no_grad():
+                self.alpha.weight.zero_()
+            assert self.alpha.output_mask[0] == 1.0, f"irreps_mid={irreps_mid} and irreps_node_attr={self.irreps_node_attributes} are not able to generate scalars"
+
         self.num_neighbors = num_neighbor
 
-    def forward(self, node_input, edge_src, edge_dst, edge_attr, dist_embedding):
+    def forward(self, node_input, node_attributes, edge_src, edge_dst, edge_attr, dist_embedding):
+        
+        self_connection = self.self_interaction(node_input, node_attributes)
         tp_weights = self.fullyconnected(dist_embedding)
 
-        edge_features = self.tp(node_input[edge_dst], edge_attr, tp_weights)
-        node_features = scatter(edge_features, edge_src, dim = 0, dim_size=node_input.shape[0]).div(self.num_neighbors**0.5)
+        intermediate = self.tp(self_connection[edge_dst], edge_attr, tp_weights)
+        intermediate = scatter(intermediate , edge_src, dim = 0, dim_size=node_input.shape[0]).div(self.num_neighbors**0.5)
 
-        return node_features
+        node_output = self.linear_out(intermediate, node_attributes)
+
+        if self.skip_connection:
+            skipped = self.sc(node_input, node_attributes)
+            if self.use_alpha:
+                alpha = self.alpha(intermediate, node_attributes)
+                m = self.sc.output_mask
+                alpha = (1 - m) + alpha * m
+                node_output = node_output * alpha + skipped
+
+            else:
+                node_output = node_output + skipped
+
+        return node_output
 
 
 def tp_path_exists(irreps_in1, irreps_in2, ir_out):
@@ -93,13 +169,18 @@ class molecular_network(torch.nn.Module):
         linear_num_hidden: int = 100,
         linear_num_layer: int = 1,
         rcut = 5.0,
-        num_neighbors = 6.0
+        num_neighbors = 6.0,
+        use_alpha: bool = False,
+        skip_connection: bool = False
     ) -> None:
         super().__init__()
 
         self.num_neighbors = num_neighbors
         self.embedding_nbasis = embedding_nbasis
         self.rcut = rcut
+
+        self.use_alpha = use_alpha
+        self.skip_connection = skip_connection
 
         self.irreps_in = node_input_rep
         self.irreps_out = output_rep
@@ -151,13 +232,16 @@ class molecular_network(torch.nn.Module):
                 irreps_gates, [act_gates[ir.p] for _, ir in irreps_gates],  # gates (scalars)
                 irreps_gated  # gated tensors
             )
-            conv = convolution(input_irrps, self.irreps_sh, gate.irreps_in,
-                                self.neurons, self.num_neighbors)
+            conv = convolution(input_irrps, '0e', self.irreps_sh, gate.irreps_in,
+                                self.neurons, self.num_neighbors, 
+                                self.use_alpha, self.skip_connection)
+
             self.layers.append(Compose(conv, gate))
             input_irrps = gate.irreps_out
 
-        conv = convolution(input_irrps, self.irreps_sh, self.irreps_out,
-                                self.neurons, self.num_neighbors)
+        conv = convolution(input_irrps, '0e', self.irreps_sh, self.irreps_out,
+                                self.neurons, self.num_neighbors,
+                                self.use_alpha, self.skip_connection)
 
         self.layers.append(conv)
 
@@ -184,14 +268,16 @@ class molecular_network(torch.nn.Module):
                     basis = 'smooth_finite', cutoff=True
         )
         #print(dist_embedding.shape)
-        return data.batch, data.x, edge_src, edge_dst, edge_attr, dist_embedding
+        node_attr = torch.ones(data.x.shape[0], 1).to(data.x.device)
+
+        return data.batch, data.x, node_attr, edge_src, edge_dst, edge_attr, dist_embedding
 
     def forward(self, data) -> torch.Tensor:
-        batch, node_input, edge_src, edge_dst, edge_attr, dist_embedding \
+        batch, node_input, node_attr, edge_src, edge_dst, edge_attr, dist_embedding \
             = self.preprocess(data)
 
         for i, layer in enumerate(self.layers):
-            node_input = layer(node_input, edge_src, edge_dst, edge_attr, dist_embedding)
+            node_input = layer(node_input, node_attr, edge_src, edge_dst, edge_attr, dist_embedding)
 
         return scatter(node_input, batch, dim=0, dim_size=len(data.y))
 

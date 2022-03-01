@@ -12,7 +12,6 @@ random_seed = 4242
 # we do not need to put random generator to GPU
 
 
-
 if __name__ == "__main__":
     from torch.utils.data import random_split
 

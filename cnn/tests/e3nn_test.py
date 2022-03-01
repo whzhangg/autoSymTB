@@ -94,5 +94,4 @@ def run_example_tensorproduct():
     print("                          14x1e -> 3x1e  ( 42 weights)")
     print("\nThis example shows how Fully connected tensor product with weights work")
  
-
 run_example_convolution()
