@@ -1,0 +1,4 @@
+docs/*.pdf
+**/__pycache__
+cnn/QM7/raw/*
+!cnn/QM7/raw/*.py
