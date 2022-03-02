@@ -146,7 +146,7 @@ def test_batch_qm7():
 
 def test_qm9():
     d = QM9("HOMO")
-    print(d[10])
+    print(d[10].edge_index)
 
 if __name__ == "__main__":
     test_qm9()

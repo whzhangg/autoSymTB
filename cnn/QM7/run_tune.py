@@ -4,7 +4,7 @@ from tune_QM9 import trainQM9_step
 
 default_config = {
     # learning related
-    "lr": tune.loguniform([1e-5, 1.0]),
+    "lr": tune.loguniform(1e-5, 1.0),
     "batchsize": tune.choice([16, 64]),
     "num_epoch": 5,
     "dropout_rate": 0.0,
