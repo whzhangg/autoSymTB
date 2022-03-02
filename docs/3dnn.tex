@@ -71,8 +71,8 @@ in space.
 The main structure of their network are can be summarized by 
 the following operation:
 \begin{equation}
-    \label{E:pointnet_operation}
     f({x_1,\dots,x_n}) \approx g(h(x_1),\dots,h(x_n)) 
+    \label{E:pointnet_operation}
 \end{equation}
 Here, function $f$ is a \emph{general} function that take a set of points and output some properties 
 $f\colon\, \text{set of points} \to \mathbb{R}$. In PointNet, this function 
@@ -134,10 +134,62 @@ function $U_t$ defines how the hidden states are updated depending on the inform
 \emph{update function}. 
 
 Different purposed message passing networks use different message functions and update functions. 
-For example, 
+For example, Gilmer et al. built MPNN using 
+\begin{equation}
+    M_t(h^t_i, h^t_j, e_{ij}) = A(e_{ij}) h_j
+\end{equation}
+as message function where $A$ maps an edge to a matrix to be multiplied with node feature $h_j$. They used 
+Gated Recurrent Unit as the update function $U_t = \text{GRU}(h_i^t, m_i^{t+1})$ and a \emph{set to set} 
+operation introduced by Vinyals et al. 2015. 
 
+Sch\"{u}tt's deep tensor neural network (DTNN) creates messages with so called 'interaction' between two 
+atoms: $v_{ij}$ as:
+\begin{align}
+    m_i^{t+1} &= \sum_{j\neq i} v_{ij} \\
+            &= \sum_{j\neq i} \tanh \left( W^{fc}[ (W^{cf} h_j^t + b^{f_1}) \circ (W^{df} e_{ij} + b^{f_2}) ] \right)
+\end{align}
+where $W$ and $b$ are network adjustable parameters and $\circ$ indicate a element-wise product 
+(Hadamard product). The node features are simply updated by $h_i^{t+1} = h_i^t + m_i^{t+1}$. 
+The network ooutput total energies, which is a summation over 'atomic energies':
+$E = \sum_i E_i = \sum_i E(h_i^T)$ where $E$ is a multi-layer perceptron that convert atomic feature 
+into energies.
 
-\section{Standard convolution network}
+TODO here
+
+\section{Equivariant networks}
+Nueral networks based on graph achieve desired invariance as a built-in property of the graph input.  
+But there are two disadvantage to the such networks: 
+1) invariance is desirable when we want the network to output some scalar global properties, but if we 
+want to make prediction for directioinal properties (such as magnetization axis), the invariant network 
+will not work. PointNet mentioned earlier is able to output rotations to align itself and can be used 
+reversely to output directional properties. But this is built-in to the network itself. PointNet is 
+also not as communicative as message passing networks.
+2) Many spatial informations are lost when we convert a structure into a graph, which can be used 
+at later stage in the network. The directional message passing network keeps more information, but 
+still not all.
+
+This two problem can be overcame by e3nn. But before that, we review the notion of equivariance
+and how it is achieved from convolution networks.
+
+\emph{Equivariance} is a property of mapping which perserve the transformation properties from inputs 
+to outputs. If we consider an operation in neural network as a function that map an input vector 
+$f_{l-1}\in F_{l-1}$ to an output vector $f_l \in F_l$, in their corresponding vector space: 
+$\Phi_l\colon F_{l-1} \to F_{l}$. Equivariance thus means that a transformation $g$ in the input 
+correspond to a transformation in the output vector space:
+\begin{equation}
+    \Phi_l (T^{l-1}_g f_{l-1}) = T^l_g \Phi_l (f_{l-1}) \label{E:equivariant_condition}
+\end{equation}
+$T_g$ are the linear transformation of $g$ in corresponding vector space $F_{l-1}$ and $F_l$ such that 
+$T_{g} = T_v T_u$ if $g = vu$ and they are called a representation of the group of transformation $G$.
+
+As an example, consider an image with an arrow painted on it and we want to read the vector $(x,y)$ that 
+give the direction of the arrow. The image live in the (high dimensional) vector space of 
+all possible images and the arrow lives in on a plane. If we rotate the image by angle $\theta$, we 
+obtain another images. Of course, the vector we read out is also rotated by the same angle. Although 
+trival, the neural network in our brain that convert the signal on our retina to a vector on a plane 
+is equivariant. We introduce some important works below that purpose equivariant network structures. 
+We start by the simplest case, the convolution network. 
+
 \subsection*{Structure of convolution network}
 Convolution neural networks (CNN) are networks that contain at least one layer with convolution operation. 
 General CNN contain stacked components of convolution, nonlinear activation and pooling. 
