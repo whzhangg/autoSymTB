@@ -1,6 +1,4 @@
-all: 3dnn structure_representation
-
-structure_representation: structure_representation.pdf
+all: 3dnn 
 3dnn: 3dnn.pdf
 
 .DELETE_ON_ERROR: %.pdf

@@ -12,6 +12,10 @@
 \usepackage[style=ieee, backend=bibtex, sorting=none]{biblatex}
 \addbibresource{ReferenceForReview.bib}
 
+\newcommand{\bbz}{\mathbb{Z}}
+\newcommand{\bbr}{\mathbb{R}}
+\newcommand{\calf}{\mathcal{F}}
+
 \begin{document}
 
 \title{Review of Rotational Equivariant Convolution Neural Networks}
@@ -63,7 +67,7 @@ One additional points that we need to consider in these networks is how the poin
 each other. In this kind of tasks, \emph{no point is an island}, and we must let information 
 flow from points to points. How this is achieved is also a focus in our following discussion.
 
-\subsection*{Network on points}
+\subsection{Network on points}
 Qi et al.\cite{qi_pointnet_2017} proposed a network (PointNet) design that operation on sets of points that 
 respect the permutation and transformation invariance of the input points. Although these networks are 
 originally designed to classify objects from spatial scanning, they are general methods that treat with points 
@@ -98,9 +102,9 @@ networks.
 The affine transformation, being a global properties applied to the input points, is a specical case. 
 Such a hierarchical structure is similar to convolution networks.
 
-\subsection*{Messaging passing networks based on graph}
+\subsection{Messaging passing networks based on graph}
 
-A graph is represented as $G = (V,E)$ where $V$ is a set of nodes and $E$ is the set of edges\cite{wu_2021}.
+A graph is represented as $G = (V,E)$ where $V$ is a set of nodes and $E$ is the set of edges\cite{wu_comprehensive_2021}.
 Because the atoms in a molecule can be considered to bond to each other, it seems very natural that we 
 represent a molecule structure using a graph, with atoms as nodes and bonds between atoms as edges. 
 In this case, the absolute position of the atoms in space are no longer and their relative positional 
@@ -123,7 +127,7 @@ edges with some attributes $e_{ij}$. Typically, message passing operates for $T$
 \begin{equation}
     m_{i}^{t+1} = \sum_{j\in neig(i)} M_t(h^t_i, h^t_j, e_{ij})
 \end{equation}
-a message, 
+a message\cite{gilmer_neural_2017}, 
 where $t$ index the steps. $M_t$ is called a \emph{message function}. $h^0_i$ typically encode some atomic
 feature, such as atomic numbers. 
 Node attributes $h$ are main information that are updated during the iterations and get passed around:
@@ -134,7 +138,7 @@ function $U_t$ defines how the hidden states are updated depending on the inform
 \emph{update function}. 
 
 Different purposed message passing networks use different message functions and update functions. 
-For example, Gilmer et al. built MPNN using 
+For example, Gilmer et al. built MPNN\cite{gilmer_neural_2017} using 
 \begin{equation}
     M_t(h^t_i, h^t_j, e_{ij}) = A(e_{ij}) h_j
 \end{equation}
@@ -142,7 +146,8 @@ as message function where $A$ maps an edge to a matrix to be multiplied with nod
 Gated Recurrent Unit as the update function $U_t = \text{GRU}(h_i^t, m_i^{t+1})$ and a \emph{set to set} 
 operation introduced by Vinyals et al. 2015. 
 
-Sch\"{u}tt's deep tensor neural network (DTNN) creates messages with so called 'interaction' between two 
+Sch\"{u}tt's deep tensor neural network (DTNN)\cite{schutt_quantum-chemical_2017} 
+creates messages with so called 'interaction' between two 
 atoms: $v_{ij}$ as:
 \begin{align}
     m_i^{t+1} &= \sum_{j\neq i} v_{ij} \\
@@ -152,9 +157,34 @@ where $W$ and $b$ are network adjustable parameters and $\circ$ indicate a eleme
 (Hadamard product). The node features are simply updated by $h_i^{t+1} = h_i^t + m_i^{t+1}$. 
 The network ooutput total energies, which is a summation over 'atomic energies':
 $E = \sum_i E_i = \sum_i E(h_i^T)$ where $E$ is a multi-layer perceptron that convert atomic feature 
-into energies.
+into energies. Latter, Sch\"{u}tt et al. extended their work to crystals by using a filter that 
+depend on the distance between atom $i$ and all the periodic image of $j$\cite{schutt_schnet_2018}. 
 
-TODO here
+Xie and Grossman purposed crystal graph convolution neural network\cite{xie_crystal_2018} that use the previously
+mentioned crystal graph with multiple edges between two atoms due to periodicity. Denoting $i,j$ as atom 
+index and $(i,j)_k$ as the $k^{th}$ bond between in the crystal graph, the message function are obtained as:
+\begin{equation}
+    m_i^{t+1} = \sum_{j,k} \sigma(z^t_{(i,j)_k}W_f^{t} + b_f^t) \circ g(z^t_{(i,j)_k}W_s^{t} + b_s^t)
+\end{equation}
+where $z_{(i,j)_k} = h_i \oplus h_j \oplus e_{(i,j)_k}$ and $\sigma$, $g$ are 
+non-linear functions. 
+Hidden states are updated by addition $h_i^{t+1} = h_i^t + m_i^{t+1}$. A weighted sum is used 
+as pooling operation to produce a weighted sum. 
+
+All the previous network use only distance between two atoms as edge feature, 
+but directional feature are unutilized. The work by Klicpera et al.\cite{klicpera_directional_2020} (DimeNet) 
+that attempt to use the directional information by using spherical basis functions. 
+Their work is based on directed molecular graph and focus on the messages $m_{ji}$ passing from 
+atom $j$ to $i$: $h_i^{t+1} = \sum_j m^{t+1}_{ji}$. The messages are updated by:
+\begin{equation}
+    m_{ji}^{t+1} 
+    = F_{update}\left( m_{ji}^t, \sum_{k \in neig(j)} F_{int}(m_{kj}^{t}, e_{ji}^{RBF}, a^{SBF}_{kji}) \right)
+\end{equation}
+where atom $k$ is an atom in the neighbor of $j$ except $i$ itself. $e_{ji}^{RBF}$ is a 
+embedding of distance and $a^{SBF}_{kji}$ embedding the angle $\angle kji$ as well as distance 
+$\|\mathbf{r_{kj}}\|$ using spherical functions. 
+$F_{update}$ and $F_{int}$ are update functions and interaction functions, made of blocks 
+of linear layers. DimeNet achieve one of the best performance on QM9 dataset, superior to SchNet.
 
 \section{Equivariant networks}
 Nueral networks based on graph achieve desired invariance as a built-in property of the graph input.  
@@ -162,16 +192,17 @@ But there are two disadvantage to the such networks:
 1) invariance is desirable when we want the network to output some scalar global properties, but if we 
 want to make prediction for directioinal properties (such as magnetization axis), the invariant network 
 will not work. PointNet mentioned earlier is able to output rotations to align itself and can be used 
-reversely to output directional properties. But this is built-in to the network itself. PointNet is 
+reversely to output directional properties. But this is not built-in to the network itself. PointNet is 
 also not as communicative as message passing networks.
 2) Many spatial informations are lost when we convert a structure into a graph, which can be used 
 at later stage in the network. The directional message passing network keeps more information, but 
 still not all.
 
-This two problem can be overcame by e3nn. But before that, we review the notion of equivariance
-and how it is achieved from convolution networks.
+This two problem can be overcame by an equivariant network. 
+But before that, we review the notion of equivariance and how it is achieved from convolution networks.
 
-\emph{Equivariance} is a property of mapping which perserve the transformation properties from inputs 
+\subsection{Equivariance}
+Equivariance is a property of mapping which perserve the transformation properties from inputs 
 to outputs. If we consider an operation in neural network as a function that map an input vector 
 $f_{l-1}\in F_{l-1}$ to an output vector $f_l \in F_l$, in their corresponding vector space: 
 $\Phi_l\colon F_{l-1} \to F_{l}$. Equivariance thus means that a transformation $g$ in the input 
@@ -182,51 +213,64 @@ correspond to a transformation in the output vector space:
 $T_g$ are the linear transformation of $g$ in corresponding vector space $F_{l-1}$ and $F_l$ such that 
 $T_{g} = T_v T_u$ if $g = vu$ and they are called a representation of the group of transformation $G$.
 
-As an example, consider an image with an arrow painted on it and we want to read the vector $(x,y)$ that 
-give the direction of the arrow. The image live in the (high dimensional) vector space of 
+Invariance is a special case of equivariance: if $T^l_g$ is identity for all transformation $g$, we 
+have the relationship:
+\begin{equation}
+    \Phi_l (T^{l-1}_g f_{l-1}) = \Phi_l (f_{l-1})\qquad \text{for all $g$} \label{E:invariant_condition}
+\end{equation}
+i.e., all transformation on the input feature map leave the output feature map invariant.
+
+As an example, consider an image with an arrow painted on it and we want to read out the vector $(x,y)$ 
+that give the direction of the arrow. The image lives in the (high dimensional) vector space of 
 all possible images and the arrow lives in on a plane. If we rotate the image by angle $\theta$, we 
 obtain another images. Of course, the vector we read out is also rotated by the same angle. Although 
-trival, the neural network in our brain that convert the signal on our retina to a vector on a plane 
-is equivariant. We introduce some important works below that purpose equivariant network structures. 
+trival, the neural network in our brain that convert the signal on our retina to the notion of a vector on 
+a plane is equivariant. We introduce some important works below that purpose equivariant network structures. 
 We start by the simplest case, the convolution network. 
 
-\subsection*{Structure of convolution network}
-Convolution neural networks (CNN) are networks that contain at least one layer with convolution operation. 
-General CNN contain stacked components of convolution, nonlinear activation and pooling. 
+\subsection{Structure of convolution network}
+Convolution neural networks (CNN) are one of the most successful examples of machine learning. 
+They contain at least one layer with convolution operation. 
+Although the network is named convolution, most of the implementation use correlation instead and 
+we also use correlation in this article. 
+A simple CNN contain stacked components of correlation, nonlinear activation and pooling. 
+The intermediate signals are called \emph{feature map} in CNNs. 
 Fully connected linear layers are often placed before the output.
-According to \cite{goodfellow_deep_2016}, 
-three most important properties of CNN are as follows:
-\begin{enumerate}
-    \item Space interaction: The connection between the input and output are sparse, in contrast to a fully connected network.
-    \item Parameter sharing: The weights in the convolution are shared. Therefore, CNN's are very efficient in storage and reduced amount of parameters 
-    \item Equivariant representation: Due to weight sharing, convolution operations are equivariant to translation.
-\end{enumerate}
-In the following, we define the components of a standard convolution neural network.
+What make CNNs stand out are\cite{goodfellow_deep_2016}
+1) sparse connection and parameter sharing make CNN efficient to store and train,
+2) due to weight sharing, convolution operations are equivariant to translation and 
+3) pooling operation.
 
-\subsection*{Correlation}
-We consider the case of images with a single channel(gray scale) and discrete pixels. 
-First define \emph{feature map} as a mapping $f\colon \mathcal{X}\to \mathbb{R}^n$ where $\mathcal{X}$ is a 
+\subsubsection*{Correlation}
+We consider the case of images with a single channel and discrete pixels. 
+We formally define \emph{feature map} as a mapping $f\colon \mathcal{X}\to \mathbb{R}$ where $\mathcal{X}$ is a 
 set of positions $x = (u,v)$ on the image indicating each pixel.
 A correlation is then $\Phi_l\colon F_{l-1} \to F_{l}$, where $F_l$ is the vector space of feature maps at layer $l$. 
 ($F_0$ is therefore the space of all possible input images).
 $\Phi_l$ is given by:
 \begin{equation}
     \label{E:convolution}
-    (\Phi_l \circ f_{l-1})(x) = (f_{l-1} \star g_l)(x) = \sum_{y = (u',v')} f_{l-1}(y) g_l(y-x)
+    [\Phi_l \circ f_{l-1}](x) = [f_{l-1} \star g_l](x) = \sum_{y = (u',v')} f_{l-1}(y) g_l(y-x)
 \end{equation}
 where $\Phi_l \circ f_{l-1}$ means applying $\Phi_l$ to $f_{l-1}$, 
-$g_l\colon \mathcal{X}\to \mathbb{R}^n$ is called the \emph{filter}, or \emph{kernel}, of the correlation. 
+$g_l\colon \mathcal{X}\to \mathbb{R}$ is called the \emph{filter} of the correlation. 
 
-%In many case, cross-correlation is used instead of convolution. In the case of cross-correlation, we define:
-%\begin{equation}
-%    (f_{l-1} \star g_l)(x) = \sum_{y = (u',v')} f_{l-1}(x + y) g_l(y)
-%\end{equation}
-%between the input feature and the filters. In this work, we do not use cross-correlation, but convolution Equation \eqref{E:convolution}
-
-\subsection*{Nonlinear activation}
-Nonlinear activation functions are defined at layer $l$ to be $\sigma_l:\mathbb{R} \to \mathbb{R}$, which act pointwisely on the feature map.
-
-\subsection*{Pooling}
+\subsubsection*{Pooling}
+Pooling layers are an essential components in CNN that make the resulting feature map smaller in size 
+and not senstitive to small translation of the input (blurring). 
+Different pooling can be 
+used, such as average pooling and max-pooling. For example, max-pooling $P^{max}_l$ can be defined as:
+\begin{equation}
+    [P^{max}_l \circ f_{l-1}] (x) = \max_{x' \in X} f_{l-1}(x')
+\end{equation}
+where $X$ is set of points near $x$. 
+Although they are very 
+important in image processing, they have not yet found the same importance in networks that 
+operate on crystal structures. The possible reasons maybe that the number of atoms in a molecular or 
+a unit cell in crystal is small and it is difficult to define a local region to pool over, and 
+that in chemistry, long range interaction between different spatial regions are weak, making pooled 
+result less informative.  
+\begin{comment}
 A pooling layer extract a summary statistic of nearby outputs at a certain location. Different pooling can be 
 used, such as average pooling and max-pooling. For example, max-pooling $P^{max}_l$ can be defined as:
 \begin{equation}
@@ -248,27 +292,13 @@ by the following figure.\ref{F:pooling}.
             b) polling over the $K$ channel with rotated filters give results invariance to the rotations}
     \label{F:pooling}
 \end{figure}
+\end{comment}
 
-\subsection*{Invariance and equivariance of feature map}
-\emph{Equivariance} refers to the property of mapping that perserve the transformation properties. 
-For a network layer defined as a mapping $\Phi_l$ between input and output feature maps,  
-Further denoting the action of the transformation $g$ on input and output feature maps by $T_{l-1}$ and $T_l$,
-The condition that $\Phi_l$ is equivariant is:
-\begin{equation}
-    \Phi_l (T^{l-1}_g f_{l-1}) = T^l_g \Phi_l (f_{l-1}) \label{E:equivariant_condition}
-\end{equation}
-
-If $T^l_g$ is identity for all transformation $g$, We have the relationship:
-\begin{equation}
-    \Phi_l (T^{l-1}_g f_{l-1}) = \Phi_l (f_{l-1})\qquad \text{for all $g$} \label{E:invariant_condition}
-\end{equation}
-All transformation on the input feature map leave the output feature map invariant.
-
-\subsection*{Equivariance of CNN on translation}
+\subsubsection*{Equivariance of CNN on translation}
 The effect of a translation $t = (u_t,v_t)$ on the feature map $f_{l-1}$ is given as:
 \begin{equation}
     \label{E:translation_on_featuremap}
-    (\Phi_t \circ f) (x) = f(x-t)
+    [\Psi_t \circ f] (x) = f(x-t)
 \end{equation}
 This is show simply in Figure.\ref{F:3dnn_shift}
 \begin{figure}[h]
@@ -280,21 +310,22 @@ This is show simply in Figure.\ref{F:3dnn_shift}
     \label{F:3dnn_shift}
 \end{figure}
 
-We can show that convolution \eqref{E:convolution} is translation equivariant, satisfying Equation \eqref{E:equivariant_condition}
+We can show that convolution \eqref{E:convolution} is translation equivariant, 
+satisfying Equation \eqref{E:equivariant_condition}
 \begin{align*}
-    (\Phi_l \circ \Phi_t \circ f_{l-1}) (x) &= \sum_y f_{l-1}(y-t) g_l(y-x) \\
+    [\Phi_l \circ [\Psi_t \circ f_{l-1}]] (x) &= \sum_y f_{l-1}(y-t) g_l(y-x) \\
     &= \sum_{y'} f_{l-1}(y') g_l(y'-x+t) \\
     &= \sum_{y'} f_{l-1}(y') g_l(y'-(x-t)) \\
-    &= (\Phi_l \circ f_{l-1}) (x-t) \\ &= (\Phi_t \circ \Phi_l \circ f_{l-1}) (x)
+    &= (\Phi_l \circ f_{l-1}) (x-t) \\ &= [\Psi_t \circ [\Phi_l \circ f_{l-1}]] (x)
 \end{align*}
-Therefore, $(\Phi_l \circ \Phi_t \circ f_{l-1}) (x) = (\Phi_t \circ \Phi_l \circ f_{l-1}) (x)$ and the convolution
+Therefore, $[\Phi_l \circ [\Psi_t \circ f_{l-1}]] (x) = [\Psi_t \circ [\Phi_l \circ f_{l-1}]] (x)$ and the convolution
 is equivariant to translation. Similarly, both non-linear function and pooling are translation equivariant.
 
-\vspace{10pt}
+\subsubsection*{CNNs are not invariant}
 As shown in many studies, CNN predictions can be translation invariant: it can recognize the objects in 
 image regardless of exact position of that object. However, we should distinguish the built-in equivariance 
 from the learnt invariance\cite{kauderer-abrams_quantifying_2017}: 
-by constructure, CNNs are equivariant to translation \footnote{as noted by E. K. Abrams, 2017, equivariance may be lost if pooling involve strides}, 
+by constructure, CNNs are equivariant to translation\footnote{as noted by E. K. Abrams, 2017, equivariance may be lost if pooling involve strides}, 
 but it does not necessary lead to invariance in the prediction. 
 CNN can be trained efficiently to identifying objects at different locations on the image with good performance.
 The keypoint to achieve such invariance in the result seems to due to:
@@ -302,19 +333,17 @@ The keypoint to achieve such invariance in the result seems to due to:
     \item Effect of pooling with decreasing spatial resolution with higher depth of features (channels) that contain highly extracted information.
     \item The larger field of reception at deeper layer, containing more spatial correlations. 
 \end{enumerate}
-%\begin{figure}[h!]
-%    \centering
-%    \includegraphics[width=3in]{figures/receptive_field_cnn.png}
-%    \caption{The unit in deeper networks are indirectly connect to all or most of the image from the gradial convolution, even without pooling}
-%    \label{F:larger_receptive_field}
-%\end{figure}
 
-\section{Group equivariant convolution networks}
+\subsection{Group equivariant convolution networks}
 
-Now, we generalize the standard CNN so that it is equivariant to general transformations. First, we will define transformation 
-as elements in a group, then, we describe the group-equivariant version of CNN on discrete and continuous groups. 
+Now, we generalize the standard CNN so that it is equivariant to general affine transformations 
+on discrete and continuous groups. We define an equivariant CNN on group $G$ as follows: 
+when the input on CNN is transformed as $f_0\to T_g^0f_0$ by $g\in G$, all features maps 
+in the network: $f_l$ transform as $f_l \to T_g^lf_l$. 
 
-\subsection*{Group of transformation}
+\begin{comment}
+\subsubsection*{Group of transformation}
+
 Transformations of an object form a group $G$ since 
 two successive transformations yield another transformation $g_1g_2\in G$ and 
 we can always find a reverse transformation $g^{-1}g = e$, where $e$ is identity. We can now formally define the 
@@ -323,13 +352,15 @@ and the feature map space form a representation of the transformation group $G$.
 Now, we can define an equivariant CNN on group $G$ as follows: 
 When the input on CNN is transformed as $f_0\to T_g^0f_0$ by $g\in G$, all features maps 
 in the network: $f_l$ transform as $f_l \to T_g^lf_l$. 
+\end{comment}
 
 We define the operation of $g$ on feature maps as: 
 \begin{equation}
     \label{E:g_on_featuremap}
-    (\Phi_g \circ f) (x) = f(g^{-1}x)
+    [\Psi_g \circ f] (x) = f(g^{-1}x)
 \end{equation}
 This form is consistent with Equation \eqref{E:translation_on_featuremap}.
+\begin{comment}
 The standard CNN are equivariant to the group of translations, but not to rotations $r\in G$. This can be shown as follows:
 \begin{align*}
     (\Phi_l \circ \Phi_r \circ f_{l-1}) (x) &= \sum_{y} f_{l-1}(y) g_l(ry-x) \\
@@ -345,7 +376,7 @@ This is shown in Figure \ref{F:rotation_is_not_equivariance}
     \label{F:rotation_is_not_equivariance}
 \end{figure}
 
-\subsection*{Homogeneous space and Quotient group}
+\subsubsection*{Homogeneous space and Quotient group}
 We define a set $\calx$ to be the homogeneous space of a group $G$ if, taking any element $x_0\in \calx$,
 all other elements in $\calx$ can be reached by applying $g\in G$ to $x_0$. 
 
@@ -359,112 +390,32 @@ the group elements in the same coset are mapped to the same $x\in \calx$.
 The key point here is to distinguish the group $G$ from its homogeneous space. It is more natural to define 
 the convolution on homogeneous space of the transformation, than on transformation itself. This will be 
 shown in the following.
-
-\begin{comment}
-\subsection*{General consideration}
-In the standard convolution networks, each components are translational equivariant, meaning that the feature maps 
-transform in the same way as the input image (Equation.\eqref{E:equivariant_condition}). Now, we extand 
-convolution network to deal with general transformation, other than translation\cite{cohen_group_2016}.
-
-We consider the group of transformation $G$ with group elements $g$ that can transform an image. 
-We define an mages and stacks of feature maps as functions $f\colon \mathbb{Z}^2 \to \mathbb{R}^K$, which a a function
-that map $(x,y)$ position of a figure to $K$ real numbers. For example, for an RGB color image. $K=3$ and 
-we have three real value at a given pixel. 
-
-As a concrete example for transformations, we consider that the input image are subject to transformation 
-of operation in plane group $p4$, %for plane group, p is lower letter
-which contain operation of 4-fold rotation around the origin and translations. 
-we can parameterize any operation with integer number $r$, $u$ and $v$ as:
-\begin{equation}
-    g(r,u,v) = 
-    \left[  
-        \begin{matrix}
-            \cos(r\pi / 2) & -\sin(r\pi / 2) & u \\
-            \sin(r\pi / 2) & \cos(r\pi / 2) & v \\
-            0 & 0 & 1
-        \end{matrix}
-    \right] \label{E:p4_g}
-\end{equation}
-where $r$ specifies four fold rotation and $t = (u,v)$ specifies translations. Operation of group element
-on a vector $x = (i,j)$ is:
-\begin{equation}
-    gx = \left[  
-        \begin{matrix}
-            \cos(r\pi / 2) & -\sin(r\pi / 2) & u \\
-            \sin(r\pi / 2) & \cos(r\pi / 2) & v \\
-            0 & 0 & 1
-        \end{matrix}
-    \right] 
-    \left[ \begin{matrix}i \\ j \\ 1 \end{matrix}\right]
-\end{equation}
-The transformations form a group, i.e.\,, successive combination of transformations in the group yield another transformation
-belong to the same group. This can be directly verified by matrix multiplication with Equation.\eqref{E:p4_g}. 
-We can say that the matrix of group operation and the corresponding vector space $(i,j)$ form a representation
-of the group $p4$.
-
-Formally, we define the transformation of feature maps as 
-\begin{equation}
-    [L_g f] (x) = f(g^{-1}x)
-\end{equation}
-Where $L_g$ denote transformation operation of the feature map corresponding to transformation $g$.
-An illustration of the above definition is Figure.\,\ref{F:3dnn_shift}, which is a one-dimensional case with
-feature map given as $f\colon \mathbb{Z} \to \mathbb{R}$. 
-The feature map is translated to the right by $t = 2$, which correspond to the feature map $f(x-2)$
-
-
-We use $l$ as index for layers in the network. 
-In each layer, we take an input feature maps ($K^l$ channels) and correlate it with a 
-set of $K^{l+1}$ filters. 
-We define a filter function $\psi\colon \mathbb{Z}^2 \to \mathbb{R}^{K^l}$ (the dimensional of input and output of 
-the filter is the same as that of the feature map). Filters act on feature map as:
-\begin{align}
-    [f * \psi] (x) &= \sum_y \sum_{k=1}^{K^l} f_k(y) \psi_k(x - y) && \text{convolution} \\
-    [f \star \psi] (x) &= \sum_y \sum_{k=1}^{K^l} f_k(y) \psi_k(y - x) && \text{correlation} \label{E:correlation}
-\end{align}
-again, $x$ and $y$ are tuple denoting positions on the image. We consider the case of 
-correlation in the following.
-
-\begin{proposition}
-    Correlation defined in Equation.\eqref{E:correlation} is equivariant with respect to translation.
-\end{proposition}
-\begin{proof}
-    For a translation $t=(u,v)$, omitting the channel index $k$, we can show that
-    \begin{align*}
-        [[L_tf]\star \psi] (x)  &= \sum_y f(y-t) \psi(y-x) \\
-                            &= \sum_y f(y) \psi(y-x+t) \\
-                            &= \sum_y f(y) \psi(y-(x-t)) \\
-                            &= [f\star \psi] (x-t) = [L_t[f\star \psi] ] (x) \qedhere
-    \end{align*}
-\end{proof}
-where the symbol $[[L_tf]\star \psi](x)$ means we perform correlation on the transformed feature map $L_t f$ 
-and $[L_t[f\star \psi] ] (x)$ means that we first perform correlation $[f\star \psi]$, 
-than we perform a translation operation on the resulting feature map.
-However, such correlation is not equivariant with respect to rotation $C_4$. This 
-is shown in Figure.\ref{F:rotation_is_not_equivariance}, where the 
-results of $[[L_r f]\star \psi] (x)$ and $[L_t[f\star \psi] ] (x)$ are different.
-
 \end{comment}
 
-\subsection*{$G$-convolution for discrete transformation}
-We define convolution with respect to a group operation $g\in G$ ($G$-correlation) as:
+\subsubsection*{$G$-convolution for discrete transformation}
+We define convolution with respect to a group operation $u\in G$ ($G$-correlation) as:
 \begin{equation}
-    (\Phi_l \circ f_{l-1})(u) = \sum_{v\in G} f_{l-1}(v) g_l(u^{-1}v) \label{E:G-correlation}
+    [\Phi_l \circ f_{l-1}](u) = \sum_{v\in G} f_{l-1}(v) g_l(u^{-1}v) \label{E:G-correlation}
 \end{equation}
-where $h \in G$.
-We can see that the standard convolution Eq.\eqref{E:convolution} is a special case of the $g$-correlation.
+where $v \in G$.
+We can see that the standard convolution Eq.\eqref{E:convolution} is a special case of the $G$-correlation,
+with $x \in T$, the translation subgroup of $G$
 
 Now, the feature map is defined on discrete 
-trasnformation $f_l\colon G\to \mathbb{R}^{N_l}$, instead of $f\colon X\to \mathbb{R}^{N_l}$. 
+trasnformation $f_l\colon G\to \mathbb{R}$, instead of $f\colon X\to \mathbb{R}$. 
 Equation \eqref{E:G-correlation} is equivariant to transformation $g \in G$:
 \begin{align*}
-    (\Phi_l \circ \Phi_g \circ f_{l-1})(u) 
+    [\Phi_l \circ [\Psi_g \circ f_{l-1}]](u) 
         &= \sum_{v\in G} f_{l-1}(g^{-1}v) g_l(u^{-1}v) \\
         &= \sum_{v'\in G} f_{l-1}(v') g_l(u^{-1}gv') \\
         &= \sum_{v'\in G} f_{l-1}(v') g_l((g^{-1}u)^{-1}v') \\
-        &= \Phi_l \circ f_{l-1} (g^{-1}u) = (\Phi_g \circ \Phi_l \circ f_{l-1})(u)
+        &= \Phi_l \circ f_{l-1} (g^{-1}u) \\
+        &= [\Psi_g \circ [\Phi_l \circ f_{l-1}]](u)
 \end{align*}
 
-\subsection*{Nonlinearity}
+% move to appendix
+\begin{comment}
+\subsubsection*{Nonlinearity}
 We define a nonlinearity $\sigma\colon \mathbb{R} \to \mathbb{R}$ and write:
 \begin{equation}
     (\Phi_{\sigma} \circ f) (u) = \sigma(f(u))
@@ -477,8 +428,9 @@ The combined operation satisfy Eq.\eqref{E:equivariant_condition}:
 \end{align*}
 Therefore, nonlinear activation is equivariant 
 and does not change the transformation properties of the feature map.
+\end{comment}
 
-\subsection*{Pooling and subsampling}
+\subsubsection*{Pooling and subsampling}
 Similar to standard , we define a pooling for feature map over $G$ as:
 \begin{equation}
     (\Phi_p \circ f_{l-1})(u) = \max_{k \in uH} f(k)
@@ -487,7 +439,8 @@ For $H \subset G$. Pooling is equivariant to $G$:
 \begin{align*}
     (\Phi_p \circ \Phi_g \circ f_{l-1})(u) &= \max_{k \in uH} f_{l-1}(g^{-1}k) \\
         & = \max_{k'\in g^{-1}uH} f_{l-1}(k') \\
-        &= (\Phi_p \circ f_{l-1})(g^{-1}u) = (\Phi_g \circ \Phi_p \circ f_{l-1})(u)
+        &= (\Phi_p \circ f_{l-1})(g^{-1}u) \\
+        &= (\Phi_g \circ \Phi_p \circ f_{l-1})(u)
 \end{align*}
 
 Downsampling $f_{l}(u)$ require partitioning the group. As discussed previously, the natural way to partitioin a group
@@ -508,51 +461,42 @@ This is equivariant to $G$:
 Furthermore, Downsampled feature map will be invariant to transformation $g$ 
 if the coset contain $u$ is the same as the coset containing $g^{-1}u$.
 
-
-%with the pooling domain a subgroup $U \subset G$. 
-%The pooling domains $gU$ therefore partition 
-%the group $G$ into left cosets. 
-%It is shown that pooling commutes with group operation and therefore is equivariant.
-%Pooling are reductions, therefore, the feature map after the 
-%pooling over cosets will be defined on the quotient groups $G/U$. 
-
 For example, for plane group $p4$, the group of all four rotations around a lattice points $R$ (point group) are a subgroup of $G$,
 Taking $H = R$ for downsampling
 the quotient group $p4/R$ is isomorphic to the translation of $p4$ and 
 the rotation of the input feature map will have no effect on the output feature map (invariance is a special case of equivariance). 
 %This is because a the coset is invariant 
 %to its elements: $rR = R \ \text{for}\ r \in R$ and the feature map over $r$ is poolled over. This is similar to 
-%the right panel in Figure.\ref{F:pooling}.
+%the right panel in Figure.\ref{F:pooling}. 
 
-\section{Spherical convolution network}
+\subsection{Spherical convolution network}
 Previous section extends the definition of convolution(correlation) to transformations operation of finite group. 
 Now we consider extending it to continuous transformation\cite{cohen_spherical_2018} in three dimensional case. 
 
-\subsection*{Correlation on sphere}
-We consider an image on a unit sphere. We define the image on a sphere as function $f\colon S^2 \to \mathbb{R}^N$.
-$S^2$ is the set of points $x\in \mathbb{R}^3$ on the unit sphere with position specified by $(\alpha, \beta)$ 
-with $\alpha\in [0,2\pi]$ and $\beta \in [0,\pi]$. To specify a point at position $r$ within this unit sphere. 
-We can give value $f(|r|)$ to the $\mathbf{x}$ on the sphere projected by that point. 
+\subsubsection*{Correlation on sphere}
+We consider an signal on a unit sphere. We define the image on a sphere as function $f\colon S^2 \to \mathbb{R}^N$.
+$S^2$ is the set of points $x\in \mathbb{R}^3$ on the unit sphere.
 
-Contrary to the image defined on the sphere, rotation of the sphere is given by specified by three parameter: 
-euler angles $\alpha$, $\beta$ and $\gamma$, $\gamma \in [0,2\pi]$. They correspond to rotation the north pool of the 
-sphere to an specifid position $\alpha$, $\beta$, followed by a rotation around the axis. 
-In cartesian coordinates, rotation can be specified as a $3\times 3$ matrix.
-
+Contrary to the image defined on the sphere, rotation of the sphere is given by specified by three
+euler angles $\alpha$, $\beta$ and $\gamma$\cite{sakurai_modern_1994}. They form the 
+rotation group $R$ in three dimensional space. 
 Using the notation developed above, we define rotated input image as: 
 \begin{equation}
-    (\Phi_r \circ f) (x) = f(r^{-1}x)
+    [\Psi_r \circ f] (x) = f(r^{-1}x)
 \end{equation}
+\begin{comment}
 For the first convolution, we have:
 \begin{equation}
     \label{E:convolution_s2}
-    (\Phi_l \circ f_{l-1}) (r) = \int_{s^2} f_{l-1}(x)g_l(r^{-1}x) dx
+    [\Phi_l \circ f_{l-1}] (r) = \int_{s^2} f_{l-1}(x)g_l(r^{-1}x) dx
 \end{equation}
 with filter and input feature map defined on $S^2$. 
-Since the following filter and feature map are defined on group $R$, We write convolution as:
+Since the following filter and feature map are defined on group $R$, 
+\end{comment}
+and the convolution as:
 \begin{equation}
     \label{E:convolution_r}
-    (\Phi_l \circ f_{l-1}) (r) = \int_v f_{l-1}(v)g_l(r^{-1}v) du 
+    [\Phi_l \circ f_{l-1}] (r) = \int_v f_{l-1}(v)g_l(r^{-1}v) du 
 \end{equation}
 $du$ is the integral element around the rotation $r$. In practice, the intergral over rotation can be transformed 
 to be $\int\int\int d\alpha d\beta d\gamma$. There equation follows Equation \eqref{E:G-correlation} and therefore 
@@ -578,152 +522,79 @@ $f(r)$ is equivalently specified by coefficients $\mathbf{f}_{mn}^l$.
 R. Kondor and S. Trivedi showed the convolution theorem for convolution on groups, so that Equation \eqref{E:convolution_r} can be 
 evaluated on the fourier space.
 
+\section{Steerable CNNs}
+Steerable CNNs are another type of equivariant neural network that does not deviate dramatically from the standard translation CNNs,
+i.e., avoids convolution on group elements. This is achieved by using induced representations\cite{serre_linear_1996}.  
+In addition, steerable CNNs naturally treats vectors fields, extending from the independent channels typical of RGB figures. 
+Furthermore, there is a natural connection in understanding tensor products, used in e3nn, and induced representation. 
 
-\begin{comment}
-We define the transformation of the feature map as by rotation operator $L_R$. The transformed feature map is given 
-by
+We mainly describe the steerable CNNs that is purposed by Cohen and Welling 2016\cite{cohen_steerable_2016} on images, which easily extend to 
+three dimensional case. Consider an image now as $f\colon \bbz^2\to \bbr^K$ which map the positions of pixel to 
+a \emph{vector} in $\bbr^K$. Following Cohen and Welling, the vector space $\bbr^K$ are space of fibers and the 
+vector space of all possible images are given by a direct sum of all the fiber space at each point on the image. 
+
+The action of group element $g=tr \in G$ on the input image $f$ is written:
 \begin{equation}
-    [L_R f](x) = f(R^{-1}x)
+    [\pi(g) f](x) = f(g^{-1}x)
+    \label{E:representation_on_input}
 \end{equation}
-Now, it is not possible to define convolution (correlation) as summations, as in Equation.\eqref{E:G-correlation}, 
-because the group of rotation is continous. The natural extensio for continuous variable is given by inner product. 
-For first layer that operate on the spherical image:
+In steerable CNNs, filters are defined in the same way as filters defined for standard CNNs, except that they must
+be \emph{H-equivariant} for the subgroup of $G$ which fix the origin (since translation does not affect vectors). 
 \begin{equation}
-    [f \star \psi] (R) = \langle L_R \psi, f \rangle = \int_{S^2} \sum_{k=1}^{K^l} \psi_k(R^{-1}x) f_k(x) dx
+    \label{E:H-equivariant}
+    \rho(h)[\Psi \circ f] = \Psi \circ \pi(h)f \qquad h \in H
 \end{equation}
+recall that $\rho$ gives a representation of $H$ that act on the vector space of fiber $F_x$.
+This condition means that, $f_{l+1}(x)$ obtained by applying filter after the transformation of $h$ (by $\pi(h)$) 
+on the image is equivalent to first applying the filter, than apply action of $h$ (by $\rho(h)$) in the vector 
+space of the fiber $F_{x}^{l+1}$. 
 
-All later feature maps are function $f\colon SO(3)\to \mathbb{R}^K$. For $R, Q \in SO(3)$ we have:
+We apply the filter on feature map by \emph{convoluting it with a translated 
+feature map} (we fix the filter at origin and move the feature map)
 \begin{equation}
-    [L_R f](Q) = f(R^{-1}Q)
+    f_{l+1}(x) = [\Psi \circ f_l](x) = \Psi \star ( \pi(x)^{-1} f_l )
 \end{equation}
-and 
+in $\pi(x)$, $x$ denote a translation, instead of a coordinate. 
+Then, for a general operation $g = tr$ with $t\in T$, $r \in H$, we have the transformation 
+properties:
+\begin{align*}
+    [\Psi \circ (\pi(tr)f_l)](x) 
+        &= \Psi \star \pi(x^{-1})\pi(tr) f_l \\
+        &= \Psi \star \pi(x^{-1}tr) f_l \\
+        &= \Psi \star \pi(rr^{-1}x^{-1}tr) f_l \\
+        &= \Psi \star \pi(r) \pi(r^{-1}x^{-1}tr) f_l \\
+        &= \rho(r) \Psi \star \pi\left(\left((tr)^{-1}x\right)^{-1}\right) f_l \\
+        &= \rho(r) [ \Psi \star  f_l ]  ((tr)^{-1}x)\\
+        &= \rho(r) (\pi(tr) f_{l+1}) (x) 
+\end{align*}
+$[\Psi \circ (\pi(tr)f_l)]$ means we transform the input feature map $f_l$ by the action of $tr$, then applying the filter. 
+The right hand side $\rho(r) [ \Psi \star  f_l ]  ((tr)^{-1}x)$ means we 
+1) apply the filter, 
+2) transform the feature map using relation $x\to(tr)^{-1}x$ and 
+3) apply the transformation $\rho(r)$ on the output fibers.
+If we define transformation $\Pi$ (induced transformation) on the output feature map:
 \begin{equation}
-    [f \star \psi] (R) = \langle L_R \psi, f \rangle = \int_{SO(3)} \sum_{k=1}^{K^l} \psi_k(R^{-1}Q) f_k(Q) dQ
+    [\Pi(tr) f ](x)= \rho(r) (\pi(tr) f) (x) \label{induced_transformation}
 \end{equation}
-where $\int_{SO(3)}$ can be expressed by $\int\int\int d\alpha d\beta d\gamma$. There equation follow 
-Proposition.\ref{Prop:G-correlation} and therefore is equivariant with respect to transformations in the group.
-
-
-\subsection*{Group equivariant CNN in Fourier transform}
-For the calculation of convolution, it is convenient to use generalized fourier transformation. 
-For any function on a sphere, we can define the fourier transformation and inverse transformation by:
-\begin{align}
-    f(x) &= \sum_{0\leq l \leq b} \sum_{|m|\leq l} f_m^l Y_m^l(x) &  f_m^l &= \sum_{S^2} \overline{Y_m^l(x)} f(x) dx  
-\end{align}
-with $Y_m^l(x)$ the spherical harmonics and $b$ the bandwidth of the decomposition. 
-Similarly, any function on $R$ can be decomposed by Wigner D-function $D_{mn}^l(R)$,
-with index range $-l \leq m,n \leq l$:
+Then we obtain the equivariance:
 \begin{equation}
-    f(R) = \sum_{0\leq l \leq b} (2l+1) \sum_{|m|,|n|\leq l} f_{mn}^l D_{mn}^l(R)
-    \label{E:so3_fft}
-\end{equation}.
-
-
-Ignoring the summation over feature depth index $k$, to evaluate the correlation over rotation, we 
-need to evaluate the integral:
-\begin{align}
-    &\int_{S^2} \psi(R^{-1}x) f(x) dx && \text{($S^2$-FT)}\\ 
-    &\int_{SO(3)} \psi (R^{-1}Q) f (Q) dQ   && \text{($SO(3)$-FT)}
-\end{align}
-A practical method is to use the general fourier decomposition. Any function on a shpere $S^2$ can be decomposed using spherical
-harmonics. 
-\begin{align}
-    f(x) &= \sum_{0\leq l \leq b} \sum_{|m|\leq l} f_m^l Y_m^l(x) &  f_m^l &= \sum_{S^2} \overline{Y_m^l(x)} f(x) dx  
-    \label{E:s2_fft}
-\end{align}
-where $b$ is the bandwidth of the decomposition. Increasing $b$ increase the resolution of the function
-\cite{esteves_learning_2018}.
-
-Similarly, an function on $SO(3)$, $f\colon SO(3)\to \mathbb{R}$, can be decomposed into Wigner $D$-function $D_{mn}^l(R)$,
-with index range $-l \leq m,n \leq l$:
-\begin{equation}
-    f(R) = \sum_{0\leq l \leq b} (2l+1) \sum_{|m|,|n|\leq l} f_{mn}^l D_{mn}^l(R)
-    \label{E:so3_fft}
+    \tag{Equivariance}
+    \Psi \circ \pi(g) f = \Pi(g) [\Psi \circ f]
 \end{equation}
+we take care to distinguish the effect of $\pi$ and $\Pi$. $\pi$ operation on the feature map as according to 
+\[[\pi(g) f](x) = f(g^{-1}x)\]
+which trans-rotate the feature map, 
+while $\Pi$ trans-rotate the feature map, as well as rotating the fibers.
+This method can be extend directly to three dimensional space, as in \cite{weiler_3d_2018}
 
-With the definition Equation.\eqref{E:s2_fft} and \eqref{E:so3_fft}, The integrals are straight forward to compute, as shown 
-in Appendix \ref{A:g-convolution}.
-
-We can see that the result of the convolution can be expressed by the coefficients $\psi_{m}^l, f_{m}^l$
-and $\psi_{mn}^l, f_{mn}^{l}$, which is passed down through the network, until an inverse transformation
-are needed (for example, to pass through non-linear functions).
-
-\subsection*{Clebsch-Gordan net}
-R. Kondor et al. 2018 further generalize the spherical convolution network to be work completely on 
-fourier space. In the spherical network as purposed previously, Nonlinearity require us to perform 
-inverse fourier transform into the feature map on the group element space, therefore requires
-multiple FT and IFT in a forward pass of the network. 
-
-In R. Kondor et al. the nonlinearity is produced by tensor products, instead of $h\colon \mathbb{R}\to\mathbb{R}$.
-By Clebsch-Gordan decomposition, the tensor product of two vector spaces is still a vector space of the representation
-of the group. Using tensor product as non-linearity, therefore, all layers can operate on fourier components and 
-the need for inverse fourier transformation is removed. 
-
-\end{comment}
+The key point in understanding the steerable CNNs are the fact that the transformation properties of the 
+output feature maps are given by the transformation properties of the pixel positions \emph{as well as}
+the transformation properties of the vectors associated at each pixel position. We will see that 
+this idea is used in euclidean neural network, where vector properties can be defined on nodes and 
+is combined with the transformation properties of its spatial positions.
 
 \section{Euclidean neural network}
-\subsection*{Network on points}
-Before going to rotational equivalent network on points, we first introduce two previous models that operates 
-on points. Qi et al.\cite{qi_pointnet_2017} proposed a network (PointNet) design that operation on sets of points that respect 
-the permutation invariance of the input points. The main structure of their network are can be summarized by 
-the following operation:
-\begin{equation}
-    f({x_1,\dots,x_n}) \approx g(h(x_1),\dots,h(x_n)) \label{E:pointnet_operation}
-\end{equation}
-Here, function $f$ is a \emph{general} function $f\colon\, \text{set of points} \to \mathbb{R}$. This function 
-is approximated using two function. $h\colon \mathbb{R}^N\to \mathbb{R}^K $ is a multi-layer neural network
-and $g$ is some function that is symmetric to permutation, such as averaging or max-pooling. Note that the same 
-$h$ is used for all points, so that the order of $x_i$ is the same of that of $h(x_i)$. 
-In the first layer, $x_i$ denote inputs of coordination $(x,y,z)$, but they can be expanded to feature vector 
-in higher dimensional feature space, associated on each point.
-Two further features of their network are:
-\begin{enumerate}
-    \item Small modules are defined that take inputs of vector in feature space and output affine transformations that are used to 
-            rotate all vectors. Therefore, this small modules are expected to learn the alignment of the points in the feature space 
-            (3-D space or higher dimension feature space), which 
-            are supposed to achieve invariant to geometric transformations.
-    \item After some global feature are extracted using Equation \eqref{E:pointnet_operation}, they are concatenated to the individual
-            feature vector on each point again. So that each points contains both local information and global information. The concatencated 
-            feature can be passed throught MLPs to extract pointwise outputs
-            \footnote{To give an example, if a set of point correspond to a table, then, the output global informations will be feature vector 
-            is roughly correspond to a table, in global feature space. If we now concatenate this global information to individual point, we 
-            can pass them to some further network, which will tell if some point belong to the legs of the table, or the surface.}. 
-            This is similar to that used by [Chen et al. 2019].
-\end{enumerate}
-
-In their later work, called PointNet++\cite{qi_pointnet_2017-1}, points are further organized in a hierarchy so that some local feature are extracted from a subset of 
-points. This is now every similar to pooling (loss of spatial resolution) in standard CNNs. 
-Local features are again represented as points and organized again in the hierarchy. Therefore, such networks are stable against
-some local deformations.
-
-We also mention the Molecular deep tensor neural networks (MDTNN) by K. T. Sch\"{u}tt et al.\cite{schutt_quantum-chemical_2017} 
-Their network operates on points but only 
-using the relative distance as inputs. This choice apparently make the output invariant to geometric transformation of the input coordinates.
-
-Their network start with a distance matrix $D$ with $d_{ij}$ giving the distance between atom $i$ and $j$, as well as a vector coefficients 
-on atoms $\mathbf{c}_i \in \mathbb{R}^K$. 
-In each layer, we update the coefficients:
-\begin{equation}
-    \mathbf{c}_i^{t+1} = \mathbf{c}_i^{t} + \sum_j v (\mathbf{c}, D) _{ij} \label{E:DTNN_refine}
-\end{equation} 
-$t$ refer to the layer index of the network,
-matrix $V$ the interaction that is a function of $\mathbf{c}$ and $D$. The interaction $V$ as the shape $N\times N \times K$, where $N$ is
-the number of atoms and $K$ is the depth of the features. Step of Equation \eqref{E:DTNN_refine} is also called a 'refinement'. 
-We can also note that the summation over $j$ is similar to a pooling operation and the coefficients $c_i$ from later layers have a larger
-field of reception (Figure.\ref{F:pooling}).
-\begin{equation}
-    v_{ij} = \tanh(c_j V D + W^c \mathbf{c}_j + W^d D + b_k )
-\end{equation}
-where all multiplication in this equation are matrix multiplication. 
-$V\in \mathbb{R}^{K\times K \times N}$, $W^c\in \mathbb{R}^{K\times K}$ and $W^d\in \mathbb{R}^{K\times N}$ are the weights and 
-$b_k$ are the weights.
-
-After $T$ iteration, the network obtain coefficients $c_i$. At each point, the coefficients with length $K$ is then passed to 
-a MLPs to extract physical quantities, such as atomic energies. However, we note that by construction, such network does not keep 
-any information on the orientation, only distance information is used. The features on the point also does not have any rotational 
-properties.
-
-\subsection*{Euclidean neural network}
+\subsection{Euclidean neural network}
 
 Euclidean nueral network purposed by Thomas et al. 2018\cite{thomas_tensor_2018} is different from the previous network in that
 \emph{The euclidean neural network operate on points throughout the structure: convolution is performed on each point with respect to other points.}
@@ -849,8 +720,9 @@ In this section, we show that the rotational equivariant network is able to extr
 on atoms, from the crystal structures.
 
 \section{Conclusion}
-We reviewed the basic ideal of translational and rotational equivariance that form the basis
-for the development of rotational equivariant point convolution network. Furthermore, we showed
+We reviewd recent works that operate on molecular and crystal structures. 
+Basic ideal of translational and rotational equivariance is introduced that form the basis
+for the development of rotational equivariant networks. Furthermore, we showed
 an application of the network. 
 
 \printbibliography[title={Reference}]

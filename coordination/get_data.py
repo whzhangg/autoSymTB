@@ -1,30 +1,25 @@
-from DFTtools.tools import read_generic_to_cpt
-from DFTtools.DFT.output_parser import parse_pdos_folder
+
 import os
 import numpy as np
-from mldos.data.milad_utility import Description
-
-from torch_geometric.data import Data
 import torch
-
 from torch_cluster import radius_graph
 from torch_geometric.data import Data, DataLoader
 from torch_scatter import scatter
 
 from e3nn import o3
-from e3nn.o3 import FullyConnectedTensorProduct
-from e3nn.util.test import assert_equivariant
+from e3nn.o3 import FullyConnectedTensorProduct, FullTensorProduct
 
-ef = 12.28
+ef = 12.28  # we intergrate to here to obtain the orbital occupation
 folder = "rotated_ones"
 one_hot = {
-    27: [1,0],
-    51: [0,1]
+    27: [1,0],  # Co
+    51: [0,1]   # Sb
 }
 torch_dtype = torch.float
 
-
 def get_dataset():
+    from DFTtools.DFT.output_parser import parse_pdos_folder
+    from mldos.data.milad_utility import Description
     list_of_data = []
     for i in range(1,11):
         folder_rot = os.path.join(folder, f"rot{i}")
@@ -48,7 +43,7 @@ def get_dataset():
         for iatom, occ in occupation.items():
             types = [ description.std_types[n.index] for n in neighbors[iatom - 1] ]
             pos = [ n.rij for n in neighbors[iatom - 1] ]
-            x = torch.tensor([one_hot[i] for i in types], dtype=torch_dtype)
+            x = torch.tensor([[[1.0]] * len(pos)], dtype=torch_dtype)
             pos = torch.tensor(np.array(pos), dtype=torch_dtype)
             occ = torch.tensor(occ, dtype=torch_dtype)
 
@@ -56,8 +51,7 @@ def get_dataset():
             for i in range(len(types)):
                 for j in range(len(types)):
                     if types[i] == 27 and types[j] == 51:
-                        edges.append([i,j])
-                        edges.append([j,i])
+                        edges.append([i,j])  # only the edges from Co -> Sb
             edge_index = torch.tensor(edges, dtype=torch.long)
 
             list_of_data.append(Data(x=x, pos = pos, y = occ, edge_index = edge_index))
@@ -66,52 +60,68 @@ def get_dataset():
 
 
 class myInvariantPolynomial(torch.nn.Module):
-    def __init__(self) -> None:
+    def __init__(self,
+        node_rep: str = '1x0e',
+        out_rep: str = '1x2e', 
+        lmax: int = 3
+    ) -> None:
         super().__init__()
-        self.irreps_in = o3.Irreps('2x0e')
-        self.irreps_sh = o3.Irreps.spherical_harmonics(3)
-        irreps_mid = o3.Irreps("64x0e + 24x1e + 24x1o + 16x2e + 16x2o")
-        irreps_out = o3.Irreps("1x2e")
+        self.irreps_in = o3.Irreps(node_rep)
+        self.irreps_sh = o3.Irreps.spherical_harmonics(lmax)
+        self.middle = o3.Irreps("20x2e")
+        self.irreps_out = o3.Irreps("1x2e")
 
+        irreps_mid = o3.Irreps("64x0e + 24x1e + 24x1o + 16x2e + 16x2o")
         self.tp1 = FullyConnectedTensorProduct(
             irreps_in1=self.irreps_in,
             irreps_in2=self.irreps_sh,
-            irreps_out=irreps_mid,
+            irreps_out=self.middle,
             internal_weights = True
         )
         self.tp2 = FullyConnectedTensorProduct(
-            irreps_in1=irreps_mid,
-            irreps_in2=irreps_mid,
-            irreps_out=irreps_out,
+            irreps_in1=self.irreps_in,
+            irreps_in2=self.middle,
+            irreps_out=self.middle,
             internal_weights = True
         )
-        self.irreps_out = self.tp2.irreps_out
+        self.tp3 = FullyConnectedTensorProduct(
+            irreps_in1=self.irreps_in,
+            irreps_in2=self.middle,
+            irreps_out=self.irreps_out,
+            internal_weights = True
+        )
 
     def forward(self, data) -> torch.Tensor:
-        num_neighbors = 6  # typical number of neighbors
-        edge_from = data.x[:,0] > 0.5
-        edge_to = data.x[:,1] > 0.5
+        num_neighbors = 6 
 
-        edge_vec = data.pos[edge_to] - data.pos[edge_from]
+        edge_to = data.edge_index[:,1]
+        edge_vec = data.pos[edge_to]
+
         edge_sh = o3.spherical_harmonics(
             l=self.irreps_sh,
             x=edge_vec,
             normalize=False,  # here we don't normalize otherwise it would not be a polynomial
             normalization='component'
         )
-        # For each node, the initial features are the sum of the spherical harmonics of the neighbors
-        #node_features = scatter(edge_sh, edge_dst, dim=0).div(num_neighbors**0.5)
-
-
         # For each edge, tensor product the features on the source node with the spherical harmonics
-        node_features0 = data.x[edge_to]
+        node_features0 = data.x[:,edge_to]
 
-        self_features = self.tp1(node_features0, edge_sh)
-        self_features = torch.sum(self_features,dim = 0).div(num_neighbors**0.5)
+        #print(node_features0.shape)
+        #print(edge_sh.shape)
 
-        node_features = self.tp2(self_features, self_features)
+        print(edge_sh.detach().numpy())
 
-        return node_features
+        node_features0 = self.tp1(node_features0, edge_sh)
+        #print(node_features0.shape, edge_to.shape)
+        #self_features = scatter(node_features0, edge_to, dim=1).div(num_neighbors**0.5)
+        self_features = torch.sum(node_features0, dim = 1).div(num_neighbors**0.5)
+
+        #print(self_features.shape)
+
+        self_features = self.tp2(data.x[0,0], self_features)
+        self_features = self.tp3(data.x[0,0], self_features)
+
+        return self_features
         
 
 class InvariantPolynomial(torch.nn.Module):
@@ -165,6 +175,40 @@ class InvariantPolynomial(torch.nn.Module):
 
 
 def main():
+    storage_file = f"{folder}.pt"
+    print(os.path.exists(storage_file))
+    if os.path.exists(storage_file):
+        datalist = torch.load(storage_file)
+    else:
+        datalist = get_dataset()
+        torch.save(datalist, storage_file)
+    
+    #print(datalist[1].x)
+    #print(datalist[1].pos)
+    #print(datalist[1].edge_index)
+    #print(datalist[1].y)
+
+    net = myInvariantPolynomial()
+    print(net)
+
+    net(datalist[1])
+
+    optim = torch.optim.Adam(net.parameters(), lr=1e-3)
+    labels = datalist[1].y.unsqueeze_(0)
+
+    '''
+    for step in range(10):
+        optim.zero_grad()
+        pred = net(datalist[1])
+        print(pred)
+        loss = (pred - labels).pow(2).sum()
+        print(loss)
+        loss.backward()
+    
+    print(net.tp1.weight.detach().numpy())
+    '''
+
+    '''
     from network import molecular_network
     net = molecular_network('2x0e','1x2o',
         lmax = 2,
@@ -207,7 +251,6 @@ def main():
 
 
     # == Train ==
-    '''
     for step in range(200):
         pred = f(data)
         loss = (pred - labels).pow(2).sum()

@@ -4,4 +4,6 @@ cnn/QM7/raw/*
 cnn/QM7/_local.py
 !cnn/QM7/raw/*.py
 coordination/rotated_ones
+coordination/rotated_ones.pt
 coordination/template
+**/.DS_Store
