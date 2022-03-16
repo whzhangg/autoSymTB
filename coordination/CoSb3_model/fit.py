@@ -215,6 +215,7 @@ def main():
     #print(net(datalist[2]))
     print(datalist[2].y)
 
+
 def test_tp():
     irreps_sh = o3.Irreps.spherical_harmonics(2)
     middle = o3.Irreps("30x0e + 30x1e + 30x1o + 30x2e")
@@ -223,4 +224,5 @@ def test_tp():
     print(FullTensorProduct(irreps_sh, '1x0e'))
     print(FullyConnectedTensorProduct(middle, middle, '1x2e'))
 
-main()
+if __name__ == "__main__":
+    main()
