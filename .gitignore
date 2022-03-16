@@ -4,6 +4,7 @@ cnn/QM7/raw/*
 cnn/QM7/_local.py
 !cnn/QM7/raw/*.py
 coordination/CoSb3_model/rotated_ones
+coordination/CoSb3_model/rotated_distorted
 coordination/CoSb3_model/rotated_ones.pt
 coordination/template
 **/.DS_Store

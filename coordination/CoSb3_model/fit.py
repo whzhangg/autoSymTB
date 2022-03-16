@@ -252,4 +252,5 @@ def main():
     print(pred)
     print(x.y)
 
-main()
+if __name__ == "__main__":
+    main()
