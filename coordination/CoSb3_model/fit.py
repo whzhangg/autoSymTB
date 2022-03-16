@@ -20,7 +20,6 @@ one_hot = {
 }
 torch_dtype = torch.float
 
-
 def make_dataset():
     from DFTtools.DFT.output_parser import parse_pdos_folder
     from mldos.data.milad_utility import Description
@@ -45,40 +44,18 @@ def make_dataset():
         neighbors = description.get_neighbors(allpoints, bonded=False, firstshell=True, cutoff=5)
 
         for iatom, occ in occupation.items():
-            types = [ description.std_types[n.index] for n in neighbors[iatom - 1] ]
             pos = [ n.rij for n in neighbors[iatom - 1] ]
 
             x = torch.tensor([[1.0]] * len(pos), dtype=torch_dtype)
             pos = torch.tensor(np.array(pos), dtype=torch_dtype)
             occ = torch.tensor(occ, dtype=torch_dtype)
 
-            edges = []
-            for i in range(len(types)):
-                for j in range(len(types)):
-                    if types[i] == 27 and types[j] == 51:
-                        edges.append([i,j])  # edges from Co -> Sb
-                        edges.append([j,i])  # edges from Sb -> Co
-                        
-            edge_index = torch.tensor(edges, dtype=torch.long)
-
-            list_of_data.append(Data(x=x, pos = pos, y = occ, edge_index = edge_index))
+            list_of_data.append(Data(x=x, pos = pos, y = occ))
 
     return list_of_data
 
 
-def tp_path_exists(irreps_in1, irreps_in2, ir_out):
-    irreps_in1 = o3.Irreps(irreps_in1).simplify()
-    irreps_in2 = o3.Irreps(irreps_in2).simplify()
-    ir_out = o3.Irrep(ir_out)
-
-    for _, ir1 in irreps_in1:
-        for _, ir2 in irreps_in2:
-            if ir_out in ir1 * ir2:
-                return True
-    return False
-
-
-class myNormedInvariantPolynomial(torch.nn.Module):
+class InvariantPolynomial(torch.nn.Module):
     def __init__(self,
         node_rep: str = '1x0e',
         out_rep: str = '1x2e', 
@@ -86,9 +63,8 @@ class myNormedInvariantPolynomial(torch.nn.Module):
     ) -> None:
         super().__init__()
         self.irreps_in = o3.Irreps(node_rep)
-        #self.irreps_sh = o3.Irreps("1x0e + 1x2e")
-        self.irreps_sh = o3.Irreps.spherical_harmonics(5)
-        self.middle = o3.Irreps("1x0e + 1x1o + 1x2e + 1x3o + 1x4e")
+        self.irreps_sh = o3.Irreps.spherical_harmonics(lmax)
+        self.middle = o3.Irreps("5x0e + 5x1o + 5x2e + 5x3o")
         self.irreps_out = o3.Irreps(out_rep)
 
         self.basis = 20
@@ -113,7 +89,7 @@ class myNormedInvariantPolynomial(torch.nn.Module):
         )
 
         self.fullyconnected = FullyConnectedNet(
-            [self.basis, 50] + [self.tp1.weight_numel],
+            [self.basis, 30] + [self.tp1.weight_numel],
             torch.nn.functional.silu
         )
 
@@ -126,9 +102,10 @@ class myNormedInvariantPolynomial(torch.nn.Module):
 
         edge_from, edge_to = radius_graph(
             x=data.pos,
-            r=4.0
+            r=3.5
         )
         edge_vec = data.pos[edge_to] - data.pos[edge_from]
+        Co = torch.mode(edge_to)[0]
 
         edge_sh = o3.spherical_harmonics(
             l=self.irreps_sh,
@@ -140,41 +117,107 @@ class myNormedInvariantPolynomial(torch.nn.Module):
         dist_embedding = soft_one_hot_linspace(
                     x = edge_vec.norm(dim=1), 
                     start = 0, 
-                    end = 3, 
+                    end = 3.5, 
                     number = self.basis, 
                     basis = 'smooth_finite', cutoff=True
         )
 
         tp_weights = self.fullyconnected(dist_embedding)
-
-        # For each edge, tensor product the features on the source node with the spherical harmonics
-        #print(datax.shape)
-
-        #print(node_features0.shape)
-        #print(edge_sh.shape)
-
-        #print(edge_sh.detach().numpy())
-        #print(self.tp1.weight.detach().numpy())
-        #print(tp_weights.shape)
-        #print(edge_sh.shape)
         node_features = self.tp1(datax[edge_to], edge_sh, tp_weights)
-
-        #print(node_features)
-        #node_features = self.normed_nonlinearity(node_features)
         node_features = scatter(node_features, edge_from, dim = 0).div(num_neighbors**0.5)
-        
-        #full = FullTensorProduct(self.middle, self.irreps_sh)
 
-        node_features = node_features[edge_to]
-        #fullresult = full(node_features, edge_sh)
-        #print(fullresult[0])
-        node_features = self.tp2(node_features, edge_sh)
-        #print(node_features)
-
-        node_features = scatter(node_features, edge_from, dim = 0)
+        node_features = self.tp2(node_features[edge_to], edge_sh)
+        node_features = scatter(node_features, edge_from, dim = 0).div(num_neighbors**0.5)
         
         return node_features[Co]
 
+
+def perturb_input(data, mode:str):
+    if mode == "displace":
+        # for displace, learning rate would be 1e-1, this achieve almost perfect fitting
+        perturb = torch.randn(size = data.pos.size(), dtype = data.pos.dtype)
+        factor = 1 / torch.mean(torch.norm(perturb, dim = 1)) / 50  # ~ 0.1
+        data.pos = data.pos + perturb * factor
+        return data, '1x0e'
+
+    elif "random_feature=" in mode:
+        # it seems that random feature does not really work (1x0e)
+        # why single random feature is not working?
+        # but if I use random (2x0e) feature, the fitting is perfect
+        nrandom = int(mode.split("=")[1])
+        perturb = torch.randn(size = (data.x.size()[0], nrandom), dtype = data.x.dtype)
+        data.x = perturb
+        return data, f'{nrandom}x0e'
+
+    elif mode == "extend":
+        # however, simply extend feature to (2x0e) filled with 1.0 does not 
+        # work
+        datax = torch.hstack((data.x, data.x))
+        data.x = datax
+        return data, '2x0e'
+
+    elif mode == "onehot":
+        # this achieve almost perfect fitting
+        datax = torch.eye(data.x.size()[0], dtype = data.x.dtype)
+        data.x = datax
+        return data, f'{len(datax)}x0e'
+
+    elif mode == "vector":
+        vector = torch.tensor([-0.2, 0.53, 0.09 ], dtype = data.x.dtype)
+        vectors = torch.vstack(len(data.x) * [vector])
+        data.x = torch.hstack([data.x, vectors])
+        return data, '1x0e + 3x0e'
+
+    elif "color=" in mode:
+        # we mark the first n node different color
+        # this also does not work as expected
+        n = int(mode.split("=")[1])
+        datax = torch.zeros(size = (len(data.x), 2), dtype = data.x.dtype)
+        for i in range(datax.size()[0]):
+            if i < n:
+                datax[i, 0] = 1.0
+            else:
+                datax[i, 1] = 1.0
+        data.x = datax
+        return data, '2x0e'
+
+
+def test():
+    storage_file = f"{folder}.pt"
+    if os.path.exists(storage_file):
+        datalist = torch.load(storage_file)
+    else:
+        datalist = make_dataset()
+        torch.save(datalist, storage_file)
+    sh = o3.Irreps.spherical_harmonics(2)
+    data = datalist[1]
+    full = FullTensorProduct(
+            irreps_in1= '1x0e+1x1o',
+            irreps_in2= sh
+        )
+    print(full)
+
+    vector = data.pos[1]
+    vectors = torch.vstack(len(data.x) * [vector])
+    data.x = torch.hstack([data.x, vectors])
+
+    edge_from, edge_to = radius_graph(
+            x=data.pos,
+            r=3.0
+    )
+    edge_vec = data.pos[edge_to] - data.pos[edge_from]
+
+
+
+    edge_sh = o3.spherical_harmonics(
+            l=sh,
+            x=edge_vec,
+            normalize=True,  # here we don't normalize otherwise it would not be a polynomial
+            normalization='component'
+    )
+
+    feature = full(data.x[edge_to], edge_sh)
+    print(torch.sum(feature, dim = 0))
 
 def main():
     storage_file = f"{folder}.pt"
@@ -182,45 +225,31 @@ def main():
     if os.path.exists(storage_file):
         datalist = torch.load(storage_file)
     else:
-        datalist = get_dataset()
+        datalist = make_dataset()
         torch.save(datalist, storage_file)
-    
-    #print(datalist[1].x)
-    #print(datalist[1].pos)
-    #print(datalist[1].edge_index)
-    #print(datalist[1].y)
 
-    net = myNormedInvariantPolynomial()
+    x = datalist[1]
+    labels = x.y
+
+    x, irrep_node = perturb_input(x, 'random_feature=1')
+    print(x.x)
+
+    net = InvariantPolynomial(node_rep=irrep_node, out_rep='1x2e')
     print(net)
 
-    #net(datalist[1])
-
-    optim = torch.optim.Adam(net.parameters(), lr=1)
-    labels = datalist[1].y
-
+    optim = torch.optim.Adam(net.parameters(), lr=1e-1)
     
-    for step in range(20):
+    for step in range(500):
         optim.zero_grad()
-        pred = net(datalist[1])
-        #print(pred)
-        #print(labels)
+        pred = net(x)
         loss = (pred - labels).pow(2).sum()
+        if step % 20 == 0:
+            print(pred)
         loss.backward()
         optim.step()
-    print()
-    #print(net(datalist[1]))
+    
+    
     print(pred)
-    print(datalist[1].y)
-    print()
-    #print(net(datalist[2]))
-    print(datalist[2].y)
-
-def test_tp():
-    irreps_sh = o3.Irreps.spherical_harmonics(2)
-    middle = o3.Irreps("30x0e + 30x1e + 30x1o + 30x2e")
-    irreps_out = o3.Irreps("1x2e")
-
-    print(FullTensorProduct(irreps_sh, '1x0e'))
-    print(FullyConnectedTensorProduct(middle, middle, '1x2e'))
+    print(x.y)
 
 main()

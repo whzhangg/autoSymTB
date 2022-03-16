@@ -2,7 +2,7 @@ import torch
 from torch_cluster import radius_graph
 from torch_scatter import scatter
 
-from e3nn.o3 import FullyConnectedTensorProduct, Irreps, spherical_harmonics
+from e3nn.o3 import FullyConnectedTensorProduct, Irreps, spherical_harmonics, FullTensorProduct
 from e3nn.nn import FullyConnectedNet, NormActivation
 from e3nn.math import soft_one_hot_linspace
 from itertools import permutations
@@ -22,6 +22,7 @@ class Polynomial(torch.nn.Module):
         self.middle = Irreps("5x0e + 5x0o + 5x1o + 5x2e")   # hidden states on the node
         self.irreps_out = Irreps(out_rep)
         self.n_node = n_node
+        self.pooling = pool
 
         self.basis = 20  # because the distance is different, we need to encode base functions with NN
 
@@ -55,14 +56,14 @@ class Polynomial(torch.nn.Module):
 
         additional = torch.eye(len(features), dtype = features.dtype)
 
-        for per in list(permutations(range(self.n_node - 1)))[0:5]:
+        for i, per in enumerate(list(permutations(range(self.n_node - 1)))):
             permute = tuple([*per, self.n_node - 1])
             add = additional[permute, :]
             extended_features = torch.hstack((features, add))
 
             edge_from, edge_to = radius_graph(
                 x=pos,
-                r=3.0
+                r=2.0
             )
 
             edge_vec = pos[edge_to] - pos[edge_from]
@@ -73,6 +74,13 @@ class Polynomial(torch.nn.Module):
                 normalize=True,  # here we don't normalize otherwise it would not be a polynomial
                 normalization='component'
             )
+
+            print(edge_from, edge_to)
+            full = FullTensorProduct(self.irreps_in, self.irreps_sh)
+            print(full)
+            print(edge_sh[0])
+            print(extended_features[0])
+            print(full(extended_features[edge_to], edge_sh)[0])
 
             dist_embedding = soft_one_hot_linspace(
                         x = edge_vec.norm(dim=1), 
@@ -88,6 +96,8 @@ class Polynomial(torch.nn.Module):
             node_features = self.tp2(node_features[edge_to], edge_sh)
             node_features = scatter(node_features, edge_from, dim = 0)
             result += torch.sum(node_features, dim = 0)
-            
-        result /= 24
+            if not self.pooling:
+                break
+        raise
+        result /= i+1
         return result

@@ -2,7 +2,9 @@ import numpy as np
 import torch
 
 
-from input_data import point, result, rotated_point, rotated_result, node_feature, point_original
+from input_data import (
+    point, result, node_feature,
+    rotated_point, rotated_result, point_original)
 from fit_function import Polynomial
 from angular_wavefunction import plot_3d_combined
 

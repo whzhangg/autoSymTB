@@ -1,13 +1,14 @@
+from e3nn import o3
 from e3nn.o3 import Irrep, rand_matrix
 import torch
 from numpy import pi
 
-point_original = torch.tensor([[ 1.0, 0.0, 0.0],
-                      [ 0.0, 1.0, 0.0],
-                      [ 0.0, 0.0, 1.0],
-                      [-1.0, 0.0, 0.0],
-                      [ 0.0,-1.0, 0.0],
-                      [ 0.0, 0.0,-1.0]])
+point_original = torch.tensor([ [ 1.0, 0.0, 0.0],
+                                [ 0.0, 1.0, 0.0],
+                                [ 0.0, 0.0, 1.0],
+                                [-1.0, 0.0, 0.0],
+                                [ 0.0,-1.0, 0.0],
+                                [ 0.0, 0.0,-1.0]])
 distort = torch.randn(size = point_original.size())
 factor = 1 / torch.mean(torch.norm(distort, dim = 1)) / 50  # ~ 0.1
 distort *= factor
@@ -26,15 +27,16 @@ point  = torch.tensor([ [ 0.9734,  0.0135,  0.0091],
 node_feature = torch.tensor([[1.0], [1.0], [1.0], [1.0], [1.0], [1.0]])
 result = torch.tensor([0.0, 0.0, 1.0, 0.0, 0.0])
 
-rot_angle = [torch.tensor(0.0, dtype = float), torch.tensor(pi/4, dtype = float), torch.tensor(0.0, dtype = float)]
+rot_angle = [torch.tensor(pi/4, dtype = float), torch.tensor(0, dtype = float), torch.tensor(0, dtype = float)]
 rot = Irrep('1o').D_from_angles(*rot_angle)
 rot_d = Irrep('2e').D_from_angles(*rot_angle)
 
-rot_angle = rand_matrix()
-rot = Irrep('1o').D_from_matrix(rot_angle)
-rot_d = Irrep('2e').D_from_matrix(rot_angle)
+#rot_angle = rand_matrix()
+#rot = Irrep('1o').D_from_matrix(rot_angle)
+#rot_d = Irrep('2e').D_from_matrix(rot_angle)
+print(rot)
+print(rot_d)
 
-print(point)
 rotated_point = torch.einsum('ij,zj->zi', rot.float(), point)
-print(rotated_point)
+rotated_point_original = torch.einsum('ij,zj->zi', rot.float(), point_original)
 rotated_result = torch.einsum('ij,j->i', rot_d.float(), result)

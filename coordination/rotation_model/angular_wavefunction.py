@@ -9,14 +9,14 @@ from scipy.special import sph_harm
 plt.rc('text', usetex=True)
 
 # Grids of polar and azimuthal angles
-theta = np.linspace(0, np.pi, 100)
-phi = np.linspace(0, 2*np.pi, 100)
+theta = np.linspace(0, np.pi, 200)
+phi = np.linspace(0, 2*np.pi, 200)
 # Create a 2-D meshgrid of (theta, phi) angles.
 theta, phi = np.meshgrid(theta, phi)
 # Calculate the Cartesian coordinates of each point in the mesh.
 xyz = np.array([np.sin(theta) * np.sin(phi),
-                np.cos(theta),
-                np.sin(theta) * np.cos(phi)])
+                np.sin(theta) * np.cos(phi),
+                np.cos(theta)])
 
 
 def sh_functions(l, m, phi, theta):
@@ -63,7 +63,9 @@ def plot_Y(ax, el, m):
     ax.set_xlim(-ax_lim, ax_lim)
     ax.set_ylim(-ax_lim, ax_lim)
     ax.set_zlim(-ax_lim, ax_lim)
-    ax.axis('off')
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_zlabel("z")
 
 def plot_3d_combined(coefficients, ax, ax_lim):
     coefficients = np.array(coefficients, dtype = float)
@@ -100,9 +102,52 @@ def plot_3d_combined(coefficients, ax, ax_lim):
     ax.set_zlabel("z")
     #ax.axis('off')
 
+def combined(coefficients, irreps, ax, ax_lim = 1.0):
+    from e3nn.o3 import Irreps
+    irreps = Irreps(irreps)
+    y_results = []
+    for s, ir in zip(irreps.slices(), irreps):
+        l = ir.ir.l
+        coeff = coefficients[s]
+        coeff = np.array(coeff, dtype = float)
+        norm = np.linalg.norm(coeff)
+        if norm < 1e-5:
+            continue
+        coeff /= norm
+        for cm, m in zip(coeff, range(-l, l+1)):
+            y_results.append(sh_functions(l, m, phi, theta) * cm)
+
+    y_results = np.array(y_results)
+    y_results = np.sum(y_results, axis = 0)
+
+    Yx, Yy, Yz = np.abs(y_results) * xyz # scales the vector
+    # Colour the plotted surface according to the sign of Y.
+    cmap = plt.cm.ScalarMappable(cmap=plt.get_cmap('PRGn'))
+    cmap.set_clim(-0.5, 0.5)
+
+    ax.plot_surface(Yx, Yy, Yz,
+                    facecolors=cmap.to_rgba(y_results),
+                    rstride=2, cstride=2)
+
+    # Draw a set of x, y, z axes for reference.
+    ax.plot([-ax_lim, ax_lim], [0,0], [0,0], c='0.5', lw=1, zorder=10)
+    ax.plot([0,0], [-ax_lim, ax_lim], [0,0], c='0.5', lw=1, zorder=10)
+    ax.plot([0,0], [0,0], [-ax_lim, ax_lim], c='0.5', lw=1, zorder=10)
+    # Set the Axes limits and title, turn off the Axes frame.
+    formatstr = '{:>7.2f}' * len(coefficients)
+    ax.set_title(formatstr.format(*coefficients))
+    ax.set_xlim(-ax_lim, ax_lim)
+    ax.set_ylim(-ax_lim, ax_lim)
+    ax.set_zlim(-ax_lim, ax_lim)
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_zlabel("z")
+    ax.set_box_aspect((ax_lim * 2.2, ax_lim * 2.2, ax_lim * 2.2))
+
 def plot_function(l, m):
     fig = plt.figure(figsize=plt.figaspect(1.))
     ax = fig.add_subplot(projection='3d')
+    ax.set_box_aspect((1.2, 1.2, 1.2))
     plot_Y(ax, l, m)
     fig.savefig('Y{}_{}.png'.format(l, m))
 
@@ -124,9 +169,10 @@ def plot_rotates():
 
 
 if __name__ == "__main__":
-    plot_function(2, -2)
-    plot_function(2, -1)
-    plot_function(2, 0)
-    plot_function(2, 1)
-    plot_function(2, 2)
+    from e3nn.o3 import Irreps
+    a = Irreps('1x1o + 1x2e')
+    fig = plt.figure(figsize=plt.figaspect(1.))
+    ax = fig.add_subplot(projection='3d')
+    combined([0,0,0,0,0,1,0,0], a, ax)
+    fig.savefig("combined.pdf")
 
