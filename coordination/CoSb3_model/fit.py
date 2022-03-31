@@ -97,9 +97,6 @@ class InvariantPolynomial(torch.nn.Module):
         num_neighbors = 6 
         datax = data.x
 
-        edge_to = data.edge_index[:,1]
-        Co = torch.mode(edge_to)[0]
-
         edge_from, edge_to = radius_graph(
             x=data.pos,
             r=3.5

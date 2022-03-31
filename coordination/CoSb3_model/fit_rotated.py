@@ -1,4 +1,4 @@
-from fit import torch_dtype, ef
+from fit import torch_dtype, ef, InvariantPolynomial
 import os
 folder = "rotated_distorted"
 import numpy as np
@@ -42,6 +42,32 @@ def make_dataset():
 
     return list_of_data
 
+def train():
+    datalist = make_dataset()
+    data = datalist[0]
+    labels = data.y
+
+    net = InvariantPolynomial(node_rep='1x0e', out_rep='1x2e')
+    print(net)
+
+    optim = torch.optim.Adam(net.parameters(), lr=1e-1)
+    
+    for step in range(500):
+        optim.zero_grad()
+        pred = net(data)
+        loss = (pred - labels).pow(2).sum()
+        if step % 20 == 0:
+            print(pred)
+        loss.backward()
+        optim.step()
+    
+    
+    print(net(data))
+    print(data.y)
+
+    data2 = datalist[2]
+    print(net(data2))
+    print(data2.y)
+
 if __name__ == "__main__":
-    data = make_dataset()
-    print(data[0].pos)
+    train()
