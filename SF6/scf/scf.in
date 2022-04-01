@@ -1,0 +1,49 @@
+&control
+  calculation = "scf"
+  prefix = "SF6"
+  outdir = "./out"
+  pseudo_dir = "/Users/wenhao/work/pseudo_potential/nc-sr-04_pbe_standard_upf"
+  restart_mode = "from_scratch"
+  verbosity = "high"
+  tstress = .TRUE.
+  tprnfor = .TRUE.
+  disk_io = "low"
+/
+
+&system
+  ibrav = 0
+  nat = 7
+  ntyp = 2
+  ecutwfc = 40
+  ecutrho = 160
+  occupations = "smearing"
+  smearing = "mp"
+  degauss = 0.003
+  nspin = 1
+/
+
+&electrons
+  conv_thr = 7e-13
+  mixing_beta = 0.4
+/
+
+ATOMIC_SPECIES 
+  S    32.06  S.upf
+  F    19.00  F.upf
+
+CELL_PARAMETERS angstrom
+   10.0000000   0.00000000   0.00000000
+   0.00000000   10.0000000   0.00000000
+   0.00000000   0.00000000   10.0000000
+
+ATOMIC_POSITIONS crystal
+ S    0.500000  0.500000  0.500000
+ F    0.500000  0.343897  0.500000
+ F    0.500000  0.656103  0.500000
+ F    0.656103  0.500000  0.500000
+ F    0.343897  0.500000  0.500000
+ F    0.500000  0.500000  0.656103
+ F    0.500000  0.500000  0.343897
+
+K_POINTS gamma
+

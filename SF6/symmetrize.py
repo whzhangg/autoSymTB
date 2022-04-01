@@ -58,12 +58,19 @@ for irot, rot in enumerate(rotations_crystal):
                     jbf = basis_functions_index[(jatom, bfs)]
                     representation[irot, jbf, ibf] = value
 
-print(positions)
-for i, row in enumerate(representation[2]):
+symmetrized_function = np.sum(representation, axis=0) / len(representation)
+print(symmetrized_function.shape)
+
+#print(positions)
+row_str = ""
+for bfn in basis_functions_name:
+    row_str += "{:>4s}".format(str(bfn[0]) + bfn[1])
+print(row_str)
+
+for i, row in enumerate(symmetrized_function):
     row_str = ""
     for value in row:
-        row_str += "{:>3.0f}".format(value)
-    row_str += "   " + str(basis_functions_name[i][0]) + " " + basis_functions_name[i][1]
+        row_str += "{:>4.0f}".format(value)
     print(row_str)
 
 # it seems that we can find first the 1 dimensional basis

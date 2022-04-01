@@ -1,0 +1,11 @@
+&PROJWFC
+  prefix = "SF6"
+  outdir = "./out"
+  degauss = 1e-3
+  Emin = -40.0
+  Emax = 5.0
+  DeltaE = 0.1
+  lsym = .false.
+  kresolveddos = .false.
+  coefficients = .true.
+/
