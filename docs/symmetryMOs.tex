@@ -1,0 +1,97 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{hyperref} % \url \href
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
+
+\title{Molecular orbitals and symmetrization}
+\author{Wenhao Zhang}
+\date{\today}
+\maketitle
+
+\section{Introduction}
+
+It is inefficient to learn rules using try and error, while the rules can be 
+simply stated. 
+Similarly, if we want to achieve the best results using machine learning, which 
+basically learn from statistic distribution of data, 
+it is important that we include as much concrete rules as possible. 
+This should greatly improve the accuracy of ML prediction while simplify the 
+problems for ML so that fewer data are necessary.
+To let machines predict the electronic structure of moleculars, for example, the 
+energy levels of the electronic states, 
+one way is to input the molecular structure to ML and ask it to output the energies. 
+However, this naive approach suffer from the problems that 1) this 'ab-initio' approach
+is too complicated to be formulated as a single function that we can hopefully understand 
+and 2) since we ourselves cannot understand it, it is impossible for us to inspect the 
+machine learning model: is machine really learning anything important, or it just 
+found some other patterns that fits the data but does not agree with our physical 
+or chemical understanding. 
+
+Using results from group theory, it is possible to simplify the Hamiltonians of 
+a molecular systems. Such approach utilize the symmetry of moleculars and provide
+rules that quantum mechanical interactions have to obey. 
+For example, a 's' type wavefunction can not interact with the 'p' type wavefunction,
+because their intergrals are strictly zero. 
+Furthermore, using group theory analysis using only symmetry information, we can find 
+our the degeneracy that are exact. 
+These informations reduce the size of the problem considerably. As a consequence, to 
+find the energy of the states, we now only need to consider the remaining interactions 
+that are allowed with the know form of the states, and the problem is then largely 
+an electro-static one, which should be simple enough for machine learning to solve.
+We try to formulate the ideas in the following sections
+
+\section{Groups, representations and basis}
+The symmetry operation that map a molecular onto itself form a group $G$. From a group,
+we define a representation of group $G$ as a mapping:
+\begin{definition}
+    A linear \emph{representation} of a group $G$ on a vector space $V$ is a homomorphism:
+    \[\rho\colon G \to \text{GL}(V)\]
+    where homomorphism is a mapping that satisfies $\rho(g_1g_2) = \rho(g_1)\rho(g_2)$.
+\end{definition}
+Representations are not unique: a change of basis leads to an equivalent representation 
+and the direct sum of two representation is again a representation. However, representations
+can be uniquely reduced to so called \emph{irreducible representations}.
+We define the notion of \emph{invariant vector space}:
+\begin{definition}
+    For any vector $v$ in $V$, for any $g\in G$, if we have $\rho(g)v \in V$, then $V$
+    is an invariant vector space.
+\end{definition} 
+For a representation with vector space $V$, $V$ is an invariant to the group $G$. 
+If there exist a vector space $W\subset V$ which is also invariant to $G$, then we call $W$
+an \emph{invariant subspace}. 
+Furthermore, there exist another invariant subspace $U$ of $V$ so that $V$ is given by a direct sum:
+\begin{equation}
+    V = U \oplus W
+\end{equation}
+By splitting the vector space $V$ into invariant subspaces until it is not possible, we find the 
+\emph{irreducible representation} by the reducible representation on $V$, and the matrix form 
+of the reducible representation can be written as the block diagonal form
+\begin{equation}
+    \rho^{\Gamma}(g) = \left(  
+        \begin{matrix}
+            \rho^{\Gamma_1} (g) & 0 & \cdots\\
+            0 & \rho^{\Gamma_2} (g) & \\
+            \vdots &  & \ddots
+        \end{matrix}
+    \right)
+\end{equation}
+where $\Gamma$ denote the reducible representation and $\Gamma_i\ (i = 1, \dots)$ index 
+the irreducible representations.
+
+\begin{thebibliography}{99}
+    \bibitem{} 
+\end{thebibliography}
+
+\appendix 
+% on the same page, section is numberd with A, B automatically
+\section{}
+
+
+\end{document}
