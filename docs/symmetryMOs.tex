@@ -7,6 +7,7 @@
 
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
 
 \begin{document}
 
@@ -27,7 +28,7 @@ problems for ML so that fewer data are necessary.
 To let machines predict the electronic structure of moleculars, for example, the 
 energy levels of the electronic states, 
 one way is to input the molecular structure to ML and ask it to output the energies. 
-However, this naive approach suffer from the problems that 1) this 'ab-initio' approach
+However, this naive approach suffer from the problems that 1) this `ab-initio' approach
 is too complicated to be formulated as a single function that we can hopefully understand 
 and 2) since we ourselves cannot understand it, it is impossible for us to inspect the 
 machine learning model: is machine really learning anything important, or it just 
@@ -37,7 +38,7 @@ or chemical understanding.
 Using results from group theory, it is possible to simplify the Hamiltonians of 
 a molecular systems. Such approach utilize the symmetry of moleculars and provide
 rules that quantum mechanical interactions have to obey. 
-For example, a 's' type wavefunction can not interact with the 'p' type wavefunction,
+For example, a `s' type wavefunction can not interact with the `p' type wavefunction,
 because their intergrals are strictly zero. 
 Furthermore, using group theory analysis using only symmetry information, we can find 
 our the degeneracy that are exact. 
@@ -48,6 +49,7 @@ an electro-static one, which should be simple enough for machine learning to sol
 We try to formulate the ideas in the following sections
 
 \section{Groups, representations and basis}
+\subsection{Groups and representations}
 The symmetry operation that map a molecular onto itself form a group $G$. From a group,
 we define a representation of group $G$ as a mapping:
 \begin{definition}
@@ -85,8 +87,73 @@ of the reducible representation can be written as the block diagonal form
 where $\Gamma$ denote the reducible representation and $\Gamma_i\ (i = 1, \dots)$ index 
 the irreducible representations.
 
+\subsection{Basis functions}
+For each invariant subspaces corresponding to a representation $\Gamma_n$, we write its basis 
+functions using the braket notation $|\Gamma_n,j\rangle$. For a irreducible representation with 
+dimension $N$, we have $N$ such basis functions and any vectors in this invariant subspace 
+can be written as a linear combination:
+\begin{equation}
+    |\phi^{\Gamma_n}\rangle = \sum_{i = 1}^N c_i |\Gamma_n,i\rangle
+\end{equation} 
+Due to the definition of invariant subspace, the matrix representation of $G$ in the invariant 
+subspace will have the form:
+\begin{equation}
+    \rho^{\Gamma_n}(g)_{ij} = \langle \Gamma_n,i | P_g | \Gamma_n,j \rangle
+\end{equation}
+where $P_g$ is the symmetry operation. 
+For reducible representations $\Gamma_{r}$, its vector subspace is a direct sum of all the subspace 
+of irreducible representations it contains. Therefore, basis functions from irreducible 
+subspaces together form the basis functions for the reducible representation.
+
+The basis functions of the representation of the symmetry group is closely connected to quantum mechanics.
+Since the Hamiltonian of the system is invariant to the symmetry operation, we have the commutation 
+relationship:
+\begin{equation}
+    [P_g,H] = 0
+\end{equation}
+for any symmetry operation $g$. As a consequence, if $|\phi_{\varepsilon_i}\rangle$ an eigenfunction of $H$
+with eigenvalue $\varepsilon_i$, $P_g|\phi_{\varepsilon_i}\rangle$ will also be an eigenfunction 
+with degenerate eigenvalues. Since $|\phi_{\varepsilon_i}\rangle$ and $P_g|\phi_{\varepsilon_i}\rangle$
+together will define some invariant space. Therefore, it is possible to classify the eigenfunctions of the 
+Hamiltonian according to the subspaces which they occupy, and the set of degenerate eigenfunctions are 
+related by symmetry operation. 
+
+\section{Finding the representations and Symmetry adopted basis functions}
+\subsection{Molecular orbitals}
+Using character table and the orthogonality theorem for characters, we can find the basis functions 
+of the Hamiltonians knowing only the symmetry property of the structure. 
+We start by finding the vector space of all the participating atomic orbitals and their transformation 
+properties under group operation, then decompose the reducible representation to irreducible ones. 
+We follow the example of Dresselhaus\cite{Dresselhaus2008} and consider the group $D_{3h}$ with 
+the following character table \ref{T:ct}
+\begin{table}[h!]
+    \centering
+    \caption{Character table of $D_{3h}$}
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+                & $E$ & $\sigma_h$ & 2$C_3$ & 2$S_3$ & 2$C_2'$ & 3$\sigma_v$ \\ \hline
+         $A_1'$ &  1  &  1         &  1     &  1     &   1     &   1         \\
+         $A_2'$ &  1  &  1         &  1     &  1     &  -1     &  -1         \\
+         $A_1''$&  1  & -1         &  1     & -1     &   1     &  -1         \\
+         $A_2''$&  1  & -1         &  1     & -1     &  -1     &   1         \\
+         $E'$   &  2  &  2         &  -1    & -1     &   0     &   0         \\
+         $E''$  &  2  & -2         &  -1    &  1     &   0     &   0         \\ \hline
+    \end{tabular}
+    \label{T:ct}
+\end{table}
+Suppose we have four atoms, one on the rotation axis and three other that transform to each other 
+by three fold rotation, and $s$ and $p$ orbitals on each of the atoms. Indexing each atomic 
+centered functions using atomic index $i$ and orbital index $l,m$ as $| i,l,m \rangle$ 
+(or $| i,s \rangle, \dots, |i,p_x\rangle$ if convenient), we form 
+a vector space with dimension $4\times4 = 16$:
+\begin{equation}
+    V = \spn(| 1,s \rangle, | 1,p_x \rangle ,\dots, | 4,p_z \rangle)
+\end{equation}
+We can find the matrix elements of the symmetry group in this space:
+
+
 \begin{thebibliography}{99}
-    \bibitem{} 
+    \bibitem{Dresselhaus2008} 
+    Dresselhaus, M. S.; Dresselhaus, G.; Jorio, A. Group Theory: Application to the Physics of Condensed Matter; Springer-Verlag: Berlin, 2008.
 \end{thebibliography}
 
 \appendix 
