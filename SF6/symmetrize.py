@@ -2,16 +2,26 @@ import spglib
 from DFTtools.DFT.output_parser import SCFout
 import numpy as np
 from copy import deepcopy
-from e3nn.o3 import Irreps, Irrep
+from e3nn.o3 import Irreps
 from numpy import pi
 import torch
 from dataclasses import dataclass
-from typing import Tuple, List
+from typing import Tuple, List, Union, Any
 
+# dataclass generate initialization automatically
 @dataclass
 class Symmetry:
     euler_angle : Tuple[float]
     inversion : int
+
+
+def find_symmetry_spglib(struct: tuple) -> list:
+    # return rotation in cartesian coordinates
+    dataset = spglib.get_symmetry_dataset(struct)
+    rotations_crystal = dataset["rotations"]
+    cellT = struct[0].T
+    rotations_cartesian = [ cellT.dot(r).dot(np.linalg.inv(cellT)) for r in rotations_crystal ]
+    return rotations_cartesian
 
 
 def test_o3_basisfunction(lmax = 2):
@@ -44,29 +54,19 @@ def test_o3_basisfunction(lmax = 2):
             print(print_format.format(*row))
         print()
 
-def find_symmetry(struct: tuple) -> list:
-    # return rotation in cartesian coordinates
-    dataset = spglib.get_symmetry_dataset(struct)
-    rotations_crystal = dataset["rotations"]
-    cellT = struct[0].T
-    rotations_cartesian = [ cellT.dot(r).dot(np.linalg.inv(cellT)) for r in rotations_crystal ]
-    return rotations_cartesian
 
-rotations_D3h = [
-    Symmetry((0,0,0), 0), # identity
-    Symmetry((0,0,pi), 1), # horizontal refection
-    Symmetry((0,0,2*pi/3), 0), # 120degree rotation
-    Symmetry((0,0,  pi/3), 1), # S3
-    Symmetry((0,pi,0), 0), # C2: rotation around x 
-    Symmetry((0,pi,-pi), 1) # vertical ?
-]
-
-D3h_positions = [
-    [ 0.0,   0.0, 0.0], 
-    [ 2.0,   0.0, 0.0],
-    [-1.0, np.sqrt(3), 0.0],
-    [-1.0,-np.sqrt(3), 0.0],
-]
+def apply_symmetry_operation(
+        sym: Symmetry, irreps: Union[str, Irreps], values: torch.tensor
+    ) -> torch.tensor:
+    repres = Irreps(irreps)
+    assert repres.dim == values.shape[-1]
+    rotation = repres.D_from_angles(
+            torch.tensor(sym.euler_angle[0], dtype = float), 
+            torch.tensor(sym.euler_angle[1], dtype = float), 
+            torch.tensor(sym.euler_angle[2], dtype = float), 
+            torch.tensor(sym.inversion, dtype = float)
+        ) 
+    return torch.einsum("ij,kj -> ki", rotation, values)
 
 # AO representation
 class AORepresentation:
@@ -76,65 +76,59 @@ class AORepresentation:
     with dimension natom * nbasis, 
     we define the sequence of the atomic orbital following e3nn
     s x z y xy xz z2 zy x2-y2
-    and rotations (alpha, beta, gamma) to be around z, x, z axis 
+    and rotations (alpha, beta, gamma) to be around z, x, z axis that do not rotate with the body
     """
     defined_orbitals = "s x z y xy xz z2 zy x2-y2".split()
-    def __init__(self, positions, lmax: int, symmetries: List[Symmetry]) -> None:
-        self.positions = torch.tensor(positions)
+    permute_yz = torch.tensor([0, 2, 1])
+    def __init__(self, positions: Any, AOs: List[Union[Irreps, str]], symmetries: List[Symmetry]) -> None:
+        positions = torch.tensor(positions, dtype = float)
+        self.positions = torch.index_select(positions, 1, self.permute_yz)
         self.symmetry_operations = symmetries
-        self.irrep = Irreps.spherical_harmonics(lmax = lmax)
         self.check_symmetry()
 
+        self.nsym = len(self.symmetry_operations)
+        self.natom = len(self.positions)
+        assert len(AOs) == self.natom
+        self.AOs = [Irreps(ir) for ir in AOs]
+        self.bfs = [(iatom,j) for iatom in range(self.natom) for j in range(self.AOs[iatom].dim)]
+        self.bf_index = { bf:i for i, bf in enumerate(self.bfs)}
+        self.nbfs = len(self.bfs)
+        self.generate_representation()
+
     def generate_representation(self):
-        for sym in self.symmetry_operations:
-            break
+        matrix = torch.zeros((self.nsym, self.nbfs, self.nbfs))
+        for isym,sym in enumerate(self.symmetry_operations):
+            rotated_positions = apply_symmetry_operation(sym, "1x1o", self.positions)
+            for iatom, ipos in enumerate(self.positions):
+                for jatom, jpos in enumerate(rotated_positions):
+                    if torch.allclose(ipos, jpos):
+                        # iatom is rotated to jatom
+                        assert self.AOs[iatom] == self.AOs[jatom]
+                        rotated_AOs = apply_symmetry_operation(sym, self.AOs[iatom], torch.eye(self.AOs[iatom].dim, dtype = float))
+                        for iao in range(self.AOs[iatom].dim):
+                            for jao in range(self.AOs[iatom].dim):
+                                i_index = self.bf_index[(iatom,iao)]
+                                j_index = self.bf_index[(jatom,jao)]
+                                matrix[isym, j_index, i_index] = rotated_AOs[iao, jao] # equation 4.5
+        traces = [torch.trace(m) for m in matrix]
+        print(traces) 
+                        
 
     def check_symmetry(self):
         # check if symmetry is indeed the same
         #cartesian_positions = np.einsum("ij, kj -> ki", self.cpt[0],self.cpt[1])
+        # we use strings to compare positions
         cartesian_positions = self.positions
         pos_list = set(["{:>7.3f},{:>7.3f},{:>7.3f}".format(*(p+0.000001)) for p in cartesian_positions.detach()])
         for symmetry in self.symmetry_operations:
-            transformed = self.apply_symmetry(1, cartesian_positions, symmetry)
+            transformed = apply_symmetry_operation(symmetry, "1x1o", cartesian_positions)
             transformed = set(["{:>7.3f},{:>7.3f},{:>7.3f}".format(*(p+0.000001)) for p in transformed.detach()])
             assert transformed == pos_list, (transformed, symmetry)
 
-    def apply_symmetry(self, l:int, values: torch.tensor, sym:Symmetry) -> torch.tensor:
-        irrep = Irrep(l,(-1)**l)
-        if l == 0:
-            permutation = [0]
-            reverse = [0]
-        elif l == 1:
-            permutation = [0, 2, 1] 
-            reverse = [0, 2, 1]
-        elif l == 2:
-            permutation = [0,1,2,3,4]
-            reverse= [0,1,2,3,4]
-        rotation = irrep.D_from_angles(
-            torch.tensor(sym.euler_angle[0], dtype = float), 
-            torch.tensor(sym.euler_angle[1], dtype = float), 
-            torch.tensor(sym.euler_angle[2], dtype = float), 
-            torch.tensor(sym.inversion, dtype = float)
-        ) 
-        transformed = torch.einsum("ij,kj -> ki", rotation, values[:, permutation])
-        return transformed[:, reverse]
-
-def index_rotation(rotations):
-    test = "a b c".split()
-    for rot in rotations:
-        rotated = ["", "", ""]
-        for i in range(3):
-            for j in range(3):
-                if abs(rot[i][j]) < 1e-3:
-                    continue
-                rotated[i] += "{:>3d}{:s}".format( int(rot[i][j]), test[j] )
-    print("{:s},{:s},{:s}".format(*rotated))
-
-scf = SCFout("scf/scf.out")
-cell = (scf.lattice, scf.positions, scf.types)
-
 
 if __name__ == "__main__":
+    scf = SCFout("scf/scf.out")
+    cell = (scf.lattice, scf.positions, scf.types)
     dataset = spglib.get_symmetry_dataset(cell)
     rotations_crystal = dataset["rotations"]
 
@@ -191,7 +185,4 @@ if __name__ == "__main__":
         for value in row:
             row_str += "{:>4.0f}".format(value)
         print(row_str)
-
-    # it seems that we can find first the 1 dimensional basis
-    # https://math.stackexchange.com/questions/1475212/simultaneously-diagonalize-the-regular-representation-of-c2-c2-c2
-
+    
