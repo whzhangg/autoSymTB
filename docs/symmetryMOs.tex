@@ -146,9 +146,68 @@ centered functions using atomic index $i$ and orbital index $l,m$ as $| i,l,m \r
 (or $| i,s \rangle, \dots, |i,p_x\rangle$ if convenient), we form 
 a vector space with dimension $4\times4 = 16$:
 \begin{equation}
-    V = \spn(| 1,s \rangle, | 1,p_x \rangle ,\dots, | 4,p_z \rangle)
+    V = \spn(| 1,s \rangle, | 1,p_x \rangle ,\dots, | 4,p_y \rangle, | 4,p_z \rangle)
 \end{equation}
-We can find the matrix elements of the symmetry group in this space:
+We can find the matrix elements of the symmetry group in this space using the following equation:
+\begin{equation}
+    \rho(g)_{ij} = \langle i | P_g | j \rangle
+\end{equation}
+where $\rho(g)$ is the matrix in the vector space of atomic basis function and $P_g$ is the 
+operators that transform the basis functions. 
+After generating the matrix of each symmetry operation, we find the character of the representation
+in this atomic orbital basis:
+\begin{gather*}
+    \chi^{AOs}(E) = 16,\ \chi^{AOs}(\sigma_h) = 8,\ \chi^{AOs}(C_3) = 1\\ 
+    \chi^{AOs}(S_3) = -1,\ \chi^{AOs}(C_2') = 0,\ \chi^{AOs}(\sigma_v) = 4
+\end{gather*}
+The uniqe decomposition of the reducible representation into the irreducible ones are given by:
+\begin{gather}
+    \chi(C_k) = \sum_{\Gamma_i} a_i \chi^{\Gamma_i}(C_k) \\
+    a_i = \frac{1}{h} \sum_{k} N_k \chi^{\Gamma_i}(C_k)^* \chi(C_k)
+\end{gather}
+where $C_k$ and $N_k$ denote the class of symmetry operation (whose elements have the same character)
+and their multiplicity. $h = |G|$ is the order of the group. Decomposing the 
+above represention in atomic orbital space, we obtain the following relationship:
+\begin{equation}
+    \Gamma^{AOs} = 
+      3\Gamma^{A_1'} + \Gamma^{A_2'}  + 2\Gamma^{A_2''} + 4\Gamma^{E'} + \Gamma^{E''}
+\end{equation}
+
+\subsection{Symmetry adopted linear combination}
+Knowing who the vector space constructed from the atomic orbitals can be organized into invariant subspaces 
+under symmetry group does not tell us what these subspaces are. 
+More importantly, to start to reason about the energy of these orbitals, we should start from the approximate
+shape of these orbitals.
+
+To start, we first identify what these subspaces are using the projection operation on the atomic basis functions
+\begin{equation}
+    P^{\Gamma_i} = \frac{l_n}{h}\sum_R \chi^{\Gamma_i}(R) P_R
+\end{equation}
+where $P^{\Gamma_i}$ is the projection operation onto the representation $\Gamma_i$, $l_n$ is the dimension of the 
+representation. 
+Operating this projection operator on an arbitrary function in the vector space $V^{AOs}$ produce a vector in the 
+subspace that correspond to the required representation. In our previous example, 
+if we consider the vector subspace formed by the $s$ orbital centered on three equivalent atoms corresponding to the 
+corner of the triangle, the group representation can be decomposed to $\Gamma^{s3} = \Gamma^{A_1'} + \Gamma^{E'}$
+with dimension one and two. 
+Projecting from each of the $s$ function onto these subspaces, we find that, for $A_1'$:
+\begin{align}
+    \psi_1^{A_1'} = \frac{1}{3}|s,1\rangle + \frac{1}{3}|s,2\rangle + \frac{1}{3}|s,3\rangle 
+    = \psi_2^{A_1'} = \psi_3^{A_1'}
+\end{align}
+i.e., the projectioned functions span a one dimensional subspace. 
+For $E'$ which is a two dimensional subspace, projection gives:
+\begin{align}
+    \psi_1^{E'} &= \ \ \ \frac{2}{3}|s,1\rangle - \frac{1}{3}|s,2\rangle - \frac{1}{3}|s,3\rangle  \\
+    \psi_2^{E'} &= -\frac{1}{3}|s,1\rangle + \frac{2}{3}|s,2\rangle - \frac{1}{3}|s,3\rangle  \\
+    \psi_3^{E'} &= -\frac{1}{3}|s,1\rangle - \frac{1}{3}|s,2\rangle + \frac{2}{3}|s,3\rangle 
+\end{align}
+Noting that $\psi_3^{E'} = - (\psi_1^{E'} + \psi_2^{E'})$, we find that this is indeed a two dimension 
+subspace. 
+
+Finally, we discuss how to generate the basis functions in these linear subspace that suite our need. We do not 
+require orthogonality for the basis functions, but require that basis functions are related to each other by 
+symmetry transformations. 
 
 
 \begin{thebibliography}{99}

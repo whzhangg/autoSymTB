@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ScappleDocument Version="1.2" ID="8176EF51-C19C-4CE1-B8DD-618E4D08D7AA">
+    <Notes>
+        <Note ID="0" FontSize="12.0" Position="147.050781,162.808594" Width="135.0">
+            <Appearance>
+                <Alignment>Left</Alignment>
+                <Border Weight="2" Style="Jagged"></Border>
+            </Appearance>
+            <String>CenteredAO
+
+position: Tensor
+irreps: Irreps
+ao_symbol: List
+atom_symbol: str
+
+method:
+rotate(sym:Symmetry)</String>
+            <ConnectedNoteIDs>1, 3</ConnectedNoteIDs>
+            <PointsToNoteIDs>1</PointsToNoteIDs>
+            <Formatting>
+                <FormatRange Bold="Yes">0,11</FormatRange>
+            </Formatting>
+        </Note>
+        <Note ID="1" FontSize="12.0" Position="149.0,373.0" Width="139.0">
+            <Appearance>
+                <Alignment>Left</Alignment>
+                <Border Weight="2" Style="Jagged"></Border>
+            </Appearance>
+            <String>LinearCombination
+
+AOs: List[CenteredAO]
+coefficients: Tensor
+
+method:
+normalize()
+__str__()
+plot()</String>
+            <ConnectedNoteIDs>0, 2</ConnectedNoteIDs>
+            <PointsToNoteIDs>2</PointsToNoteIDs>
+            <Formatting>
+                <FormatRange Bold="Yes">0,17</FormatRange>
+            </Formatting>
+        </Note>
+        <Note ID="2" FontSize="12.0" Position="393.324219,381.503906" Width="171.0">
+            <Appearance>
+                <Alignment>Left</Alignment>
+                <Border Weight="2" Style="Jagged"></Border>
+            </Appearance>
+            <String>AORepresentation
+
+LCs: List[LinearCombination]
+symmetries: List[Symmetry]
+
+Method:
+_check_symmetry()
+generate_representation()</String>
+            <ConnectedNoteIDs>1, 3, 6</ConnectedNoteIDs>
+            <PointsToNoteIDs>6</PointsToNoteIDs>
+            <Formatting>
+                <FormatRange Bold="Yes">0,16</FormatRange>
+            </Formatting>
+        </Note>
+        <Note ID="3" FontSize="12.0" Position="417.007812,175.75" Width="122.0">
+            <Appearance>
+                <Alignment>Left</Alignment>
+                <Border Weight="2" Style="Jagged"></Border>
+            </Appearance>
+            <String>Symmetry
+
+euler_angle: Tensor
+inversion: Tensor
+
+method:
+get_matrix(Irreps)</String>
+            <ConnectedNoteIDs>0, 2, 4</ConnectedNoteIDs>
+            <PointsToNoteIDs>0, 2, 4</PointsToNoteIDs>
+            <Formatting>
+                <FormatRange Bold="Yes">0,8</FormatRange>
+            </Formatting>
+        </Note>
+        <Note ID="4" FontSize="12.0" Position="648.210938,166.847656" Width="182.0">
+            <Appearance>
+                <Alignment>Left</Alignment>
+                <Border Weight="2" Style="Jagged"></Border>
+            </Appearance>
+            <String>GroupCharacterTable
+
+symmetries: List[Symmetry]
+class_multiplicity: List
+irreps: List[IrreducibleRP]
+
+method:
+decompose_representation()</String>
+            <ConnectedNoteIDs>3, 5-6</ConnectedNoteIDs>
+            <PointsToNoteIDs>6</PointsToNoteIDs>
+            <Formatting>
+                <FormatRange Bold="Yes">0,19</FormatRange>
+            </Formatting>
+        </Note>
+        <Note ID="5" FontSize="12.0" Position="688.519531,58.113281" Width="98.0">
+            <Appearance>
+                <Alignment>Left</Alignment>
+                <Border Weight="2" Style="Jagged"></Border>
+            </Appearance>
+            <String>IrreducibleRP
+
+symbol: str
+characters: List</String>
+            <ConnectedNoteIDs>4</ConnectedNoteIDs>
+            <PointsToNoteIDs>4</PointsToNoteIDs>
+            <Formatting>
+                <FormatRange Bold="Yes">0,13</FormatRange>
+            </Formatting>
+        </Note>
+        <Note ID="6" FontSize="12.0" Position="657.722656,616.5" Width="171.0">
+            <Appearance>
+                <Alignment>Left</Alignment>
+                <Border Weight="2"></Border>
+            </Appearance>
+            <String>func decompose (
+    AORepresentation,
+    GroupCharacterTable
+) -&gt; List[AORepresentation]</String>
+            <ConnectedNoteIDs>2, 4</ConnectedNoteIDs>
+            <Formatting>
+                <FormatRange Bold="Yes">0,15</FormatRange>
+            </Formatting>
+        </Note>
+    </Notes>
+    <BackgroundShapes></BackgroundShapes>
+    <AutoFit>0-3, 5</AutoFit>
+    <NoteStyles>
+        <Style Name="Bubble (Blue)" ID="196E4A4B-099D-42FB-AC7E-2D17BCB52EB7" AffectFontStyle="No" AffectAlignment="No" AffectTextColor="No" AffectNoteBody="Yes" AffectFade="No">
+            <BorderThickness>1</BorderThickness>
+            <BorderColor>0.668968 0.810267 0.895084</BorderColor>
+            <FillColor>0.743297 0.900297 0.994538</FillColor>
+        </Style>
+        <Style Name="Bubble (Green)" ID="BA01600B-C2BC-42EA-9948-E558D6B4A7EA" AffectFontStyle="No" AffectAlignment="No" AffectTextColor="No" AffectNoteBody="Yes" AffectFade="No">
+            <BorderThickness>1</BorderThickness>
+            <BorderColor>0.669411 0.885244 0.567003</BorderColor>
+            <FillColor>0.74379 0.983605 0.630003</FillColor>
+        </Style>
+        <Style Name="Bubble (Pink)" ID="CABAF0E1-DF42-42CC-AB97-FCF7E4F98430" AffectFontStyle="No" AffectAlignment="No" AffectTextColor="No" AffectNoteBody="Yes" AffectFade="No">
+            <BorderThickness>1</BorderThickness>
+            <BorderColor>0.894548 0.707752 0.715898</BorderColor>
+            <FillColor>0.989117 0.814091 0.999474</FillColor>
+        </Style>
+        <Style Name="Bubble (Red)" ID="D89236A4-3681-4DF9-98BF-891C15770A99" AffectFontStyle="No" AffectAlignment="No" AffectTextColor="No" AffectNoteBody="Yes" AffectFade="No">
+            <BorderThickness>1</BorderThickness>
+            <BorderColor>0.894548 0.707752 0.715898</BorderColor>
+            <FillColor>0.993942 0.786391 0.795442</FillColor>
+        </Style>
+        <Style Name="Bubble (Yellow)" ID="AF739C02-6D16-4831-B5E5-745FAD1ED229" AffectFontStyle="No" AffectAlignment="No" AffectTextColor="No" AffectNoteBody="Yes" AffectFade="No">
+            <BorderThickness>1</BorderThickness>
+            <BorderColor>0.87775 0.828268 0.562122</BorderColor>
+            <FillColor>0.975278 0.920298 0.62458</FillColor>
+        </Style>
+        <Style Name="Red Text" ID="0B9185EA-B817-40A8-8A8E-D4F4245EE1F2" AffectFontStyle="No" AffectAlignment="No" AffectTextColor="Yes" AffectNoteBody="No" AffectFade="No">
+            <TextColor>0.985948 0.0 0.026951</TextColor>
+        </Style>
+        <Style Name="Title Text" ID="55735C1E-38A9-4AD7-A294-DB3B0DC30B0E" AffectFontStyle="Yes" AffectAlignment="Yes" AffectTextColor="No" AffectNoteBody="No" AffectFade="No">
+            <FontSize>28.0</FontSize>
+            <IsBold>Yes</IsBold>
+        </Style>
+    </NoteStyles>
+    <UISettings>
+        <BackgroundColor>0.999767 0.98837 0.949907</BackgroundColor>
+        <DefaultFont>Helvetica</DefaultFont>
+        <NoteXPadding>8.0</NoteXPadding>
+    </UISettings>
+    <PrintSettings PaperSize="612.0,792.0" LeftMargin="72.0" RightMargin="72.0" TopMargin="90.0" BottomMargin="90.0" PaperType="na-letter" Orientation="Portrait" HorizontalPagination="Clip" VerticalPagination="Auto" ScaleFactor="1.0" HorizontallyCentered="Yes" VerticallyCentered="Yes" Collates="Yes" PagesAcross="1" PagesDown="1"></PrintSettings>
+</ScappleDocument>

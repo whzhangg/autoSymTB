@@ -102,7 +102,7 @@ class pgbf():
         return np.sqrt( pow(2,2*(l+m+n)+1.5) * pow(alpha,l+m+n+1.5) /
                         fact2(2*l-1)/fact2(2*m-1)/
                         fact2(2*n-1)/pow(np.pi,1.5)
-                        )
+                    )
 
 if __name__ == "__main__":
     func = pgbf(1, (1,0,0))
