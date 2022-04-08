@@ -69,4 +69,4 @@ def find_basis(
 # we should rewrite the class so that the functions can be transformed conveniently
 
 all_sym = find_all_symmetry_operation(D3h_AOs.reducible_matrix)
-find_basis(D3h_AOs, D3h_table, all_sym)
+#find_basis(D3h_AOs, D3h_table, all_sym)
