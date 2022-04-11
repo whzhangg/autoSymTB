@@ -44,23 +44,30 @@ class CenteredAO:
 
 
 class LinearCombination:
-    def __init__(self, coefficient: torch.Tensor, AOs: List[CenteredAO]) -> None:
+    display_tol = 1e-5
+    def __init__(self, coefficient: torch.Tensor, AOs: List[CenteredAO], normalize: bool = False) -> None:
         assert coefficient.shape[0] == sum([ao.irreps.dim for ao in AOs])
-        self.coefficient = coefficient
+        if normalize:
+            self.coefficient = self._normalize_coefficient(coefficient)
+        else:
+            self.coefficient = coefficient
         self.AOs = AOs
         self.AO_name = [ (iao,i) for iao, ao in enumerate(self.AOs) for i in range(ao.irreps.dim)]
         self.AO_index = { ao:i for i, ao in enumerate(self.AO_name)}
 
+    def _normalize_coefficient(self, coefficient: torch.Tensor):
+        n = torch.norm(coefficient)
+        if n < 1e-5:
+            return coefficient
+        else:
+            return coefficient / n
+
     def normalized(self):
         # return a normalized version of the same vector
-        n = torch.norm(self.coefficient)
-        if n < 1e-5:
-            normalized = self.coefficient
-        else:
-            normalized = self.coefficient / torch.norm(self.coefficient)
+        normalized = self._normalize_coefficient(self.coefficient)
         return LinearCombination(normalized, self.AOs)
 
-    def __str__(self, tol = 1e-5):
+    def __str__(self):
         sign = {
             1: "+",
             -1: "-"
@@ -68,7 +75,7 @@ class LinearCombination:
         result = ""
         ao_names = [ f"{ao.atom_symbol}-{aos}" for ao in self.AOs for aos in ao.ao_symbol]
         for s, absc, ao in zip(torch.sign(self.coefficient), torch.abs(self.coefficient), ao_names):
-            if absc < tol: continue
+            if absc < self.display_tol: continue
             result += f" {sign[s.item()]} " + "{:>5.3f}".format(absc.item()) + f" {ao}"
         return result
 
@@ -86,11 +93,16 @@ class LinearCombination:
 
         return LinearCombination(new_coefficient, new_AOlist)
         
+    def __bool__(self):
+        return torch.norm(self.coefficient).item() > self.display_tol
+
     def plot(self):
         raise NotImplementedError
 
+
 def get_dimension(AOs: List[CenteredAO]) -> int:
     return sum([ao.irreps.dim for ao in AOs])
+
 
 def get_linear_combination(matrix: torch.Tensor, AOs: List[CenteredAO]) -> List[LinearCombination]:
     result = [ LinearCombination(row, AOs) for row in matrix]

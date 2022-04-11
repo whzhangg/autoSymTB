@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ScappleDocument Version="1.2" ID="8176EF51-C19C-4CE1-B8DD-618E4D08D7AA">
     <Notes>
-        <Note ID="0" FontSize="12.0" Position="147.050781,162.808594" Width="135.0">
+        <Note ID="0" FontSize="12.0" Position="147.0,163.0" Width="135.0">
             <Appearance>
                 <Alignment>Left</Alignment>
                 <Border Weight="2" Style="Jagged"></Border>
@@ -14,7 +14,8 @@ ao_symbol: List
 atom_symbol: str
 
 method:
-rotate(sym:Symmetry)</String>
+rotate(sym:Symmetry)
+__eq__()</String>
             <ConnectedNoteIDs>1, 3</ConnectedNoteIDs>
             <PointsToNoteIDs>1</PointsToNoteIDs>
             <Formatting>
@@ -30,10 +31,14 @@ rotate(sym:Symmetry)</String>
 
 AOs: List[CenteredAO]
 coefficients: Tensor
+AO_name: List[tuple]
+AO_index: dict
 
 method:
 normalize()
+get_rotated()
 __str__()
+__bool__()
 plot()</String>
             <ConnectedNoteIDs>0, 2</ConnectedNoteIDs>
             <PointsToNoteIDs>2</PointsToNoteIDs>
@@ -41,15 +46,18 @@ plot()</String>
                 <FormatRange Bold="Yes">0,17</FormatRange>
             </Formatting>
         </Note>
-        <Note ID="2" FontSize="12.0" Position="393.324219,381.503906" Width="171.0">
+        <Note ID="2" FontSize="12.0" Position="393.0,382.0" Width="171.0">
             <Appearance>
                 <Alignment>Left</Alignment>
                 <Border Weight="2" Style="Jagged"></Border>
             </Appearance>
-            <String>AORepresentation
+            <String>VectorSpace
 
 LCs: List[LinearCombination]
 symmetries: List[Symmetry]
+rank: int
+reducible_matrix: Tensor
+reducible_trace: list[float]
 
 Method:
 _check_symmetry()
@@ -57,10 +65,10 @@ generate_representation()</String>
             <ConnectedNoteIDs>1, 3, 6</ConnectedNoteIDs>
             <PointsToNoteIDs>6</PointsToNoteIDs>
             <Formatting>
-                <FormatRange Bold="Yes">0,16</FormatRange>
+                <FormatRange Bold="Yes">0,11</FormatRange>
             </Formatting>
         </Note>
-        <Note ID="3" FontSize="12.0" Position="417.007812,175.75" Width="122.0">
+        <Note ID="3" FontSize="12.0" Position="416.863281,179.226562" Width="122.0">
             <Appearance>
                 <Alignment>Left</Alignment>
                 <Border Weight="2" Style="Jagged"></Border>
@@ -78,7 +86,7 @@ get_matrix(Irreps)</String>
                 <FormatRange Bold="Yes">0,8</FormatRange>
             </Formatting>
         </Note>
-        <Note ID="4" FontSize="12.0" Position="648.210938,166.847656" Width="182.0">
+        <Note ID="4" FontSize="12.0" Position="648.0,167.0" Width="182.0">
             <Appearance>
                 <Alignment>Left</Alignment>
                 <Border Weight="2" Style="Jagged"></Border>
@@ -97,7 +105,7 @@ decompose_representation()</String>
                 <FormatRange Bold="Yes">0,19</FormatRange>
             </Formatting>
         </Note>
-        <Note ID="5" FontSize="12.0" Position="688.519531,58.113281" Width="98.0">
+        <Note ID="5" FontSize="12.0" Position="689.0,58.0" Width="98.0">
             <Appearance>
                 <Alignment>Left</Alignment>
                 <Border Weight="2" Style="Jagged"></Border>
@@ -112,18 +120,20 @@ characters: List</String>
                 <FormatRange Bold="Yes">0,13</FormatRange>
             </Formatting>
         </Note>
-        <Note ID="6" FontSize="12.0" Position="657.722656,616.5" Width="171.0">
+        <Note ID="6" FontSize="12.0" Position="658.0,617.0" Width="171.0">
             <Appearance>
                 <Alignment>Left</Alignment>
                 <Border Weight="2"></Border>
             </Appearance>
-            <String>func decompose (
-    AORepresentation,
-    GroupCharacterTable
-) -&gt; List[AORepresentation]</String>
+            <String>func decompose_vectorspace(
+    VectorSpace,
+    GroupCharacterTable,
+    all_symmetry,
+    normalize: bool
+) -&gt; Dict[str -&gt; VectorSpace]</String>
             <ConnectedNoteIDs>2, 4</ConnectedNoteIDs>
             <Formatting>
-                <FormatRange Bold="Yes">0,15</FormatRange>
+                <FormatRange Bold="Yes">0,26</FormatRange>
             </Formatting>
         </Note>
     </Notes>

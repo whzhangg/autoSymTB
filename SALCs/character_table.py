@@ -40,30 +40,3 @@ class GroupCharacterTable:
             coefficients[irreducible.symbol] = int(coeff)
         return coefficients
 
-
-# a test data, group D3h
-# http://symmetry.jacobs-university.de/cgi-bin/group.cgi?group=603&option=4
-
-
-D3h_rotation = [
-    Symmetry((0,       0,            0), 0), #0 E        identity
-    Symmetry((0,       0,     torch.pi), 1), #1 Sigma_h  horizontal refection
-    Symmetry((0,       0, 2*torch.pi/3), 0), #2 C3       120degree rotation
-    Symmetry((0,       0,   torch.pi/3), 1), #3 S3       
-    Symmetry((0,torch.pi,            0), 0), #4 C2'      rotation around x 
-    Symmetry((0,torch.pi,    -torch.pi), 1)  #5 Sigma_v  vertical reflection
-]
-
-D3h_class_multiplicity = [1, 1, 2, 2, 3, 3]
-D3h_irrepresentations = [
-    IrreducibleRP("A1\'", [1, 1, 1, 1, 1, 1]),
-    IrreducibleRP("A2\'", [1, 1, 1, 1,-1,-1]),
-    IrreducibleRP("A1\"", [1,-1, 1,-1, 1,-1]),
-    IrreducibleRP("A2\"", [1,-1, 1,-1,-1, 1]),
-    IrreducibleRP("E\'",  [2, 2,-1,-1, 0, 0]),
-    IrreducibleRP("E\"",  [2,-2,-1, 1, 0, 0])
-]
-
-D3h_table = GroupCharacterTable(
-    D3h_rotation, D3h_class_multiplicity, D3h_irrepresentations
-)

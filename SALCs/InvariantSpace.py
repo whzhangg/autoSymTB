@@ -1,12 +1,9 @@
 from e3nn.o3 import Irreps
 import torch
 from typing import List, Union, Any, Dict
-import math
-# AO representation
-
 from symmetry import Symmetry
 from atomic_orbital import LinearCombination
-from character_table import D3h_table, GroupCharacterTable
+from character_table import GroupCharacterTable
 from torch_type import float_type
 
 def apply_symmetry_operation(
@@ -105,11 +102,15 @@ class VectorSpace:
 
 
 def decompose_vectorspace(
-    reducible: VectorSpace, table: GroupCharacterTable, all_sym: List[torch.Tensor]
+    reducible: VectorSpace, 
+    table: GroupCharacterTable, 
+    all_sym: List[torch.Tensor],
+    normalize: bool = False
 ) -> Dict[str,VectorSpace]:
-    coefficient = table.decompose_representation(reducible.reducible_trace)
+    rep_names = [ irrep.symbol for irrep in table.irreps ]
+    #coefficient = table.decompose_representation(reducible.reducible_trace)
     subspaces = {}
-    for irrep_name, coeff in coefficient.items():
+    for irrep_name in rep_names:
         fs = []
         characters = table.irreps_characters[irrep_name]
         dimension = characters[0] # dimension of irrep
@@ -118,60 +119,7 @@ def decompose_vectorspace(
             for isym, _ in enumerate(reducible.reducible_matrix):
                 for full_matrix in all_sym[isym]:
                     new_LC += torch.matmul(full_matrix, lc.coefficient) * characters[isym] * dimension / table.order
-            fs.append(LinearCombination(new_LC, lc.AOs).normalized())  
+            fs.append(LinearCombination(new_LC, lc.AOs, normalize))  
         subspaces[irrep_name] = VectorSpace(fs, reducible.symmetries)
     return subspaces
 
-
-D3h_positions = torch.tensor([
-    [ 2.0,   0.0, 0.0] ,
-    [-1.0, math.sqrt(3), 0.0],
-    [-1.0,-math.sqrt(3), 0.0],
-], dtype = float_type)
-D3h_positions = torch.index_select(D3h_positions, 1, torch.tensor([0,2,1]))
-D3h_AOs = [ '1x0e' for pos in D3h_positions ]
-
-def find_all_D3h_symmetry_operation(operations: List[torch.Tensor]) -> List[torch.Tensor]:
-    # its an ugly method, but maybe the easiest
-    equivalence_class = []
-    equivalence_class.append([operations[0]])
-    equivalence_class.append([operations[1]])
-    # 
-    s3 = operations[3]
-    equivalence_class.append([torch.linalg.matrix_power(s3, 2), torch.linalg.matrix_power(s3, 4)])
-    equivalence_class.append([torch.linalg.matrix_power(s3, 1), torch.linalg.matrix_power(s3, 5)]) 
-    # s3 * 3 = sigma_h
-    c31 = operations[2]
-    c32 = torch.linalg.matrix_power(c31, 2)
-    equivalence_class.append([
-        operations[4], 
-        torch.matmul(c32, torch.matmul(operations[4],c31)), 
-        torch.matmul(c31, torch.matmul(operations[4],c32))
-    ])
-
-    equivalence_class.append([
-        operations[5], 
-        torch.matmul(c32, torch.matmul(operations[5],c31)), 
-        torch.matmul(c31, torch.matmul(operations[5],c32))
-    ])
-
-    for o, os in zip(operations, equivalence_class):
-        assert torch.allclose(o, os[0])
-    return equivalence_class
-
-if __name__ == "__main__":
-    from character_table import D3h_table
-    from atomic_orbital import CenteredAO, get_linear_combination, get_dimension
-    aolist = []
-    for pos, ao in zip(D3h_positions, D3h_AOs):
-        aolist.append(CenteredAO("C", pos, ao))
-    n = get_dimension(aolist)
-    lc = get_linear_combination(torch.eye(n, dtype = float_type), aolist)
-    
-    rep = VectorSpace(lc, D3h_table.symmetries)
-
-    all_sym = find_all_D3h_symmetry_operation(rep.reducible_matrix)
-    subspaces = decompose_vectorspace(rep, D3h_table, all_sym)
-    e0 = subspaces["E\'"]
-    print(e0.reducible_matrix)
-    
