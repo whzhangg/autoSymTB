@@ -1,6 +1,6 @@
 from e3nn.o3 import Irreps
 import torch
-from typing import List, Union, Any, Dict
+from typing import List, Union, Any, Dict, Tuple
 from symmetry import Symmetry
 from atomic_orbital import LinearCombination
 from character_table import GroupCharacterTable
@@ -102,6 +102,17 @@ class VectorSpace:
 
 
 def decompose_vectorspace(
+    reducible: VectorSpace, 
+    table: GroupCharacterTable, 
+    all_sym: List[torch.Tensor],
+    normalize: bool = False
+) -> Tuple[List[str], LinearCombination]:
+    rep_names = [ irrep.symbol for irrep in table.irreps ]
+    # we do under subspaces are one dimension or zero dimension
+    subspaces
+
+
+def decompose_vectorspace2(
     reducible: VectorSpace, 
     table: GroupCharacterTable, 
     all_sym: List[torch.Tensor],

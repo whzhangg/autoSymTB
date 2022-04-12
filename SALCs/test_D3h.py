@@ -1,7 +1,7 @@
 from symmetry import Symmetry
 import torch
 from character_table import IrreducibleRP, GroupCharacterTable
-from typing import List
+from typing import List, Dict
 import math
 from torch_type import float_type
 from atomic_orbital import LinearCombination, CenteredAO, get_dimension, get_linear_combination
@@ -92,7 +92,6 @@ def find_all_Cs_symmetry_operation(operations: List[torch.Tensor]) -> List[torch
     # trivial
     return [ [matrix] for matrix in operations ]
 
-
 def test_generating_subspaces():
     aolist = []
     for pos, ao in zip(D3h_positions, D3h_AOs):
@@ -119,4 +118,4 @@ def test_generating_subspaces():
             for lc in subspace.LCs:
                 if lc: print(lc)
 
-test_generating_subspaces()
+#test_generating_subspaces()
