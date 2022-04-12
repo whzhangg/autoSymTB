@@ -1,17 +1,20 @@
 import plotly.graph_objects as go
 
-from gbf import wavefunction, molecularfuntion
+from gbf import molecularfuntion
 import numpy as np
 
-positions = np.array([[2,0,0],[-2,0,0],[0,2,0],[0,-2,0]])
-coefficients = np.array([[1.0, 0.0, 0.0, 0.0], 
-                         [1.0, 0.0, 0.0, 0.0],
-                         [0.0, 0.0, 0.0, 1.0],
-                         [0.0, 0.0, 0.0, 1.0], ])
+grid_density = 50
 
-lin = np.arange(-5, 5, 0.2)
-xs, ys, zs = np.meshgrid(lin, lin, lin)
-value = molecularfuntion(positions, coefficients, xs, ys, zs)
+def get_meshgrid(positions: np.array, grid_density: int = 50):
+    extra_space = 1.5
+    range_max = np.amax(positions, axis = 0)
+    range_min = np.amin(positions, axis = 0)
+    center = ( range_max + range_min ) / 2
+    delta = (1 + extra_space) * np.max(( range_max - range_min )) / 2
+    linear = [ 
+        np.arange(center[i]-delta, center[i]+delta, delta * 2 / grid_density) for i in range(3)
+    ]
+    return np.meshgrid(*linear)
 
 def plot_density(xs, ys, zs, value, filename, iso = 0.3):
     fig= go.Figure(data=go.Isosurface(
@@ -27,4 +30,12 @@ def plot_density(xs, ys, zs, value, filename, iso = 0.3):
     fig.write_html(filename)
 
 if __name__ == "__main__":
+    positions = np.array([[2,0,0],[-2,0,0],[0,2,0],[0,-2,0]])
+    coefficients = np.array([[1.0, 0.0, 0.0, 0.0], 
+                            [1.0, 0.0, 0.0, 0.0],
+                            [0.0, 0.0, 0.0, 1.0],
+                            [0.0, 0.0, 0.0, 1.0], ])
+
+    xs, ys, zs = get_meshgrid(positions)
+    value = molecularfuntion(positions, coefficients, xs, ys, zs)
     plot_density(xs, ys, zs, value, "mo.html")

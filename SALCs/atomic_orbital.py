@@ -2,6 +2,8 @@ from e3nn.o3 import Irreps
 from typing import Union, Tuple, List
 import torch 
 from torch_type import float_type
+import numpy as np
+from plot_mo import wavefunction, get_meshgrid
 
 AO_SYMBOL = {
     "0e": ["s"],
@@ -26,7 +28,10 @@ class CenteredAO:
     def ao_symbol(self):
         return [ f"{self.atom_symbol}-{orb_sym}" for _, irrep in self.irreps for orb_sym in AO_SYMBOL[str(irrep)] ]
         
-
+    @property
+    def orbit_symbol(self):
+        return [ orb_sym for _, irrep in self.irreps for orb_sym in AO_SYMBOL[str(irrep)] ]
+        
     def __eq__(self, other) -> bool:
         if torch.allclose(self.position, other.position) and self.irreps == other.irreps:
             return True
@@ -49,6 +54,9 @@ class LinearCombination:
         self.AOs = AOs
         self._AO_name = [ (iao,i) for iao, ao in enumerate(self.AOs) for i in range(ao.irreps.dim)]
         self._AO_index = { ao:i for i, ao in enumerate(self._AO_name)}
+
+    def get_positions(self) -> torch.Tensor:
+        return torch.vstack([ ao.position for ao in self.AOs ])
 
     def get_AO_index(self, iAO:int, iorb:int) -> int:
         return self._AO_index[(iAO, iorb)]
@@ -82,9 +90,18 @@ class LinearCombination:
     def __bool__(self):
         return torch.norm(self.coefficient).item() > self.display_tol
 
-    def plot(self, filename:str):
-        
-        raise NotImplementedError
+    def density(self):
+        grid_size = 50
+        xs, ys, zs = get_meshgrid(self.get_positions().numpy(), grid_size)
+        result = np.zeros_like(xs)
+        for iao, (iatom, iorbit) in enumerate(self._AO_name):
+            co = self.coefficient[iao]
+            position_moved = torch.index_select(self.AOs[iatom].position, 0, torch.tensor([0,2,1]))
+            position = position_moved.numpy()
+            name = self.AOs[iatom].orbit_symbol[iorbit]
+            result += co.item() * wavefunction(1, name, position, xs, ys, zs)
+        return xs, ys, zs, result
+            
 
 class VectorSpace:
     """
@@ -100,7 +117,22 @@ class VectorSpace:
         return torch.linalg.matrix_rank(self._all_coefficients, tol = 1e-5 )
 
     def __repr__(self) -> str:
-        return f"VectorSpace with rank {self.rank} and {len(self.LCs[0].AOs)} AOs"
+        return f"VectorSpace with rank {self.rank} and {len(self.LCs)} LCs"
+
+    def remove_linear_dependent(self):
+        non_zero = [lc for lc in self.LCs if lc]
+        independent = [non_zero[0]]
+        for vector in non_zero:
+            is_close = False
+            for compare in independent:
+                cos = torch.abs(torch.dot(vector.coefficient, compare.coefficient))
+                if torch.isclose(cos, torch.tensor(1, dtype = float_type)):
+                    is_close = True
+                    break
+            if not is_close and vector:
+
+                independent.append(vector)
+        return VectorSpace(independent)
 
     @property
     def display_str(self) -> str:
@@ -112,6 +144,25 @@ class VectorSpace:
         result = f"Vector space with rank {self.rank}"
         for lc in self.LCs:
             if lc: result += f"\n{str(lc)}"
+        return result
+
+class VectorSpacewithBasis(VectorSpace):
+    # it is basically a VectorSpace with named Linear combinations are basis
+    def __init__(self, LCs: List[LinearCombination], names: List[str] ) -> None:
+        assert len(LCs) == len(names)
+        super().__init__(LCs)
+        self.names = names
+
+    @property
+    def display_str(self) -> str:
+
+        any_function = any([bool(lc) for lc in self.LCs])
+        if self.rank == 0 or not any_function:
+            return ""
+
+        result = f"Vector space with rank {self.rank}"
+        for lc, name in zip(self.LCs, self.names):
+            if lc: result += f"\n{name}: {str(lc)}"
         return result
 
 
@@ -126,8 +177,8 @@ def get_linear_combination(matrix: torch.Tensor, AOs: List[CenteredAO]) -> List[
 
 if __name__ == "__main__":
     ao1 = CenteredAO("atom1", torch.tensor([0.0, 0.0, 0.0], dtype = float_type), "1o")
-    ao2 = CenteredAO("atom2", torch.tensor([0.5, 0.0, 0.0], dtype = float_type), "1o")
-    lc1 = LinearCombination(torch.tensor([0.0, 0.1, 0.1, 0.8, -0.2, 0.05], dtype = float_type), [ao1, ao2])
+    ao2 = CenteredAO("atom2", torch.tensor([3, 0.0, 0.0], dtype = float_type), "1o")
+    lc1 = LinearCombination(torch.tensor([0.0, 1.0, 0.0, 0.0,  0.0, 0.0], dtype = float_type), [ao1, ao2])
     lc2 = LinearCombination(torch.tensor([0.0, 0.0, 0.0, 0.0, -0.0, 0.0], dtype = float_type), [ao1, ao2])
     vs = VectorSpace([lc1, lc2])
 
@@ -135,4 +186,11 @@ if __name__ == "__main__":
     print(lc1)
     print(vs)
     print(vs.display_str)
+
+    from plot_mo import get_meshgrid, plot_density
+    positions = lc1.get_positions()
+    xs, ys, zs = get_meshgrid(positions.numpy())
+    
+    density = lc1.density([xs, ys, zs])
+    plot_density(xs, ys, zs, density, "lc.html")
     # >>> + 0.100 atom1-pz + 0.100 atom1-py + 0.800 atom2-px - 0.200 atom2-pz + 0.050 atom2-py

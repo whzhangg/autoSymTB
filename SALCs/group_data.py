@@ -48,5 +48,7 @@ groupData = {
     ], subgroup_Schoenflies="Cs"),
 
     "Cs" : GroupInfo("Cs", "m", 2, [0,9], 
-    Irreps=[IrreducibleRP("A\'", 1, [1, 1]), IrreducibleRP("A\"", 1, [1,-1])], subgroup_Schoenflies= None)
+    Irreps=[IrreducibleRP("A\'", 1, [1, 1]), IrreducibleRP("A\"", 1, [1,-1])], subgroup_Schoenflies= "1"),
+
+    "1" : GroupInfo("1", "1", 1, [0], Irreps=[IrreducibleRP("A\'", 1, [1])], subgroup_Schoenflies=None )
 }
