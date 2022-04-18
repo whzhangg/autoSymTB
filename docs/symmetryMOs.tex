@@ -9,6 +9,9 @@
 \newtheorem{theorem}{Theorem}
 \DeclareMathOperator{\spn}{Span}
 
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\addbibresource{Ref_MLTB.bib}
+
 \begin{document}
 
 \title{Molecular orbitals and symmetrization}
@@ -47,6 +50,152 @@ find the energy of the states, we now only need to consider the remaining intera
 that are allowed with the know form of the states, and the problem is then largely 
 an electro-static one, which should be simple enough for machine learning to solve.
 We try to formulate the ideas in the following sections
+
+\section{Method}
+
+\subsection{Symmetry adapted linear combinations}
+
+
+\subsection{Tight-binding methods}
+Tight-binding methods is a well known technique to solve the band structure of 
+crystalline material with a model Hamiltonian\cite{ziman_principles_1999}. 
+It is fast to run and is able to 
+reproduce the DFT calculated band structure accurately provided a suitable set of 
+parameters. 
+In the tight binding approximation, we write the Hamiltonian in the local 
+basis orbitals:
+\begin{equation}
+    H_{ij}(R) = \langle \phi_{R',i} | H | \phi_{R'+R,j} \rangle = \langle \phi_{0,i} | H | \phi_{R,j} \rangle
+\end{equation}
+where index 0, $R$ refer to an arbitrarily selected `home' unitcell and unit cell at 
+lattice vector $R$. The Bloch-like basis functions are then:
+\begin{equation}
+    |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j)} |\phi_{Rj} \rangle
+\end{equation}
+and the Hamiltonian matrix at reciprocal vector $\mathbf{k}$ is related to the 
+Hamiltonian in real space by:
+\begin{equation}
+    H_{ij}^{\mathbf{k}} = \langle \psi_i^k | H |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j-t_i)} = H_{ij}(R)
+\end{equation}
+Diagonalizing the square matrix $H_{ij}^{\mathbf{k}}$ gives the eigen energies at $\mathbf{k}$
+in the tight-binding approximation. 
+
+The benefit of tight-binding model comes from the fact that its basis functions 
+are in real space. Utilizing this fact, we can greatly reduce the number of parameters 
+that tight-binding requires. 
+Firstly, in real space the interaction decay fast with respect to distance between the 
+basis functions. In the simplest case, only nearest neighbor interaction is required. 
+Suppose that the average number of neighbors is $N_n$ and we have $N_{ao}$ basis functions 
+on each atom, we would have:
+\begin{equation}
+    \text{Number of interaction} = ( N_n + 1 ) N_{ao}^2 / 2
+\end{equation}
+where division by $2$ remove the double counting (assuming the Hamiltonian is real, and 
+therefore $\langle \phi_1 | H | \phi_2 \rangle = \langle \phi_2 | H | \phi_1 \rangle$). 
+
+On the other hand, a tight-binding model with the nearest neighbor interaction can be further 
+simplified using the result from symmetry analysis, and it turns out that 
+symmetry restrict the value of and relationship between the matrix elements. To illustrate the idea,
+we use 
+
+However, the greatest benefit of tight-binding model, and the reason
+for using it here, is its efficiency: only a small set of few parameters are needed
+to describe well the entire system, provided that the decay of the interactions is 
+fast enough. For a $N_b$ band system, we only need to store $N_b\times N_b \times N_s$ 
+parameter, where $N_s$ is the number of unit cells beyond which orbital interactions
+decay. 
+
+Hand crafted tight-binding model employ fewer parameters. For example, 
+in \cite{boyer-richard_symmetry-based_2016}, only 8 parameters are used to for the 
+tight-binding model for Halide Perovskite Semiconductors. This is possible 
+because of the following two considerations:
+1. restricting the interactions to nearest neighbors only, and
+2. symmetry restrain the number of parameters possible.
+The first consideration is a "give and take": ignorance of the longer range interactions 
+reduce the number of parameters but result in errors inevitably. Therefore, 
+this choice depend on our priority. 
+However, the second (symmetry) consideration is exact. 
+
+There are two ways symmetries come into play. 
+First way is \emph{symmetry equivariance}: consider the interaction between 
+a $p_x$ orbital at center and two $s$ orbital at position $r_1 = (1,0,0), r_2 = (-1,0,0)$:
+\begin{align}
+    \langle p_x^{0,0,0} | H | s^{1,0,0} \rangle = - \langle p_x^{0,0,0} | H | s^{-1,0,0} \rangle
+\end{align}
+The negative sign come from the fact the two $s$ orbitals are related by 
+under a rotation of $\pi$ along $z$ axis. The 
+$s$ function is invariant while the $P_x$ function change sign under the rotation, so that the two 
+tight-binding matrix elements strictly reverse of each other. Their value are therefore related by 
+symmetry operation. 
+
+The second way come from the fact that wavefunctions belong to different group representations  
+(i.e. they transform differently)\cite{serre_linear_1996}
+can only have zero interaction matrix elements. This point is illustrated by the fact that an 
+$p_y$ orbital at the center cannot bond with an $s$ orbital at $r = (1,0,0)$. 
+However, we need to be careful that here we should consider \emph{Molecular orbitals} instead 
+of \emph{Atomic orbitals}. Indeed, coordination chemistry uses molecular orbitals at basic units,
+as well as most analytic methods before the advance of DFT methods. 
+
+\subsection{Equivariant network}
+To utilize the symmetry relationship in the first way, we use the equivariant neural network
+structure purposed by Thomas et al.\cite{thomas_tensor_2018} (Deep Tensor Neural Network). 
+The network structure (DTNN) is reviewed in the appendix. 
+An important point that separate the equivariant network with general networks using 
+invariant descriptors is that the transformation properties are kept in all layers of the equivariant
+network such as one purposed by Thomas et al, but transformation properties are not kept if we 
+use invariant descriptors. For example, the output of DTNN will change sign for a scalar output  
+if a $\pi$ rotation is applied to an $p$ orbital, while the output will be the same for any
+simple invariant network. This is one of the key property that we desire.
+Furthermore, data in DTNN naturally flow in the form of tensor, which allow us to define 
+tensor product, as in the case of Hamiltonian.
+
+\section{Using the equivariant network}
+Our network take inputs as two vectors and produce a scalar number. Since DTNN's output is 
+also vector quantity, we define the network as $H(i,j)$ that operate on vector $| \psi_j \rangle$
+\begin{equation}
+    H |\psi\rangle = H(| \psi_i \rangle,| \psi_j \rangle) | \psi_j \rangle
+\end{equation}
+so that the tight-binding matrix element is naturally:
+\begin{equation}
+    H_{ij} = \langle \psi_i | H | \psi_j \rangle
+\end{equation}
+DTNN is rotational equivariant, meaning that we have: $H R | \psi_j \rangle  = RH | \psi_j \rangle $, 
+as in a general equivariant network, 
+where $R$ is an symmetry operation. 
+
+let's now we consider how to use the above result to reduce the number of 
+tight-binding matrix element to learn. 
+We focus on nearest neighbor interaction and consider the above example, where
+we place $p_x$ orbital at the center and two $s^1$, $s^2$ orbitals at $r_1 = (1,0,0)$ and $r_2 = (-1,0,0)$. 
+How $s^1$ transform to $s^2$ is not unique, but we consider a $C_2$ rotation for concreteness. 
+However, we do not include translation in our consideration but only the point group 
+operations (vector transformation). 
+
+Knowing the energy $\langle p_x | H | s^1 \rangle$, how do we derive the energy 
+of $\langle p_x | H | s^2 \rangle$? Since $| s^2 \rangle = R | s^1 \rangle$ We have:
+\begin{equation}
+    \langle p_x | H | s^2 \rangle = \langle p_x | H R | s^1 \rangle
+    = \langle p_x | R H | s^1 \rangle = \langle R^{-1} p_x | H | s^1 \rangle
+\end{equation}
+Since we know how rotation transform $p_x$, we recover the relationship 
+\begin{equation}
+    \langle p_x | H | s^2 \rangle = - \langle p_x | H | s^1 \rangle
+\end{equation}
+
+As a second example, let's consider $pp_{\sigma}$ bond, replacing $s^1$ with $p_x^1$ 
+and $s^2$ with $-p_x^2$. Note the negative sign ensures that two orbitals at $r_1$ and $r_2$
+are generated by point group symmetry. 
+We have:
+\begin{equation}
+    - \langle p_x^0 | H | p_x^2 \rangle =  - \langle p_x^0 | HR | p_x^1 \rangle 
+    = - \langle p_x^0 | RH | p_x^1 \rangle = \langle p_x^0 | H | p_x^1 \rangle
+\end{equation} 
+which is again the correct results. 
+
+
+
+\newpage
+\appendix
 
 \section{Groups, representations and basis}
 \subsection{Groups and representations}
@@ -124,7 +273,7 @@ Using character table and the orthogonality theorem for characters, we can find 
 of the Hamiltonians knowing only the symmetry property of the structure. 
 We start by finding the vector space of all the participating atomic orbitals and their transformation 
 properties under group operation, then decompose the reducible representation to irreducible ones. 
-We follow the example of Dresselhaus\cite{Dresselhaus2008} and consider the group $D_{3h}$ with 
+We follow the example of Dresselhaus\cite{dresselhaus_group_2008} and consider the group $D_{3h}$ with 
 the following character table \ref{T:ct}
 \begin{table}[h!]
     \centering
@@ -173,7 +322,7 @@ above represention in atomic orbital space, we obtain the following relationship
       3\Gamma^{A_1'} + \Gamma^{A_2'}  + 2\Gamma^{A_2''} + 4\Gamma^{E'} + \Gamma^{E''}
 \end{equation}
 
-\subsection{Symmetry adopted linear combination}
+\subsection{Projecting into invariant subspace}
 Knowing who the vector space constructed from the atomic orbitals can be organized into invariant subspaces 
 under symmetry group does not tell us what these subspaces are. 
 More importantly, to start to reason about the energy of these orbitals, we should start from the approximate
@@ -205,19 +354,196 @@ For $E'$ which is a two dimensional subspace, projection gives:
 Noting that $\psi_3^{E'} = - (\psi_1^{E'} + \psi_2^{E'})$, we find that this is indeed a two dimension 
 subspace. 
 
-Finally, we discuss how to generate the basis functions in these linear subspace that suite our need. We do not 
-require orthogonality for the basis functions, but require that basis functions are related to each other by 
-symmetry transformations. 
+\subsection{Symmetry adopted linear combination}
+After separating the invariant subspaces into different irreducible representations, the problem remains to 
+find the suitable basis functions. These basis functions should be mutually orthogonality and, at the same times,
+exhibit symmetry properties of the group. 
+To do so, we need to reduce the symmetry of the system artifically. An irreducible representation become 
+reducible when the number of symmetric decreases and the resulting subspaces will be linearly independent 
+regarding to the subgroup. As an example, consider the above invariant subspace span by the three functions
+$\psi_1^{E'}$, $\psi_1^{E'}$ and $\psi_1^{E'}$. It is clear that these three functions are related to each 
+other by rotations, however, they are not orthogonal and each of them do not exhibit clear symmetry property
+by themselves. Furthermore, the dimension of this subspace is two and we should eliminate one of the function
+from these three, which cannot be done uniquely. 
+
+By descending down symmetry, however, we are able to find better basis functions: group $C_s$ is a subgroup 
+of $D_3h$ with only two elements: $\{E, \sigma_v\}$ where $\sigma_v$ is one of the three vertical reflection, 
+choosen arbitrarily. 
+The two dimensional representation $E'$ splits under the reduction of symmetry into two one dimensional representation.
+Projection of the three functions in $E'$ yield one basis function for each one dimensional representation:
+\begin{align}
+    \psi_1^{A'} &= \frac{2}{\sqrt{6}} |s,2\rangle - \frac{1}{\sqrt{6}} |s,1\rangle - \frac{1}{\sqrt{6}} |s,3\rangle \\
+    \psi_1^{A"} &= \frac{\sqrt{2}}{2} |s,1\rangle - \frac{\sqrt{2}}{2} |s,3\rangle
+\end{align}
+Being the one dimensional representation of $C_s$, we can identify them to be 
+symmetric and anti-symmetric under vertical mirror reflection. 
+
+\section{Euclidean neural network}
+\subsection{Euclidean neural network}
+
+Euclidean nueral network purposed by Thomas et al. 2018\cite{thomas_tensor_2018} is different from the previous network in that
+\emph{The euclidean neural network operate on points throughout the structure: convolution is performed on each point with respect to other points.}
+Equivariance is achieved by their definition of point convoultion, but is simpler in the form because the discreteness of the 
+points.
+
+At each layer, each point $a$ in the point cloud are associated with a vector $(\mathbf{r}_a, \mathbf{x}_a)$ 
+in the vector space $R^3 \oplus \mathcal{X}$, where $\oplus$ indicate direct sum. We require that vector space $\mathcal{X}$ are span 
+by the spherical harmonics $Y_m^l$ for $0\leq l \leq b$ and $|m|\leq l$. We denote such a feature 
+vector as $V_acm^l$, where $c$ denotes channels (depth). 
+Under a rotation $R$ around a chosen origin, The input feature thus transforms as:
+\begin{equation}
+    (\mathbf{r}_{a}, V_{acm}^l) \to (R \mathbf{r}_{a}, \sum_{m'}D_{mm'}^l(R)V_{acm'}^l) \label{E:3dnn_rotation_input}
+\end{equation}
+
+We define a filter to be of the following form:
+\begin{equation}
+    F_{cm_f}^{l_f, l_i}(\mathbf{r}) =  R_c^{l_f, l_i} (r) Y_{m_f}^{l_f}(\mathbf{r})
+\end{equation}
+with $r = |\mathbf{r}|$, and $R_c^{l_f, l_i} (r)$ are the parameter of the filter function that can be learned.
+The filter functions are equivariant to rotation:
+\begin{align}
+    F_{cm_f}^{l_f, l_i}(R\mathbf{r}) &= R_c^{l_f, l_i} (r) Y_{m_f}^{l_f}(R\mathbf{r}) \\
+    &= R_c^{l_f, l_i} (r) \sum_{m_f'} D_{m_fm_f'}^{l_f}(R)  Y_{m_f}^{l_f}(\mathbf{r})
+\end{align}
+In the following, we will first define the components of the network.
+Then we will show that they are equivariant to rotation. As well as 
+invariant to translation and permutation.
+
+\subsection*{Point convolution}
+we define a convolution layer as:
+\begin{align}
+    V_{acm_o}^{l_o} &= L^{l_o}_{acm_o} (\mathbf{r}, V_{cm_i}^{l_i}) \notag\\
+    &= \sum_{m_f, m_i} C^{l_o,m_o}_{(l_f, m_f)(l_i,m_i)} \sum_{b \in S} F_{cm_f}^{l_f, l_i}(\mathbf{r}_{ab}) V^{l_i}_{bcm_i} \label{E:3dnn_point_convolution}
+\end{align}
+where $l_i$ and $l_f$ is the rotation order of the input and the filter, $m = -l_f, \dots, l_f$ is the index of the basis function.
+$C^{l_o,m_o}_{(l_f, m_f)(l_i,m_i)}$ is the \emph{Clebsch-Gordan coefficients}
+Note that we do not contain index $a$ in \[L^{l_o}_{acm_o} (\mathbf{r}, V_{cm_i}^{l_i})\] because
+the output depend on the feature vector $(\mathbf{r}, V_{cm_i}^{l_i})$ from all points in the set $S$.
+Note that we can understand the 'convolution' as the convolution between the filter function and a delta function 
+marking the position of the point, at $\mathbf{r}_{ab}$.
+
+Since the output only depend on relative distance $\mathbf{r}_{ab} = \mathbf{r}_{a} - \mathbf{r}_{b} $, 
+the output is invariant under a translation of all points. Also, the summation in Equation \eqref{E:3dnn_point_convolution}
+means the result is invariant under permutation of points.
+
+We can show that the above point convolution is equivariant to rotation (Appendix \ref{A:proof_equivariance_point}):
+rotation on the input feature space $(l_i,m_i)$ 
+correspond to rotation on output feature space $(l_o,m_o)$.
+
+\subsection*{Self-interaction}
+We define a self-interaction between the feature at each point $a$ as:
+\begin{equation}
+    V_{acm}^{l} = \sum_{c'} W^{l}_{cc'} V_{ac'm}^{l} 
+\end{equation}
+Such operation is independent on permutation and translation. It is also equivariant to rotation:
+\begin{align*}
+    [ W \circ R ] (V_{acm}^l) &= \sum_{c'} W^{l}_{cc'} \sum_{m'}D_{mm'}^l(R)V_{acm'}^l \\
+                &= \sum_{m'}D_{mm'}^l(R) \sum_{c'} W^{l}_{cc'}  V_{acm'}^l \\
+                &= [ R \circ W ] (V_{acm}^l)
+\end{align*}
+However, it should be noted that the self-interaction coefficients $W$ are used for every $m$. 
+If for different $m$ we have different weight, we than have:
+\begin{align*}
+    [ W \circ R ] (V_{acm}^l) &= \sum_{c'} W^{lm}_{cc'} \sum_{m'}D_{mm'}^l(R)V_{acm'}^l \\
+                &= \sum_{m'}D_{mm'}^l(R) \sum_{c'} W^{lm}_{cc'}  V_{acm'}^l 
+\end{align*}
+which is different from $\sum_{c'} W^{lm'}_{cc'}  V_{acm'}^l$ by first applying self-interaction.
+
+\subsection*{Nonlinearity}
+For nonlinearity, we can use:
+\begin{align*}
+    &h^l (V_{ac}^0 + b_c^0) & &\text{for $l=0$} \\ 
+    &h^l (\|V\|_{ac}^l + b_c^l)V_{acm}^{l} &  &\text{for $l>0$} \label{E:3dnn_nonlinearity}
+\end{align*}
+with $h\colon \mathbb{R}\to \mathbb{R}$ and 
+\[ \|V\|_{ac}^l = \sqrt{\sum_m |V_{acm}^l|^2} \]
+Nonlinearity is invariant for permutation and translation. For rotation, 
+because rotation does not change length in the vector space, $\|V\|_{ac}^l$ is 
+therefore invariant of rotation:
+\begin{equation}
+    \|D(R)V\| = \|V\|
+\end{equation}
+Thus, $h^l (\|V\|_{ac}^l + b_c^l)$ is invariant with respect to rotation. 
+The rotational properties is the output is solely given by $V_{acm}^{l}$.
+Therefore, nonlinearity defined by Equation \eqref{E:3dnn_nonlinearity} is equivariant
+with respect to rotation.
+
+\subsection*{Relationship with spherical CNNs}
+Here, we show the euclidean neural network can be understood as a special case of the more general spherical CNNs 
+with fixed filter.
+We first consider Equation \eqref{E:3dnn_point_convolution} with $l_i=m_i=0$, i.e., only scalars on each point. 
+Omitting the channel index $c$, 
+equation \eqref{E:3dnn_point_convolution} becomes:
+\begin{align}
+    V_{am}^{l} &= \sum_{b \in S} F_{m}^{l}(\mathbf{r}_{ab}) V_{b}  \notag\\
+            &= \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_{m}^{l}(\mathbf{x})
+\end{align}
+The part in square bracket is scalar value. This activation can be achieved by convoluting a filter with
+\begin{equation}
+    f(\mathbf{r}) = \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] \delta(\mathbf{x}_{ab})
+\end{equation}
+$\delta(\mathbf{x}_{ab})$ is zero unless the projection of the point b fall on the sphere at $\mathbf{x}_{ab}$. 
+We define the filter as:
+\begin{equation}
+    g_l(x) = \sum_{0\leq l \leq b} \sum_{|m|\leq l} Y_m^l(x)
+\end{equation}
+Putting the above form into Equation \eqref{E:convolution_s2}:
+\begin{align*}
+    V_a (r) &= \int_{s^2} \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] \delta(\mathbf{x}_{ab}) \sum_{l,m} Y_m^l(r^{-1}x) dx \\
+    &= \sum_{l,m} \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_m^l(r^{-1}\mathbf{x}_{ab}) \\
+    &= \sum_{l,m} \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] \sum_n D_{mn}^l(r^{-1}) Y_n^l(\mathbf{x}_{ab}) \\
+    &= \sum_{l,m,n} D_{mn}^l(r^{-1}) \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_n^l(\mathbf{x}_{ab})
+\end{align*}
+The coefficients \[V_{an}^l = \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_n^l(\mathbf{x}_{ab})\] therefore uniquely define 
+the feature map on $r$. It describes the local environment of the points equivariantly to rotation $r$.
+
+If the point $b$ are associated with $l>0$, then we also need to take into account the rotational property of these points. This is 
+achieved using the properties of Clebsch-Gordan coefficients, similar to the addition of angular moment in quantum mechanics.
+
+\section{Tight-binding model in Halide Perovskite Semiconductors}
+We describe the parameters in the cubic Halide Perovskite described in 
+the work of Boyer et al.\cite{boyer-richard_symmetry-based_2016} as the 
+our reference model. The parameters are as follows:
+\begin{table}[h]
+    \centering
+    \caption{Tight binding parameters, Halide Perovskite Semiconductors}
+    \label{T:TBP}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Atom & Positions(crystal coord.) & Basis functions \\
+        \hline
+        B & $(0.0,0.0,0.0)$ & $|S_0\rangle$, $|X_0\rangle$, $|Y_0\rangle$, $|Z_0\rangle$ \\
+        X & $(0.5,0.0,0.0)$ & $|S_1\rangle$, $|X_1\rangle$, $|Y_1\rangle$, $|Z_1\rangle$ \\
+        X & $(0.0,0.5,0.0)$ & $|S_2\rangle$, $|X_2\rangle$, $|Y_2\rangle$, $|Z_2\rangle$ \\
+        X & $(0.0,0.0,0.5)$ & $|S_3\rangle$, $|X_3\rangle$, $|Y_3\rangle$, $|Z_3\rangle$ \\
+        \hline
+    \end{tabular}
+\end{table}
+We have in total 16 atomic orbitals in the unit cell. In a $3\times 3\times 3$ supercell
+which can include all the nearest neighbor interaction, We would have in total $N_s \times 16 \times 16$ parameters. 
+Restricting the interaction to first order, only 304 interactions left. 
+Now, we use the fact that orbitals belong to different symmetry cannot form bonding, 
+so that matrix elements like $\langle S_0 | H | P_0 \rangle$ is zero, we can reduce the 
+number of non-zero parameters. 
+Finally, we use symmetry relationship to obtain relationship in bonding parameters. 
+The interaction can be parameterized using only 9 parameters:
+\begin{align*}
+    E_{s0} &= \langle S_0 | H | S_0 \rangle \\
+    E_{s1} &= \langle S_1 | H | S_1 \rangle \\
+    E_{p0} &= \langle X_0 | H | X_0 \rangle \\
+    E_{p1} &= \langle X_1 | H | X_1 \rangle 
+\end{align*}
+and 
+\begin{align*}
+    V_{ss} &= \langle S_0 | H | S_1 \rangle  \\
+    V_{s0p1} &= \langle S_0 | H | X_1 \rangle \\
+    V_{p0s1} &= \langle X_0 | H | S_1 \rangle \\
+    V_{pp\sigma} &= \langle X_0 | H | X_1 \rangle \\
+    V_{pp\pi} &= \langle Y_0 | H | Y_1 \rangle \\
+\end{align*}
 
 
-\begin{thebibliography}{99}
-    \bibitem{Dresselhaus2008} 
-    Dresselhaus, M. S.; Dresselhaus, G.; Jorio, A. Group Theory: Application to the Physics of Condensed Matter; Springer-Verlag: Berlin, 2008.
-\end{thebibliography}
-
-\appendix 
-% on the same page, section is numberd with A, B automatically
-\section{}
 
 
+\printbibliography[title={Reference}]
 \end{document}
