@@ -6,8 +6,8 @@ all: 3dnn
 # $* can only be used in implicit rule
 %.pdf: %.tex
 	pdflatex $*.tex
-	pdflatex $*.tex
 	bibtex $*
+	pdflatex $*.tex
 	pdflatex $*.tex
 	rm $*.aux $*.log $*.out
 	rm $*.run.xml $*.bbl $*.blg $*-blx.bib

@@ -25,36 +25,84 @@ It is inefficient to learn rules using try and error, while the rules can be
 simply stated. 
 Similarly, if we want to achieve the best results using machine learning, which 
 basically learn from statistic distribution of data, 
-it is important that we include as much concrete rules as possible. 
-This should greatly improve the accuracy of ML prediction while simplify the 
+it is important that we include as much concrete rules as possible,
+which should greatly improve the accuracy of ML prediction while simplify the 
 problems for ML so that fewer data are necessary.
-To let machines predict the electronic structure of moleculars, for example, the 
-energy levels of the electronic states, 
+
+To let machines predict the energy levels of the electronic states of moleculars, for example,
 one way is to input the molecular structure to ML and ask it to output the energies. 
 However, this naive approach suffer from the problems that 1) this `ab-initio' approach
-is too complicated to be formulated as a single function that we can hopefully understand 
-and 2) since we ourselves cannot understand it, it is impossible for us to inspect the 
-machine learning model: is machine really learning anything important, or it just 
+is too complicated to be formulated as a simple function that we can understand 
+and 2) if we ourselves cannot understand it, it is more difficult for us to inspect the 
+machine learning output: Is machine really learning anything important, or it just 
 found some other patterns that fits the data but does not agree with our physical 
-or chemical understanding. 
+or chemical understanding?
 
 Using results from group theory, it is possible to simplify the Hamiltonians of 
-a molecular systems. Such approach utilize the symmetry of moleculars and provide
+a molecular systems. Such approach utilize symmetry and provide
 rules that quantum mechanical interactions have to obey. 
-For example, a `s' type wavefunction can not interact with the `p' type wavefunction,
-because their intergrals are strictly zero. 
-Furthermore, using group theory analysis using only symmetry information, we can find 
-our the degeneracy that are exact. 
+In the simplest case, a $s$ type wavefunction can not interact with a $p$ type wavefunction on the 
+same atom, because their intergrals are strictly zero. 
+Furthermore, group theory analysis force the degeneracy of the energy levels.
 These informations reduce the size of the problem considerably. As a consequence, to 
 find the energy of the states, we now only need to consider the remaining interactions 
-that are allowed with the know form of the states, and the problem is then largely 
+that are allowed between MOs, and the problem is then largely 
 an electro-static one, which should be simple enough for machine learning to solve.
 We try to formulate the ideas in the following sections
 
-\section{General Considerations}
+\section{Tight-binding Method}
+\subsection{Tight-binding approximation}
+Tight-binding methods is a well known technique to solve the band structure of 
+crystalline material with a model Hamiltonian\cite{ziman_principles_1999}. 
+It is fast to run and is able to 
+reproduce the DFT calculated band structure accurately provided a suitable set of 
+parameters. 
+In the tight binding approximation, we write the Hamiltonian in the local 
+basis orbitals:
+\begin{equation}
+    H_{ij}(R) = \langle \phi_{R',i} | H | \phi_{R'+R,j} \rangle = \langle \phi_{0,i} | H | \phi_{R,j} \rangle
+\end{equation}
+where index 0, $R$ refer to an arbitrarily selected `home' unitcell and unit cell at 
+lattice vector $R$. The Bloch-like basis functions are then:
+\begin{equation}
+    |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j)} |\phi_{Rj} \rangle
+\end{equation}
+and the Hamiltonian matrix at reciprocal vector $\mathbf{k}$ is related to the 
+Hamiltonian in real space by:
+\begin{equation}
+    H_{ij}^{\mathbf{k}} = \langle \psi_i^k | H |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j-t_i)} = H_{ij}(R)
+\end{equation}
+Diagonalizing the square matrix $H_{ij}^{\mathbf{k}}$ gives the eigen energies at $\mathbf{k}$
+in the tight-binding approximation. 
 
+\subsection{Solving the density of states}
+Given a tight-binding model, the electronic density of states can be found by solving the 
+Hamiltonian on a regularly spaced $\mathbf{k}$-grid, and straightforwardly calculated 
+by numerical intergration methods, such as a summation of Gaussian peaks or tetrahedron methods. 
 
-\section{Symmetry Reduced Tight-binding}
+\section{Method}
+\subsection{Work flow}
+Our work concern the learning of a tight-binding approximation of crystalline materials 
+with atomic orbitals as basis functions. The key approximation in this work is the 
+nearest neighbor interaction approximation for the tight-binding interaction matrix elements. 
+Furthermore, symmetry relationship is used to reduce the number of tight-binding parameters.
+After obtaining the tight-binding model, the approximate band structure can be calculated 
+by diagonalizing the Hamiltonian at the given $\mathbf{k}$ point. 
+
+The overall workflow of our work is as follows in Figure \ref{F:forward_workflow}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=5in]{figures/forward_workflow.pdf}
+    \caption{Prediciton work flow of the tight-binding model generation process}
+    \label{F:forward_workflow}
+\end{figure}
+For an atom $i$ in the input structure and a given set of atomic orbitals on $i$ and its neighbors as basis functions, 
+we first identify site symmetry of this cluster and find the symmetry adapted linear combination as molecular orbitals (MO) basis 
+functions corresponding to different representations. If two MOs belong to different irreducible representation, we simply 
+set their interaction to be zero, otherwise, we use ML to predict their matrix elements. 
+From the interactions in MO basis functions, we can apply transformation from MO to AO again, which yield the tight-binding 
+Hamiltonian in atomic orbital basis functions.
+Detailed treatment are presented in the following sections. 
 
 \subsection{Symmetry adapted linear combinations}
 According to the result from application of group theory in quantum chemistry, it can be 
@@ -95,7 +143,6 @@ we also have:
 for the two dimension representation $E'$, where we find $|\psi_3^{E'}\rangle = - (|\psi_1^{E'}\rangle + |\psi_2^{E'}\rangle)$
 showing that the three function projected indeed form a two dimensional subspace. 
 
-
 After separating the invariant subspaces into different irreducible representations, the problem remains to 
 find the suitable basis functions. 
 To do so, we use the fact that a irreducible representation become 
@@ -118,35 +165,11 @@ one basis function for each one-dimensional representation:
 Being the one dimensional representation of $C_s$, we can identify them to be 
 symmetric and anti-symmetric under vertical mirror reflection. 
 
-\subsection{Tight-binding methods}
-Tight-binding methods is a well known technique to solve the band structure of 
-crystalline material with a model Hamiltonian\cite{ziman_principles_1999}. 
-It is fast to run and is able to 
-reproduce the DFT calculated band structure accurately provided a suitable set of 
-parameters. 
-In the tight binding approximation, we write the Hamiltonian in the local 
-basis orbitals:
-\begin{equation}
-    H_{ij}(R) = \langle \phi_{R',i} | H | \phi_{R'+R,j} \rangle = \langle \phi_{0,i} | H | \phi_{R,j} \rangle
-\end{equation}
-where index 0, $R$ refer to an arbitrarily selected `home' unitcell and unit cell at 
-lattice vector $R$. The Bloch-like basis functions are then:
-\begin{equation}
-    |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j)} |\phi_{Rj} \rangle
-\end{equation}
-and the Hamiltonian matrix at reciprocal vector $\mathbf{k}$ is related to the 
-Hamiltonian in real space by:
-\begin{equation}
-    H_{ij}^{\mathbf{k}} = \langle \psi_i^k | H |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j-t_i)} = H_{ij}(R)
-\end{equation}
-Diagonalizing the square matrix $H_{ij}^{\mathbf{k}}$ gives the eigen energies at $\mathbf{k}$
-in the tight-binding approximation. 
-
-The benefit of tight-binding model comes from the fact that its basis functions 
-are in real space. Utilizing this fact, we can greatly reduce the number of parameters 
-that tight-binding requires. 
-Firstly, in real space the interaction decay fast with respect to distance between the 
-basis functions. In the simplest case, only nearest neighbor interaction is required. 
+\subsection{Symmetry Adapted Tight-binding methods}
+To simplify the machine learning problem, we focus on reducing the number of parameters 
+in the tight-binding model that machine learning method need to predict. First, we utilize 
+the fact that the interaction between atomic orbitals basis functions decay fast 
+in real space. In the simplest case, only nearest neighbor interaction can be considered. 
 Suppose that the average number of neighbors is $N_n$ and we have $N_{ao}$ basis functions 
 on each atom, we would have:
 \begin{equation}
@@ -158,6 +181,7 @@ therefore $\langle \phi_1 | H | \phi_2 \rangle = \langle \phi_2 | H | \phi_1 \ra
 On the other hand, a tight-binding model with the nearest neighbor interaction can be further 
 simplified using the result from symmetry analysis, and it turns out that 
 symmetry restrict the value of and relationship between the matrix elements. 
+The key point here is to consider the interaction in terms of MOs.
 To illustrate the idea, we use the above example of a molecular in $D_{3h}$ symmetry and 
 study the tight-binding parameter between the $|s\rangle$ on $|p_x\rangle$, $|p_y\rangle$
 and $|p_z\rangle$ orbital on the origin. 
@@ -201,7 +225,11 @@ $p$ orbitals at the center and the $s_i$ for $i = 1,2,3$:
 \end{table}
 
 
+
 \subsection{Machine learning Matrix elements}
+
+\newpage
+
 \subsection{Deep Tensor Neural Network (DTNN)}
 To utilize the symmetry relationship in the first way, we use the equivariant neural network
 structure purposed by Thomas et al.\cite{thomas_tensor_2018} (Deep Tensor Neural Network). 
