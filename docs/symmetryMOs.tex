@@ -225,7 +225,6 @@ $p$ orbitals at the center and the $s_i$ for $i = 1,2,3$:
 \end{table}
 
 
-
 \subsection{Machine learning Matrix elements}
 
 \newpage
@@ -290,6 +289,77 @@ which is again the correct results.
 
 \newpage
 \appendix
+
+\section{Character table for site symmetry groups}
+In this section, we discuss the procedure to find the characters for the 
+symmetry operations in the site symmetry of each atoms. For crystals with 
+symmetry group $G$ and a point $\mathbf{x}$, the subgroup of $G$ that leave
+the point fixed is called the \emph{site symmetry groups} $S_{\mathbf{x}}$. 
+Writing a space group operation as matrix--column pair $(\mathbf{W},\mathbf{w})$, 
+it is straightforwardly to see that for group elements in $S_{\mathbf{x}}$ 
+contain no translation. 
+
+In crystals, the number of possible site symmetry is greatly reduced compared to 
+that in the moleculars. Possible rotations can be characterized by the trace 
+and determinant of the rotation matrix, where the $\det\mathbf{W}$ indicate the 
+existance of inversion in the operation and $\text{tr}\mathbf{W}$ gives the angle of rotation. 
+Since trace is invariant under permutation, angle of rotation does not depend on the 
+basis vector of the symmetry matrix. The characterization is listed by table \ref{T:operation_properties}.
+\begin{table}[h]
+    \centering
+    \caption{Site symmetry types}
+    \begin{tabular}{|c|cccccccccc|}
+        \hline
+        $\det$      & +1 & +1 & +1 & +1 & +1 & -1 & -1 & -1 & -1 & -1 \\ 
+        $\text{tr}$ &  3 &  2 &  1 &  0 & -1 & -3 & -2 & -1 &  0 &  1 \\  
+        \hline
+        type        &  1 &  6 &  4 &  3 &  2 & -1 & -6 & -4 & -3 & -2 = m \\ 
+        \hline
+    \end{tabular}
+    \label{T:operation_properties}
+\end{table}
+
+The total number of crystallographic point groups in three dimension is 32, and their character tables are 
+tabulated either in The Point group table or the bilbao crystallographic server. In crystallographic
+server, all the matrix element of the operations are also given explicitly, in the respective basis vector 
+and denoted in Seitz symbol. Seitz symbols are tabulated as well (Seitz symbols for crystallographic symmetry operations)
+with the standard basis vectors given in the international table for each crystal system. 
+In our implementation, the character table of the 32 point symmetry groups are taken from bilbao server and 
+stored, as well as the symmetry operation in the corresponding basis vector. For hexagonal lattice, we use the 
+hexagonal setting.
+
+However, one complication arise when the site symmetry operation does not correspond to the standard basis. For example, 
+in a cubic crystal belong to space group $Pm\bar{3}m$ (221), the point $(x,x,x)$ on the body diagonal has site symmetry $3m$
+whose rotation matrix is tabulated in hexagonal basis. Therefore, we cannot identify symmetry operation and therefore 
+their characters based on rotation matrix. 
+Instead, we use the following method to assign symmetry operation to the ones tabulated in the standard basis in Bilbao server. 
+Our method only take a series of symmetry operations (in any chosen direction) and will identify the correspond 
+operation in the standard basis. 
+
+Our method is based on finding the symmetry direction associated with each operation and comparing the set of symmetry operation
+associated with that symmetry direction. Given the rotation matrix $\mathbf{W}$ in cartesian direction, 
+we first identify the type of the operation using table \ref{T:operation_properties}. 
+Given the number of operation in each types, point group type can be uniquely assigned (spglib paper). 
+We next assign symmetry direction for each operation.
+For symmetry $1$ or $\bar{1}$, a point $(0.0, 0.0, 0.0)$ will be assigned. For rotations 
+or rotoinversion, The symmetry direction is given by finding the eigenvector with eigenvalue $1$. 
+\begin{equation}
+    \mathbf{W}\mathbf{v} = \mathbf{v}
+\end{equation}
+
+After computing the directions of all the symmetry operation, we separate them into groups that are related by symmetry operations. 
+Each group would correspond to the symmetry direction used in the full Hermann--Mauguin symbol, except for identity and inversion operation. 
+Then, we find the set of operation belong to each group of symmetry operaton. 
+The resulting information is independent of any change of axis of the rotation matrix. 
+Finally, we match each symmetry operation using the symmetry direction and set of symmetry operation on the same symmetry direction. 
+This complete the assignment of symmetry operations between symmetry operations in arbitrary basis and the standard basis. 
+
+The detection of symmetry operation in the crystal coordinate is performed using the open source python library spglib for the 
+whole crystal. To find the site symmetry operation, we first locate atoms near the given site within a cutoff and iteratively 
+test if the rotation part of the symmetry operation leave the neighboring atoms unchanged. 
+
+
+
 
 \section{Groups, representations and basis}
 \subsection{Groups and representations}
