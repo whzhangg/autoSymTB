@@ -1,10 +1,9 @@
 docs/*.pdf
 **/__pycache__
-cnn/QM7/raw/*
-cnn/QM7/_local.py
-!cnn/QM7/raw/*.py
-coordination/CoSb3_model/rotated_ones
-coordination/CoSb3_model/rotated_distorted
-coordination/CoSb3_model/rotated_ones.pt
-coordination/template
+**/.pytest_cache
+
+applications/
+automaticTB/SALCs/examples
+automaticTB/tests/**/*.pdf
+
 **/.DS_Store

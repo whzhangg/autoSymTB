@@ -1,5 +1,6 @@
-all: 3dnn 
-3dnn: 3dnn.pdf
+# we make two document, one contain the review of rotation equivariance, the other
+# is the generation of tight-binding model
+all: AutomaticTB.pdf ReviewRotationEquivariance.pdf
 
 .DELETE_ON_ERROR: %.pdf
 
