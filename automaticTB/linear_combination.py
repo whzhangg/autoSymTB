@@ -58,6 +58,9 @@ class LinearCombination:
         norm = np.linalg.norm(self.coefficients.flatten())
         return np.isclose(norm, 1.0)
 
+    def scale_coefficients(self, factor: float) -> None:
+        self._coefficients *= factor
+
     def normalized(self):
         # -> LinearCombination
         normalized = self._normalize_coefficients(self._coefficients)
@@ -71,16 +74,40 @@ class LinearCombination:
         else:
             return coefficient / norm
 
+    def _site_string(self, site: Site, coefficient: np.ndarray) -> str:
+        aline = str(site) + " :: "
+        for i, coeff in enumerate(coefficient):
+            if np.abs(coeff) < self.display_tol: continue
+            aline += "{:>+6.3f}({:>1d}{:> 2d})".format(coeff, AOLISTS[i].l, AOLISTS[i].m)
+        return aline
+
     def __str__(self):
         result = ""
+        count = 0
         for site, coeff_on_site in zip(self._sites, self._coefficients):
             if np.linalg.norm(coeff_on_site) < self.display_tol: continue
-            aline = str(site) + " :: "
-            for i, coeff in enumerate(coeff_on_site):
-                if np.abs(coeff) < self.display_tol: continue
+            aline = self._site_string(site, coeff_on_site)
+            count += 1
+            if count < len(self.sites):
+                result += f"{aline}\n"
+            elif count == len(self.sites):
+                result += f"{aline}"
+        return result
 
-                aline += "{:>+6.3f}({:>1d}{:> 2d})".format(coeff, AOLISTS[i].l, AOLISTS[i].m)
-            result += f"{aline}\n"
+    @property
+    def pretty_str(self):
+        prefix_middle = '├─'
+        prefix_last = '└─'
+        result = ""
+        count = 0
+        for site, coeff_on_site in zip(self._sites, self._coefficients):
+            if np.linalg.norm(coeff_on_site) < self.display_tol: continue
+            aline = self._site_string(site, coeff_on_site)
+            count += 1
+            if count < len(self.sites):
+                result += prefix_middle + f"{aline}\n"
+            elif count == len(self.sites):
+                result += prefix_last + f"{aline}"
         return result
         
     def __bool__(self):

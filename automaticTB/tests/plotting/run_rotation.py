@@ -1,4 +1,4 @@
-from automaticTB.rotation import print_matrix, orbital_rotation_from_symmetry_matrix, rotate_linear_combination_from_symmetry_matrix
+from automaticTB.rotation import print_matrix, orbital_rotation_from_symmetry_matrix, rotate_linear_combination_from_matrix
 from automaticTB.linear_combination import Site, LinearCombination
 import numpy as np
 from automaticTB.utilities import random_rotation_matrix
@@ -48,7 +48,7 @@ coefficients = np.eye(9)
 def show_that_rotation_is_correct():
     lc = LinearCombination(sites, coefficients)    
     make_plot_normalized_LC(lc, "unrotated.pdf")
-    rotated = rotate_linear_combination_from_symmetry_matrix(lc, random_rotation_matrix())
+    rotated = rotate_linear_combination_from_matrix(lc, random_rotation_matrix())
     make_plot_normalized_LC(rotated, "rotated.pdf")
 
 show_that_rotation_is_correct()

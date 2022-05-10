@@ -23,3 +23,4 @@ def test_normalized_contruction_of_linear_combination():
 def print_linear_combination():
     lc = LinearCombination(sample_cluster_CH4, coefficients)
     print(lc)
+    print(lc.pretty_str)

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import typing
 from scipy.special import sph_harm
-from automaticTB.linear_combination import AOLISTS, LinearCombination, Site
+from ..linear_combination import AOLISTS, LinearCombination, Site
 
 
 def sh_functions(l, m, theta, phi):
