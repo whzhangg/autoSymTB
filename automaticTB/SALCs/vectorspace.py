@@ -80,8 +80,9 @@ class VectorSpace:
     def remove_linear_dependent(self):
         # consider a linear combination as vector, the same vector will have 
         non_zero = remove_zero_vector_from_coefficients(self._vector_coefficients)
-        distinct = remove_same_direction(non_zero)
-        self._vector_coefficients = distinct
+        if len(non_zero) > 0:
+            distinct = remove_same_direction(non_zero)
+            self._vector_coefficients = distinct
 
     def get_linear_combinations(self) -> typing.List[LinearCombination]:
         result = []

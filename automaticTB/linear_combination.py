@@ -111,4 +111,7 @@ class LinearCombination:
         return result
         
     def __bool__(self):
-        return np.linalg.norm(self._coefficients.flatten()) > self.display_tol
+        if np.linalg.norm(self._coefficients.flatten()) > self.display_tol:
+            return True
+        else:
+            return False
