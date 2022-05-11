@@ -29,7 +29,7 @@ def test_initiating_from_sites_d():
 
 def test_initiating_from_linear_combinations():
     vectorspace = VectorSpace.from_sites(sites, starting_basis="s p d")
-    lcs = vectorspace.get_linear_combinations()
+    lcs = vectorspace.get_nonzero_linear_combinations()
     vectorspace_built = VectorSpace.from_list_of_linear_combinations(lcs)
     
     assert vectorspace._sites == vectorspace_built._sites

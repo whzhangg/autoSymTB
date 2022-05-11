@@ -14,7 +14,7 @@ def decompose_vectorspace_onelevel(vectorspace: VectorSpace, group: SiteSymmetry
     for irrep, characters in group.irreps.items():
         irrep_dimension = group.irrep_dimension[irrep]
         transformed_LCs = []
-        for lc in vectorspace.get_linear_combinations():
+        for lc in vectorspace.get_nonzero_linear_combinations():
             sum_coefficients = np.zeros_like(lc.coefficients)
             for op, chi in zip(group.operations, characters):
                 rotated = rotate_linear_combination_from_symmetry_matrix(lc, op)
@@ -38,7 +38,7 @@ def decompose_vectorspace_recursive(vectorspace: VectorSpace, group: SiteSymmetr
     for irrep, characters in group.irreps.items():
         irrep_dimension = group.irrep_dimension[irrep]
         transformed_LCs = []
-        for lc in vectorspace.get_linear_combinations():
+        for lc in vectorspace.get_nonzero_linear_combinations():
             sum_coefficients = np.zeros_like(lc.coefficients)
             for op, chi in zip(group.operations, characters):
                 rotated = rotate_linear_combination_from_symmetry_matrix(lc, op)

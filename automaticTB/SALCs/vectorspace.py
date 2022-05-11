@@ -84,10 +84,11 @@ class VectorSpace:
             distinct = remove_same_direction(non_zero)
             self._vector_coefficients = distinct
 
-    def get_linear_combinations(self) -> typing.List[LinearCombination]:
+    def get_nonzero_linear_combinations(self) -> typing.List[LinearCombination]:
         result = []
         for row in self._vector_coefficients:
-            result.append(
-                LinearCombination(self._sites, row.reshape((len(self._sites), self.num_defined_aos)))
-            )
+            if not np.isclose(np.linalg.norm(row), 0.0):
+                result.append(
+                    LinearCombination(self._sites, row.reshape((len(self._sites), self.num_defined_aos)))
+                )
         return result

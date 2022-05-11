@@ -17,7 +17,8 @@ def get_vectorspace_group_m() -> typing.Tuple[VectorSpace, SiteSymmetryGroup]:
 def get_vectorspace_group_C3v() -> typing.Tuple[VectorSpace, SiteSymmetryGroup]:
     w = np.sqrt(3) / 2
     group = get_point_group_as_SiteSymmetryGroup("3m")  # D3h
-    sites = [ Site(1,np.array([0.0,1.0,0.0])), 
+    sites = [ Site(1, np.array([0.0, 0.0, 0.0])),
+              Site(1,np.array([0.0,1.0,0.0])), 
               Site(1,np.array([w, -0.5,0.0])), 
               Site(1,np.array([-1.0 * w, -0.5, 0.0]))]
     vectorspace = VectorSpace.from_sites(sites, starting_basis="s")
@@ -30,7 +31,7 @@ def test_decompose_m_onelevel():
     for key, vspace in subspaces.items():
         print(key)
         vspace.remove_linear_dependent()
-        for lc in vspace.get_linear_combinations():
+        for lc in vspace.get_nonzero_linear_combinations():
             print(lc.pretty_str)
 
 def test_decompose_m():
@@ -39,26 +40,26 @@ def test_decompose_m():
     for key, vspace in subspaces.items():
         print(key)
         vspace.remove_linear_dependent()
-        for lc in vspace.get_linear_combinations():
+        for lc in vspace.get_nonzero_linear_combinations():
             print(lc.pretty_str)
 
-def test_decompose_D3h_onelevel():
+def test_decompose_C3v_onelevel():
     vectorspace, group = get_vectorspace_group_C3v()
     subspaces = decompose_vectorspace_onelevel(vectorspace, group)
     for key, vspace in subspaces.items():
         print(key)
         vspace.remove_linear_dependent()
-        for lc in vspace.get_linear_combinations():
+        for lc in vspace.get_nonzero_linear_combinations():
             if lc: print(lc.pretty_str)
 
-def test_decompose_D3h():
+def test_decompose_C3v():
     vectorspace, group = get_vectorspace_group_C3v()
     subspaces = decompose_vectorspace(vectorspace, group)
     for key, vspace in subspaces.items():
         print(key)
         vspace.remove_linear_dependent()
-        for lc in vspace.get_linear_combinations():
+        for lc in vspace.get_nonzero_linear_combinations():
             if lc: print(lc.pretty_str)
 
 if __name__ == "__main__":
-    test_decompose_D3h()
+    test_decompose_C3v()
