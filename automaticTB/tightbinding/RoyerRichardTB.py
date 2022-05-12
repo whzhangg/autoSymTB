@@ -1,10 +1,6 @@
 import numpy as np
-from dataclasses import dataclass
-import collections
-from typing import List, Tuple
-
-AO = collections.namedtuple('AO', ['position','R','orbit'])
-
+import typing
+from .model import TightBindingBase
 
 parameters = {
         "V_ss"   :  -1.10,
@@ -124,7 +120,7 @@ HijR = {
 }
 
 
-class Royer_Richard_TB():
+class Royer_Richard_TB(TightBindingBase):
     """
     it return the model given in the article
     """
@@ -136,7 +132,7 @@ class Royer_Richard_TB():
         self.position = np.array([[0,0,0], [0.5,0,0], [0,0.5,0], [0, 0, 0.5]])
         self.size = len(self.orbits)
 
-    def Hijk(self, k: Tuple[float]):
+    def Hijk(self, k: typing.Tuple[float]):
         k = np.array(k)
         ham = np.zeros((self.size, self.size), dtype=complex)
         for R, Hij in HijR.items():
@@ -151,11 +147,8 @@ class Royer_Richard_TB():
                 ham[i,j] += value * np.exp(2j * np.pi * kR)
         return ham
 
+    def solveE_at_k(self, k: np.ndarray) -> np.ndarray:
+        ham = self.Hijk(k)
+        w, v = np.linalg.eig(ham)
+        return np.sort(w.real)
 
-if __name__ == "__main__":
-    tb = Royer_Richard_TB()
-    H = tb.Hijk((0.5,0.5,0))
-    for row in H.real:
-        print((len(row)*"{:>7.2f}").format(*row))
-    w, v = np.linalg.eig(H)
-    print(np.sort(w.real))
