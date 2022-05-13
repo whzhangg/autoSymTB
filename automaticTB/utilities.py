@@ -1,5 +1,15 @@
 import numpy as np
 
+def print_matrix(m: np.ndarray, format:str):
+    # print an matrix using the given string format
+    assert len(m.shape) == 2
+    result = ""
+    for row in m:
+        for cell in row:
+            result += " " + format.format(cell)
+        result += "\n"
+    print(result)
+
 def random_rotation_matrix() -> np.ndarray:
     angles = np.random.rand(3) * 2 * np.pi
     sin = np.sin(angles)

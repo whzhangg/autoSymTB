@@ -1,6 +1,6 @@
-from automaticTB.linear_combination import Site, LinearCombination
+from automaticTB.linear_combination import Site
 from automaticTB.SALCs.vectorspace import VectorSpace
-from automaticTB.SALCs.decompose import decompose_vectorspace_onelevel, decompose_vectorspace_recursive, decompose_vectorspace
+from automaticTB.SALCs.decompose import decompose_vectorspace_onelevel, decompose_vectorspace
 from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup, get_point_group_as_SiteSymmetryGroup
 import numpy as np
 import typing
@@ -60,8 +60,6 @@ def test_decompose_C3v():
         for lc in vspace.get_nonzero_linear_combinations():
             if lc: 
                 print(lc)
-                print(lc.orbitals)
-                print(lc.coefficients)
 
 if __name__ == "__main__":
     test_decompose_C3v()

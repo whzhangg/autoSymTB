@@ -4,8 +4,7 @@ from .linear_combination import LinearCombination
 from e3nn import o3
 
 
-def rotate_linear_combination_from_matrix(
-    input_lc: LinearCombination, cartesian_rotation: np.ndarray) \
+def rotate_linear_combination_from_matrix(input_lc: LinearCombination, cartesian_rotation: np.ndarray) \
 -> LinearCombination:
     # arbitrary rotation, new sites does not necessary correspond to the old ones
     new_sites, rotated_coefficients = \
@@ -13,8 +12,7 @@ def rotate_linear_combination_from_matrix(
     return LinearCombination(new_sites, input_lc.orbitals, rotated_coefficients)
 
 
-def rotate_linear_combination_from_symmetry_matrix(
-    input_lc: LinearCombination, cartesian_rotation: np.ndarray) \
+def rotate_linear_combination_from_symmetry_matrix(input_lc: LinearCombination, cartesian_rotation: np.ndarray) \
 -> LinearCombination:
     # symmetry rotation, atomic site sequence are reorganized so that they are the same as input
     new_sites, rotated_coefficients = \
@@ -25,15 +23,6 @@ def rotate_linear_combination_from_symmetry_matrix(
     ]
     return LinearCombination(input_lc.sites, input_lc.orbitals, rotated_coefficients[permute_index])
 
-
-def print_matrix(m: np.ndarray, format:str):
-    assert len(m.shape) == 2
-    result = ""
-    for row in m:
-        for cell in row:
-            result += " " + format.format(cell)
-        result += "\n"
-    print(result)
 
 
 def _rot_to_change_x_y(input: np.ndarray) -> np.ndarray:
@@ -51,8 +40,7 @@ def _rot_to_change_x_y(input: np.ndarray) -> np.ndarray:
     return inv_rot @ input @ rotation_x
 
 
-def _orbital_rotation_from_symmetry_matrix(
-    cartesian_symmetry_operation: np.ndarray, aoirrep: str) \
+def _orbital_rotation_from_symmetry_matrix(cartesian_symmetry_operation: np.ndarray, aoirrep: str) \
 -> np.ndarray:
     irrep = o3.Irreps(aoirrep)
     changed = _rot_to_change_x_y(cartesian_symmetry_operation)

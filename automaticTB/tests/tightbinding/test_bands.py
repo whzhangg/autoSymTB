@@ -1,10 +1,7 @@
-from automaticTB.tightbinding.kpoints import Kpath, Kline
 import numpy as np
 import typing
 from automaticTB.tightbinding.RoyerRichardTB import Royer_Richard_TB
-from automaticTB.tightbinding.bandstructure import get_bandstructure_result, BandStructureResult
-
-# TODO the band line the same as in the paper.
+from automaticTB.tightbinding.bandstructure import Kpath, Kline, get_bandstructure_result, BandStructureResult
 
 
 def prepare_tightbinding_kpath() -> typing.Tuple[Royer_Richard_TB, Kpath]:

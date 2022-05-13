@@ -1,7 +1,67 @@
 import typing, dataclasses
-from .model import TightBindingBase
-from .kpoints import Kpath, BandPathTick
 import numpy as np
+from .model import TightBindingBase
+
+@dataclasses.dataclass
+class Kline:
+    # kpoints will include the first and the last k point
+    start_symbol: str
+    start_k: np.ndarray 
+    end_symbol: str
+    end_k : np.ndarray
+    nk: int
+
+    @property
+    def kpoints(self) -> np.ndarray:
+        return np.linspace(self.start_k, self.end_k, self.nk+1)
+
+
+@dataclasses.dataclass
+class BandPathTick:
+    symbol: int
+    xpos: float
+
+    def __eq__(self, other) -> bool:
+        return self.symbol == other.symbol and np.isclose(self.xpos, other.xpos, atol=1e-4)
+
+
+class Kpath:
+    def __init__(self, reciprocal_lattice: np.ndarray, klines : typing.List[Kline]) -> None:
+        self._klines = klines
+        self._latticeT = reciprocal_lattice.T
+        self._kpoints = []
+        self._xpos = []
+        self._tics: typing.List[typing.Tuple[str, float]] = []
+
+        start = 0
+        for kl in klines:
+            cartesian_delta = self._latticeT.dot(kl.end_k - kl.start_k)
+            cartesian_distance = np.linalg.norm(cartesian_delta)
+            end = start + cartesian_distance
+            dxs = np.linspace(start, end, kl.nk + 1)
+
+            self._xpos.append(dxs)
+            start_tick = BandPathTick(kl.start_symbol, start)
+            if start_tick not in self._tics: self._tics.append(start_tick)
+            self._tics.append(BandPathTick(kl.end_symbol, end))
+            self._kpoints.append(kl.kpoints)
+
+            start = end
+        self._kpoints = np.vstack(self._kpoints)
+        self._xpos = np.hstack(self._xpos)
+        
+    @property
+    def ticks(self) -> typing.List[BandPathTick]:
+        return self._tics
+
+    @property
+    def kpoints(self) -> np.ndarray:
+        return self._kpoints
+
+    @property
+    def xpos(self) -> np.ndarray:
+        return self._xpos
+
 
 @dataclasses.dataclass
 class BandStructureResult:

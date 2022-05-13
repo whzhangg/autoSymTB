@@ -116,9 +116,8 @@ class LinearCombination:
             self._orbitals.slice_dict[o] for o in orbital.orblist
         ]
         sliced = np.hstack([
-            self._coefficients[s] for s in coefficient_slice
+            self._coefficients[:,s] for s in coefficient_slice
         ])
-        
         return LinearCombination(
             self.sites, orbital, sliced
         )
@@ -134,7 +133,7 @@ class LinearCombination:
 
         result = ""
         for i, aline in enumerate(to_display):
-            if i < len(to_display):
+            if i < len(to_display) - 1:
                 result += f"{prefix_middle} {aline}\n"
             else:
                 result += f"{prefix_last} {aline}"

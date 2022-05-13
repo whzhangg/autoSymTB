@@ -4,6 +4,7 @@ docs/*.pdf
 
 applications/
 automaticTB/SALCs/examples
+automaticTB/SALCs/SubductionTables.tar.gz
 automaticTB/tests/**/*.pdf
 automaticTB/tests/**/*.dat
 
