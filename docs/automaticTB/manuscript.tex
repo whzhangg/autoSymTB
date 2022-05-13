@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{hyperref} % \url \href
+\usepackage{docmute}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
+
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\addbibresource{autoTB.bib}
+
+\begin{document}
+
+\title{Molecular orbitals and symmetrization}
+\author{Wenhao Zhang}
+\date{\today}
+\maketitle
+
+\input{M_Introduction.tex}
+\input{M_Method.tex}
+
+\appendix
+
+\include{A_SiteSymmetryGroup.tex}
+\include{A_GroupRepresentaiton.tex}
+\include{A_SymAdoptedBasis.tex}
+\include{A_ExampleTightBinding.tex}
+
+\printbibliography[title={Reference}]
+
+\end{document}

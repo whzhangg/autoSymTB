@@ -1,4 +1,4 @@
-docs/*.pdf
+docs/**/*.pdf
 **/__pycache__
 **/.pytest_cache
 

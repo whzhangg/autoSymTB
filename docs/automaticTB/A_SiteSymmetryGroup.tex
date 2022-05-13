@@ -1,0 +1,188 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{hyperref} % \url \href
+\usepackage{docmute}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2cm,text centered, draw=black]
+\tikzstyle{process} = [rectangle, minimum width=2cm, text centered, draw=black]
+\tikzstyle{decision} = [diamond, minimum width=2cm, text centered, draw=black]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
+
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\addbibresource{autoTB.bib}
+
+\begin{document}
+
+\section{Character table for site symmetry groups}
+
+To use symmetry information in the construction of a tight-binding model, we first need to 
+find the concrete symmetry group and it's representations. 
+In this section, our implementation to find the site symmetry group in crystal, as well as 
+its subgroups and characters are described in details.
+
+\subsection{Basic Definition}
+
+For a point $\mathbf{x}$ in a crystal, the subgroup of the space group $G$ that leave $\mathbf{x}$
+fixed is called the \emph{site symmetry groups}, which we denote $S_{\mathbf{x}}$. A space group
+operation in crystal can be denoted using matrix--column pair $(\mathbf{W},\mathbf{w})$ in a chosen 
+basis. Then it is straightforwardly to see that group elements in the site symmetry group only 
+contain rotation part. 
+
+Given a rotation matrix $\mathbf{W}$ belonging to a site symmetry group, it can be classified into different
+types, each designated by their Hermann--Mauguin (HM) symbols, depending on its trace and determinant. 
+The trace $\text{tr}\mathbf{W}$ give information of the rotation angle and determinant indicates whether 
+the operation is first or second kind. 
+Since trace is invariant under permutation of matrices, it does not depend on any change of basis. 
+They are listed in Table \ref{T:operation_properties}. 
+
+\begin{table}[h!]
+    \centering
+    \caption{Site symmetry types}
+    \begin{tabular}{|c|cccccccccc|}
+        \hline
+        $\det$      & +1 & +1 & +1 & +1 & +1 & -1 & -1 & -1 & -1 & -1 \\ 
+        $\text{tr}$ &  3 &  2 &  1 &  0 & -1 & -3 & -2 & -1 &  0 &  1 \\  
+        \hline
+        type        &  1 &  6 &  4 &  3 &  2 & -1 & -6 & -4 & -3 & -2 = m \\ 
+        \hline
+    \end{tabular}
+    \label{T:operation_properties}
+\end{table}
+
+There are in total 32 crystallographic point group types so that the number of distinct site symmetry group types are
+also limited to 32. They can be easily identified by counting the types of operation in the group. 
+Reference table can be found in Togo and Tanaka\cite{togo_spglib_2018}.
+
+For point groups, its group operation can be uniquely denoted using \emph{Seitz symbols}. The Seitz symbol consists of 
+three parts: 1) HM symbol of the operation, 2) its characteristic direction denoted by $[uvw]$ and 3) the sense of rotation $+$ or $-$. 
+The sense of rotation indicate whether the rotation is clockwise or anti-clockwise and is used for $4$, $-4$, $3$, $-3$, $6$, $-6$ only.
+The characteristic direction (lattice direction) is usually given with respect to different lattice systems. We use hexagonal lattice 
+for both hexagonal and rhombohedral lattice. The basis for each lattice can be found in Section 2.2 of \emph{ITA}. 
+
+the number of possible site symmetry is greatly reduced compared to 
+that in the moleculars. Possible rotations can be characterized by the trace 
+and determinant of the rotation matrix, where the $\det\mathbf{W}$ indicate the 
+existance of inversion in the operation and $\text{tr}\mathbf{W}$ gives the angle of rotation. 
+Since trace is invariant under permutation, angle of rotation does not depend on the 
+basis vector of the symmetry matrix. The characterization is listed by table \ref{T:operation_properties}.
+
+\subsection{Finding the Seitz symbol from Operation Matrix}
+
+
+The total number of crystallographic point groups in three dimension is 32, and their character tables are 
+tabulated either in The point group table of the bilbao crystallographic server \href{https://www.cryst.ehu.es/rep/point.html}{bilbao}. 
+In crystallographic server, all the matrix element of the operations are also given explicitly, in the respective basis vector 
+and denoted in Seitz symbol. Their characters can also be found from the same webpage.
+Seitz symbols are tabulated as well (Seitz symbols for crystallographic symmetry operations)
+with the standard basis vectors given in the international table for each crystal system. 
+In our implementation, the character table of the 32 point symmetry groups are taken from bilbao server and 
+stored. For hexagonal lattice, we use the hexagonal setting.
+
+However, one complication arise when the site symmetry operation does not correspond to the standard basis. For example, 
+in a cubic crystal belong to space group $Pm\bar{3}m$ (221), the point $(x,x,x)$ on the body diagonal has site symmetry $3m$
+whose rotation matrix is tabulated in hexagonal basis. Therefore, we cannot directly compare the rotation matrix of the 
+site symmetry operation with the ones tabulated in the Bilbao server. Instead, we use the following method to generate 
+the seitz symbol from a list of rotation matrices, and then use the seitz symbol to assign characters to each symmetry 
+operations. The input rotation matrices can correspond to any orientation.
+
+A seitz symbol consist of three parts: type of the symmetry operation, sense of the rotation 
+(for rotation $4$, $-4$, $3$, $-3$, $6$, $-6$ only) and the characteristic direction. 
+Symmetry type can be found according to table \ref{T:operation_properties}. To find the 
+symmetry direction in the standard basis, we first find the symmetry direction in the cartesian coordinate. 
+
+For symmetry $1$ or $\bar{1}$, a point $(0.0, 0.0, 0.0)$ will be assigned. If the symmetry operation is a rotoinversion,
+we multiplicity it by $-\mathbf{1}$ to obtain the rotation parts $\mathbf{W}$. 
+The symmetry direction is given by finding the eigenvector with eigenvalue $1$. 
+\begin{equation}
+    \label{E:rotation_axes}
+    \mathbf{W}\mathbf{v} = \mathbf{v}
+\end{equation}
+
+After computing the directions of all the symmetry operation, we separate them into sets that are related by symmetry operations:
+\begin{equation}
+    \{\mathbf{v}' \mid \mathbf{W}\mathbf{v}, \mathbf{W} \in \mathbf{R}\}
+\end{equation}
+All symmetry direction belonging to the same set contain the same symmetry elements, and they correspond to the symmetry directions 
+used in Hermann--Mauguin symbol. For example, the result of the classification is listed in table \ref{T:6mmm} for group $6/mmm$
+\begin{table}[h]
+    \centering
+    \caption{Symmetry operation and directions in cartesian coordinate in $6/mmm$}
+    \begin{tabular}{|c|l|l|}
+        \hline
+        Operation & Directions & Symmetry Direction\\
+        \hline
+        -1,1 & (  0.0  0.0  0.0) & $\mathbf{0}$\\
+        6,-3,-6,m,2,3 & (  0.0  0.0  1.0) & $[001]$\\
+        m,2 & (-0.5,-0.866,0.0), (1.0,0.0,0.0), (-0.5,0.866,0.0) & $[100],[010],[\bar{1}\bar{1}0]$\\
+        m,2 & (0.866,-0.5,0.0), (0.0,1.0,0.0), (-0.866,-0.5,0.0) & $[120],[\bar{2}\bar{1}0],[1\bar{1}0]$\\
+        \hline
+    \end{tabular}
+    \label{T:6mmm}
+\end{table}
+
+Then, it is possible to choose the basis for the site symmetry group. The choice of 
+the axes are listed in table \ref{T:choice_of_axes}. 
+After choosing $\mathbf{a}$ and $\mathbf{b}$, $\mathbf{c}$ is chosen so that the three axes
+form a right-handed system: $(\mathbf{a}\times \mathbf{b}) \cdot \mathbf{c} > 0$. 
+The direction in cartesian coordinates corresponding to the symmetry direction in the seitz symbol can also be computed and can be 
+compared to the symmetry direction found using equation \eqref{E:rotation_axes}. Finally, the 
+sense of the rotation can be computed using the method provided by 
+\emph{Efficient conversion from rotating matrix to rotation axis and angle by extending Rodrigues’ formula},
+by calculating the $\sin\theta$. 
+
+\begin{table}[h]
+    \centering
+    \caption{Choice of $\mathbf{a}$, $\mathbf{b}$ and $\mathbf{c}$}
+    \begin{tabular}{|c|c|}
+        \hline
+        Groups & Choice\\
+        \hline
+        \begin{tabular}{c}$2$, $m$, $2/m$, $4$, $-4$, $4/m$\\$3$, $-3$, $6$, $-6$, $6/m$\end{tabular}
+            & $z = [001]$ \\ \hline
+        $222$, $mm2$, $mmm$ & $x=[100],y=[010],z=[001]$ \\\hline
+        $32$, $3m$, $-3m$, $622$, $6mm$, $-6m2$, $6/mmm$ & $\{x, y\} \in \{[100], [010],[\bar{1}\bar{1}0]\}$ \\\hline
+        $23$, $m-3$, $432$, $-43m$, $m-3m$ & $\{x,y,z\} = \{[100],[010],[001]\}$ \\
+        \hline
+    \end{tabular}
+    \label{T:choice_of_axes}
+\end{table}
+
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[node distance=2cm]
+        \node (start) [startstop] {start};
+        \node (pro1) [process, below of=start] {Process 1};
+        \draw [arrow] (start) -- (pro1);
+        \node (end) [startstop, below of=pro1] {end};
+        \draw [arrow] (pro1) -- node[anchor=east] {yes} (end);
+    \end{tikzpicture}
+    \caption{Workflow}
+    \label{F:workflow}
+\end{figure}
+
+\subsection{Symmetry reduction}
+In our application, we need to find the subgroup of the site symmetry group so that we can separate basis 
+uniquely for a representation with more than one dimension. To do so, we need to know which symmetry is 
+kept when we move from a group to its subgroup. Finding the subgroups is not a trivial task and we 
+manually assign maps from the seitz symbol of the subgroup to the ones in the supergroup. In this way, subgroup
+and the correspond characters are readily obtained onces the seitz symbol of the site-symmetry group is known.
+
+\subsection{Subduction}
+Subduction enable us to perform symmetry descend that split the irreducible representation into 
+different subspaces with different symmetry. 
+
+\end{document}

@@ -1,0 +1,140 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{hyperref} % \url \href
+\usepackage{docmute}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
+
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\addbibresource{autoTB.bib}
+
+\begin{document}
+
+\section{Euclidean neural network}
+\subsection{Euclidean neural network}
+
+Euclidean nueral network purposed by Thomas et al. 2018\cite{thomas_tensor_2018} is different from the previous network in that
+\emph{The euclidean neural network operate on points throughout the structure: convolution is performed on each point with respect to other points.}
+Equivariance is achieved by their definition of point convoultion, but is simpler in the form because the discreteness of the 
+points.
+
+At each layer, each point $a$ in the point cloud are associated with a vector $(\mathbf{r}_a, \mathbf{x}_a)$ 
+in the vector space $R^3 \oplus \mathcal{X}$, where $\oplus$ indicate direct sum. We require that vector space $\mathcal{X}$ are span 
+by the spherical harmonics $Y_m^l$ for $0\leq l \leq b$ and $|m|\leq l$. We denote such a feature 
+vector as $V_acm^l$, where $c$ denotes channels (depth). 
+Under a rotation $R$ around a chosen origin, The input feature thus transforms as:
+\begin{equation}
+    (\mathbf{r}_{a}, V_{acm}^l) \to (R \mathbf{r}_{a}, \sum_{m'}D_{mm'}^l(R)V_{acm'}^l) \label{E:3dnn_rotation_input}
+\end{equation}
+
+We define a filter to be of the following form:
+\begin{equation}
+    F_{cm_f}^{l_f, l_i}(\mathbf{r}) =  R_c^{l_f, l_i} (r) Y_{m_f}^{l_f}(\mathbf{r})
+\end{equation}
+with $r = |\mathbf{r}|$, and $R_c^{l_f, l_i} (r)$ are the parameter of the filter function that can be learned.
+The filter functions are equivariant to rotation:
+\begin{align}
+    F_{cm_f}^{l_f, l_i}(R\mathbf{r}) &= R_c^{l_f, l_i} (r) Y_{m_f}^{l_f}(R\mathbf{r}) \\
+    &= R_c^{l_f, l_i} (r) \sum_{m_f'} D_{m_fm_f'}^{l_f}(R)  Y_{m_f}^{l_f}(\mathbf{r})
+\end{align}
+In the following, we will first define the components of the network.
+Then we will show that they are equivariant to rotation. As well as 
+invariant to translation and permutation.
+
+\subsection*{Point convolution}
+we define a convolution layer as:
+\begin{align}
+    V_{acm_o}^{l_o} &= L^{l_o}_{acm_o} (\mathbf{r}, V_{cm_i}^{l_i}) \notag\\
+    &= \sum_{m_f, m_i} C^{l_o,m_o}_{(l_f, m_f)(l_i,m_i)} \sum_{b \in S} F_{cm_f}^{l_f, l_i}(\mathbf{r}_{ab}) V^{l_i}_{bcm_i} \label{E:3dnn_point_convolution}
+\end{align}
+where $l_i$ and $l_f$ is the rotation order of the input and the filter, $m = -l_f, \dots, l_f$ is the index of the basis function.
+$C^{l_o,m_o}_{(l_f, m_f)(l_i,m_i)}$ is the \emph{Clebsch-Gordan coefficients}
+Note that we do not contain index $a$ in \[L^{l_o}_{acm_o} (\mathbf{r}, V_{cm_i}^{l_i})\] because
+the output depend on the feature vector $(\mathbf{r}, V_{cm_i}^{l_i})$ from all points in the set $S$.
+Note that we can understand the 'convolution' as the convolution between the filter function and a delta function 
+marking the position of the point, at $\mathbf{r}_{ab}$.
+
+Since the output only depend on relative distance $\mathbf{r}_{ab} = \mathbf{r}_{a} - \mathbf{r}_{b} $, 
+the output is invariant under a translation of all points. Also, the summation in Equation \eqref{E:3dnn_point_convolution}
+means the result is invariant under permutation of points.
+
+We can show that the above point convolution is equivariant to rotation (Appendix \ref{A:proof_equivariance_point}):
+rotation on the input feature space $(l_i,m_i)$ 
+correspond to rotation on output feature space $(l_o,m_o)$.
+
+\subsection*{Self-interaction}
+We define a self-interaction between the feature at each point $a$ as:
+\begin{equation}
+    V_{acm}^{l} = \sum_{c'} W^{l}_{cc'} V_{ac'm}^{l} 
+\end{equation}
+Such operation is independent on permutation and translation. It is also equivariant to rotation:
+\begin{align*}
+    [ W \circ R ] (V_{acm}^l) &= \sum_{c'} W^{l}_{cc'} \sum_{m'}D_{mm'}^l(R)V_{acm'}^l \\
+                &= \sum_{m'}D_{mm'}^l(R) \sum_{c'} W^{l}_{cc'}  V_{acm'}^l \\
+                &= [ R \circ W ] (V_{acm}^l)
+\end{align*}
+However, it should be noted that the self-interaction coefficients $W$ are used for every $m$. 
+If for different $m$ we have different weight, we than have:
+\begin{align*}
+    [ W \circ R ] (V_{acm}^l) &= \sum_{c'} W^{lm}_{cc'} \sum_{m'}D_{mm'}^l(R)V_{acm'}^l \\
+                &= \sum_{m'}D_{mm'}^l(R) \sum_{c'} W^{lm}_{cc'}  V_{acm'}^l 
+\end{align*}
+which is different from $\sum_{c'} W^{lm'}_{cc'}  V_{acm'}^l$ by first applying self-interaction.
+
+\subsection*{Nonlinearity}
+For nonlinearity, we can use:
+\begin{align*}
+    &h^l (V_{ac}^0 + b_c^0) & &\text{for $l=0$} \\ 
+    &h^l (\|V\|_{ac}^l + b_c^l)V_{acm}^{l} &  &\text{for $l>0$} \label{E:3dnn_nonlinearity}
+\end{align*}
+with $h\colon \mathbb{R}\to \mathbb{R}$ and 
+\[ \|V\|_{ac}^l = \sqrt{\sum_m |V_{acm}^l|^2} \]
+Nonlinearity is invariant for permutation and translation. For rotation, 
+because rotation does not change length in the vector space, $\|V\|_{ac}^l$ is 
+therefore invariant of rotation:
+\begin{equation}
+    \|D(R)V\| = \|V\|
+\end{equation}
+Thus, $h^l (\|V\|_{ac}^l + b_c^l)$ is invariant with respect to rotation. 
+The rotational properties is the output is solely given by $V_{acm}^{l}$.
+Therefore, nonlinearity defined by Equation \eqref{E:3dnn_nonlinearity} is equivariant
+with respect to rotation.
+
+\subsection*{Relationship with spherical CNNs}
+Here, we show the euclidean neural network can be understood as a special case of the more general spherical CNNs 
+with fixed filter.
+We first consider Equation \eqref{E:3dnn_point_convolution} with $l_i=m_i=0$, i.e., only scalars on each point. 
+Omitting the channel index $c$, 
+equation \eqref{E:3dnn_point_convolution} becomes:
+\begin{align}
+    V_{am}^{l} &= \sum_{b \in S} F_{m}^{l}(\mathbf{r}_{ab}) V_{b}  \notag\\
+            &= \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_{m}^{l}(\mathbf{x})
+\end{align}
+The part in square bracket is scalar value. This activation can be achieved by convoluting a filter with
+\begin{equation}
+    f(\mathbf{r}) = \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] \delta(\mathbf{x}_{ab})
+\end{equation}
+$\delta(\mathbf{x}_{ab})$ is zero unless the projection of the point b fall on the sphere at $\mathbf{x}_{ab}$. 
+We define the filter as:
+\begin{equation}
+    g_l(x) = \sum_{0\leq l \leq b} \sum_{|m|\leq l} Y_m^l(x)
+\end{equation}
+Putting the above form into Equation \eqref{E:convolution_s2}:
+\begin{align*}
+    V_a (r) &= \int_{s^2} \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] \delta(\mathbf{x}_{ab}) \sum_{l,m} Y_m^l(r^{-1}x) dx \\
+    &= \sum_{l,m} \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_m^l(r^{-1}\mathbf{x}_{ab}) \\
+    &= \sum_{l,m} \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] \sum_n D_{mn}^l(r^{-1}) Y_n^l(\mathbf{x}_{ab}) \\
+    &= \sum_{l,m,n} D_{mn}^l(r^{-1}) \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_n^l(\mathbf{x}_{ab})
+\end{align*}
+The coefficients \[V_{an}^l = \sum_{b \in S} \left[R^{l} (|r|)V_{b}\right] Y_n^l(\mathbf{x}_{ab})\] therefore uniquely define 
+the feature map on $r$. It describes the local environment of the points equivariantly to rotation $r$.
+
+If the point $b$ are associated with $l>0$, then we also need to take into account the rotational property of these points. This is 
+achieved using the properties of Clebsch-Gordan coefficients, similar to the addition of angular moment in quantum mechanics.
+
+\end{document}

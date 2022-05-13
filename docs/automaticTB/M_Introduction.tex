@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{hyperref} % \url \href
+\usepackage{docmute}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
+
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\addbibresource{autoTB.bib}
+
+\begin{document}
+
+\section{Introduction}
+
+It is inefficient to learn rules using try and error, while the rules can be 
+simply stated. 
+Similarly, if we want to achieve the best results using machine learning, which 
+basically learn from statistic distribution of data, 
+it is important that we include as much concrete rules as possible,
+which should greatly improve the accuracy of ML prediction while simplify the 
+problems for ML so that fewer data are necessary.
+
+To let machines predict the energy levels of the electronic states of moleculars, for example,
+one way is to input the molecular structure to ML and ask it to output the energies. 
+However, this naive approach suffer from the problems that 1) this `ab-initio' approach
+is too complicated to be formulated as a simple function that we can understand 
+and 2) if we ourselves cannot understand it, it is more difficult for us to inspect the 
+machine learning output: Is machine really learning anything important, or it just 
+found some other patterns that fits the data but does not agree with our physical 
+or chemical understanding?
+
+Using results from group theory, it is possible to simplify the Hamiltonians of 
+a molecular systems. Such approach utilize symmetry and provide
+rules that quantum mechanical interactions have to obey. 
+In the simplest case, a $s$ type wavefunction can not interact with a $p$ type wavefunction on the 
+same atom, because their intergrals are strictly zero. 
+Furthermore, group theory analysis force the degeneracy of the energy levels.
+These informations reduce the size of the problem considerably. As a consequence, to 
+find the energy of the states, we now only need to consider the remaining interactions 
+that are allowed between MOs, and the problem is then largely 
+an electro-static one, which should be simple enough for machine learning to solve.
+We try to formulate the ideas in the following sections
+
+\end{document}

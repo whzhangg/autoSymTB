@@ -1,40 +1,77 @@
-from automaticTB.linear_combination import Site, LinearCombination
-from automaticTB.SALCs.vectorspace import VectorSpace
-from automaticTB.SALCs.decompose import decompose_vectorspace_onelevel, decompose_vectorspace_recursive, decompose_vectorspace
-from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup, get_point_group_as_SiteSymmetryGroup
 import numpy as np
-import typing
+import typing, dataclasses
+from ..linear_combination import LinearCombination
+from ..SALCs.vectorspace import VectorSpace
 
-def get_vectorspace_group_C3v() -> typing.Tuple[VectorSpace, SiteSymmetryGroup]:
-    w = np.sqrt(3) / 2
-    group = get_point_group_as_SiteSymmetryGroup("3m")  # D3h
-    sites = [ Site(1, np.array([0.0, 0.0, 0.0])),
-              Site(1,np.array([0.0,1.0,0.0])), 
-              Site(1,np.array([w, -0.5,0.0])), 
-              Site(1,np.array([-1.0 * w, -0.5, 0.0]))]
-    vectorspace = VectorSpace.from_sites(sites, starting_basis="s")
-    return vectorspace, group
+@dataclasses.dataclass
+class NamedLC:
+    name: str
+    lc: LinearCombination
 
-def decompose_C3v() -> typing.List[LinearCombination]:
-    vectorspace, group = get_vectorspace_group_C3v()
-    subspaces = decompose_vectorspace(vectorspace, group)
-    lcs = []
-    for key, vspace in subspaces.items():
-        lcs += vspace.get_nonzero_linear_combinations()
-    return lcs
+@dataclasses.dataclass
+class InteractingLCPair:
+    rep1: str
+    rep2: str
+    lc1: LinearCombination
+    lc2: LinearCombination
 
-def formulate_equation_system():
-    # this basically produce the desired linear equation
-    lcs = decompose_C3v()
-    A = []
-    b = []
-    for lc1 in lcs:
-        for lc2 in lcs:
-            tp = np.tensordot(lc1.coefficients.flatten(), lc2.coefficients.flatten(), axes = 0).flatten()
-            A.append(tp)
-            print(tp)
-            b.append(1.0)
-            # https://numpy.org/doc/stable/reference/generated/numpy.tensordot.html
+class ListofNamedLC:
+    # this is similar to VectorSpace, maybe we should extract a common parent
+    def __init__(self, nlc_list: typing.List[NamedLC]) -> None:
+        self._orbitals = nlc_list[0].lc.orbitals
+        self._sites = nlc_list[0].lc.sites
+        for nlc in nlc_list:
+            if self._orbitals != nlc.lc.orbitals or self._sites != nlc.lc.sites:
+                raise
+        
+        self._LC_coefficients = np.vstack(
+            [ nlc.lc.coefficients.flatten() for nlc in nlc_list ]
+        )
+        self._LC_symbol = [ nlc.name for nlc in nlc_list ]
 
-if __name__ == "__main__":
-    formulate_equation_system()
+        matrix_A = []
+        self._tp_tuple = []
+        for i, lcc_i in enumerate(self._LC_coefficients):
+            for j, lcc_j in enumerate(self._LC_coefficients):
+                self._tp_tuple.append((i,j))
+                matrix_A.append(
+                    np.tensordot(lcc_i, lcc_j, axes=0).flatten()
+                )
+        self._matrix_A = np.vstack(matrix_A)
+        
+    @classmethod
+    def from_decomposed_vectorspace(cls, vc_dicts: typing.Dict[str, VectorSpace]):
+        result = []
+        for irrepname, vs in vc_dicts.items():
+            for lc in vs.get_nonzero_linear_combinations():
+                result.append(
+                    NamedLC(irrepname, lc.normalized())
+                )
+        return cls(result)
+
+    @property
+    def matrixA(self):
+        return self._matrix_A
+
+    @property
+    def rank(self):
+        return len(self._tp_tuple)
+
+    @property
+    def tp_tuple(self) -> typing.List[typing.Tuple[int, int]]:
+        return self._tp_tuple
+
+    @property
+    def lc_symbols(self) -> typing.List[str]:
+        return self._LC_symbol
+
+    def get_pair_LCs(self, i: int) -> InteractingLCPair:
+        tp = self._tp_tuple[i]
+        lcshape = (len(self._sites), self._orbitals.num_orb)
+        return InteractingLCPair(
+            self._LC_symbol[tp[0]],
+            self._LC_symbol[tp[1]],
+            LinearCombination(self._sites, self._orbitals, self._LC_coefficients[tp[0]].reshape(lcshape)),
+            LinearCombination(self._sites, self._orbitals, self._LC_coefficients[tp[1]].reshape(lcshape)),
+        )
+

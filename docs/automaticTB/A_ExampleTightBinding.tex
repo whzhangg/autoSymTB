@@ -1,0 +1,60 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{hyperref} % \url \href
+\usepackage{docmute}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
+
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\addbibresource{autoTB.bib}
+
+\begin{document}
+
+\section{Tight-binding model in Halide Perovskite Semiconductors}
+We describe the parameters in the cubic Halide Perovskite described in 
+the work of Boyer et al.\cite{boyer-richard_symmetry-based_2016} as the 
+our reference model. The parameters are as follows:
+\begin{table}[h]
+    \centering
+    \caption{Tight binding parameters, Halide Perovskite Semiconductors}
+    \label{T:TBP}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Atom & Positions(crystal coord.) & Basis functions \\
+        \hline
+        B & $(0.0,0.0,0.0)$ & $|S_0\rangle$, $|X_0\rangle$, $|Y_0\rangle$, $|Z_0\rangle$ \\
+        X & $(0.5,0.0,0.0)$ & $|S_1\rangle$, $|X_1\rangle$, $|Y_1\rangle$, $|Z_1\rangle$ \\
+        X & $(0.0,0.5,0.0)$ & $|S_2\rangle$, $|X_2\rangle$, $|Y_2\rangle$, $|Z_2\rangle$ \\
+        X & $(0.0,0.0,0.5)$ & $|S_3\rangle$, $|X_3\rangle$, $|Y_3\rangle$, $|Z_3\rangle$ \\
+        \hline
+    \end{tabular}
+\end{table}
+We have in total 16 atomic orbitals in the unit cell. In a $3\times 3\times 3$ supercell
+which can include all the nearest neighbor interaction, We would have in total $N_s \times 16 \times 16$ parameters. 
+Restricting the interaction to first order, only 304 interactions left. 
+Now, we use the fact that orbitals belong to different symmetry cannot form bonding, 
+so that matrix elements like $\langle S_0 | H | P_0 \rangle$ is zero, we can reduce the 
+number of non-zero parameters. 
+Finally, we use symmetry relationship to obtain relationship in bonding parameters. 
+The interaction can be parameterized using only 9 parameters:
+\begin{align*}
+    E_{s0} &= \langle S_0 | H | S_0 \rangle \\
+    E_{s1} &= \langle S_1 | H | S_1 \rangle \\
+    E_{p0} &= \langle X_0 | H | X_0 \rangle \\
+    E_{p1} &= \langle X_1 | H | X_1 \rangle 
+\end{align*}
+and 
+\begin{align*}
+    V_{ss} &= \langle S_0 | H | S_1 \rangle  \\
+    V_{s0p1} &= \langle S_0 | H | X_1 \rangle \\
+    V_{p0s1} &= \langle X_0 | H | S_1 \rangle \\
+    V_{pp\sigma} &= \langle X_0 | H | X_1 \rangle \\
+    V_{pp\pi} &= \langle Y_0 | H | Y_1 \rangle \\
+\end{align*}
+
+\end{document}
