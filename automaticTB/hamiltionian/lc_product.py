@@ -20,7 +20,6 @@ def decompose_C3v() -> typing.List[LinearCombination]:
     subspaces = decompose_vectorspace(vectorspace, group)
     lcs = []
     for key, vspace in subspaces.items():
-        vspace.remove_linear_dependent()
         lcs += vspace.get_nonzero_linear_combinations()
     return lcs
 
@@ -33,9 +32,9 @@ def formulate_equation_system():
         for lc2 in lcs:
             tp = np.tensordot(lc1.coefficients.flatten(), lc2.coefficients.flatten(), axes = 0).flatten()
             A.append(tp)
+            print(tp)
             b.append(1.0)
             # https://numpy.org/doc/stable/reference/generated/numpy.tensordot.html
-    print(np.linalg.matrix_rank(A, tol = 1e-5))
 
 if __name__ == "__main__":
     formulate_equation_system()

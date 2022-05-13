@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import typing
 from scipy.special import sph_harm
-from ..linear_combination import AOLISTS, LinearCombination, Site
+from ..linear_combination import LinearCombination, Site, Orbitals
 
 
 def sh_functions(l, m, theta, phi):
@@ -29,25 +29,24 @@ def precompute_data() -> typing.Tuple[np.ndarray, np.ndarray]:
         np.cos(phi)
         ])
 
-    computed_y = []
-    for ao in AOLISTS:
+    computed_y_dict = {}
+
+    for ao in Orbitals("s p d").aolist:
         y = sh_functions(ao.l, ao.m, theta, phi)
-        computed_y.append(y)
+        computed_y_dict[ao] = y
 
-    computed_ys = np.stack(computed_y) 
-    return unit_vector, computed_ys
+    return unit_vector, computed_y_dict
 
-unit_vector, computed_ys = precompute_data()
 
-def combined_sh(coefficient):
-    assert len(coefficient) == len(computed_ys)
-    y_with_coefficients = []
-    for co, computed_y in zip(coefficient, computed_ys):
-        y_with_coefficients.append(co * computed_y)
-    return np.sum(np.array(y_with_coefficients), axis = 0)
+unit_vector, computed_y_dict = precompute_data()
 
-def on_site_xyz_color(coefficient, pos: np.ndarray):
-    y = combined_sh(coefficient)
+
+def on_site_xyz_color(coefficient: np.ndarray, orb: Orbitals, pos: np.ndarray):
+    # with coefficient
+    y = np.zeros_like(computed_y_dict[orb.aolist[0]])
+    for co, orb in zip(coefficient, orb.aolist):
+        y += co * computed_y_dict[orb]
+
     scaled_vector = np.abs(y) * unit_vector
     
     vector_shape = scaled_vector.shape[1:]
@@ -63,7 +62,7 @@ def plot_vectors(combination: LinearCombination, ax, ax_lim):
 
     for site, coefficient in zip(combination.sites, combination.coefficients):
         pos = site.pos
-        vector, color = on_site_xyz_color(coefficient, pos)
+        vector, color = on_site_xyz_color(coefficient, combination.orbitals, pos)
         Yx, Yy, Yz = vector
 
         ax.plot_surface(Yx, Yy, Yz,

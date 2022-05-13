@@ -57,9 +57,11 @@ def test_decompose_C3v():
     subspaces = decompose_vectorspace(vectorspace, group)
     for key, vspace in subspaces.items():
         print(key)
-        vspace.remove_linear_dependent()
         for lc in vspace.get_nonzero_linear_combinations():
-            if lc: print(lc.pretty_str)
+            if lc: 
+                print(lc)
+                print(lc.orbitals)
+                print(lc.coefficients)
 
 if __name__ == "__main__":
     test_decompose_C3v()

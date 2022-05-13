@@ -20,7 +20,7 @@ def decompose_vectorspace_onelevel(vectorspace: VectorSpace, group: SiteSymmetry
                 rotated = rotate_linear_combination_from_symmetry_matrix(lc, op)
                 rotated.scale_coefficients(chi * irrep_dimension / group_order)
                 sum_coefficients += rotated.coefficients
-            transformed_LCs.append(LinearCombination(vectorspace.sites, sum_coefficients))
+            transformed_LCs.append(LinearCombination(vectorspace.sites, vectorspace.orbitals, sum_coefficients))
         subspaces[irrep] = VectorSpace.from_list_of_linear_combinations(transformed_LCs)
     return subspaces
 
@@ -44,7 +44,7 @@ def decompose_vectorspace_recursive(vectorspace: VectorSpace, group: SiteSymmetr
                 rotated = rotate_linear_combination_from_symmetry_matrix(lc, op)
                 rotated.scale_coefficients(chi * irrep_dimension / group_order)
                 sum_coefficients += rotated.coefficients
-            transformed_LCs.append(LinearCombination(vectorspace.sites, sum_coefficients))
+            transformed_LCs.append(LinearCombination(vectorspace.sites, vectorspace.orbitals, sum_coefficients))
         subspaces[irrep] = VectorSpace.from_list_of_linear_combinations(transformed_LCs)
 
     subduction = subduction_data[group.groupname]
