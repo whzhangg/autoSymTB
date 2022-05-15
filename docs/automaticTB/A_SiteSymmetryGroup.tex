@@ -17,9 +17,6 @@
 \newtheorem{theorem}{Theorem}
 \DeclareMathOperator{\spn}{Span}
 
-\newtheorem{definition}{Definition}
-\newtheorem{theorem}{Theorem}
-\DeclareMathOperator{\spn}{Span}
 
 \usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
 \addbibresource{autoTB.bib}
@@ -72,51 +69,70 @@ The sense of rotation indicate whether the rotation is clockwise or anti-clockwi
 The characteristic direction (lattice direction) is usually given with respect to different lattice systems. We use hexagonal lattice 
 for both hexagonal and rhombohedral lattice. The basis for each lattice can be found in Section 2.2 of \emph{ITA}. 
 
-the number of possible site symmetry is greatly reduced compared to 
-that in the moleculars. Possible rotations can be characterized by the trace 
-and determinant of the rotation matrix, where the $\det\mathbf{W}$ indicate the 
-existance of inversion in the operation and $\text{tr}\mathbf{W}$ gives the angle of rotation. 
-Since trace is invariant under permutation, angle of rotation does not depend on the 
-basis vector of the symmetry matrix. The characterization is listed by table \ref{T:operation_properties}.
-
 \subsection{Finding the Seitz symbol from Operation Matrix}
+Given an input structure and a point $\mathbf{x}$, it is often easier to find the set of matrices that belong to the site symmetry group
+$S_{\mathbf{x}}$ by trying out possible point group operations, without knowing the symmetry group or even the space group\cite{togo_spglib_2018}. 
+After obtaining the complete group operations, the point group can be assigned. However, at this point, the characters of each operation is
+not known and it is necessary to correctly assign their characters refering to point group character table, such as the one hosted on 
+Bilbao\footnote{\url{https://www.cryst.ehu.es/rep/point.html}}. 
 
+Although the matrix for each group operation is also specified on Bilbao database, we note that they can not be compared directly with the 
+set of matrices found by calculation because of different basis used, especially for the case of site symmetry. For example, in a cubic lattice 
+we may have four distinct site symmetry group of $3$ (three fold rotation) with different orientation. All of them have different 
+group operations but belong to the same type of point groups. The important point here is that a suitable basis need to be established for 
+the computed site symmetry group before we compare each operation with the ones given on the Bilbao database. Here, we describe the procedure
+to assign standard Seitz symbol to a group of site symmetry operation matrices. Given a set of operation matrices, if we can assign for 
+each operation a Seitz symbol corresponding to the Bilbao data, then the assignment of character will be straightforward.
 
-The total number of crystallographic point groups in three dimension is 32, and their character tables are 
-tabulated either in The point group table of the bilbao crystallographic server \href{https://www.cryst.ehu.es/rep/point.html}{bilbao}. 
-In crystallographic server, all the matrix element of the operations are also given explicitly, in the respective basis vector 
-and denoted in Seitz symbol. Their characters can also be found from the same webpage.
-Seitz symbols are tabulated as well (Seitz symbols for crystallographic symmetry operations)
-with the standard basis vectors given in the international table for each crystal system. 
-In our implementation, the character table of the 32 point symmetry groups are taken from bilbao server and 
-stored. For hexagonal lattice, we use the hexagonal setting.
+Our algorithm for the assignment take only a set of operation matrices in cartesian coordinate as input. 
+It's workflow is shown in Figure \ref{F:workflow}. 
+First, the type of operation can be assigned for each operation using determinant and trace. After all operation are determined, the 
+point group type can be found. 
 
-However, one complication arise when the site symmetry operation does not correspond to the standard basis. For example, 
-in a cubic crystal belong to space group $Pm\bar{3}m$ (221), the point $(x,x,x)$ on the body diagonal has site symmetry $3m$
-whose rotation matrix is tabulated in hexagonal basis. Therefore, we cannot directly compare the rotation matrix of the 
-site symmetry operation with the ones tabulated in the Bilbao server. Instead, we use the following method to generate 
-the seitz symbol from a list of rotation matrices, and then use the seitz symbol to assign characters to each symmetry 
-operations. The input rotation matrices can correspond to any orientation.
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[node distance=1.0cm]
+        \node (start) [startstop] {start};
+        \node (pro1) [process, below of=start] {Determine operation's type};
+        \draw [arrow] (start) -- (pro1);
+        \node (pro2) [process, below of=pro1] {Determine all characteristic directions};
+        \draw [arrow] (pro1) -- (pro2);
+        \node (pro3) [process, below of=pro2] {Group all equivalent direction};
+        \draw [arrow] (pro2) -- (pro3);
+        \node (pro4) [process, below of=pro3] {Assign primiary, secondary and tertiary directions};
+        \draw [arrow] (pro3) -- (pro4);
+        \node (pro5) [process, below of=pro4] {Assign basis vectors};
+        \draw [arrow] (pro4) -- (pro5);
+        \node (pro6) [process, below of=pro5] {Determine $[uvw]$ for each characteristic direction};
+        \draw [arrow] (pro5) -- (pro6);
+        \node (pro7) [process, below of=pro6] {Assign sense of each operation};
+        \draw [arrow] (pro6) -- (pro7);
+        \node (end) [startstop, below of=pro7] {end};
+        \draw [arrow] (pro7) -- (end);
+    \end{tikzpicture}
+    \caption{Workflow of Seitz symbol assignment}
+    \label{F:workflow}
+\end{figure}
 
-A seitz symbol consist of three parts: type of the symmetry operation, sense of the rotation 
-(for rotation $4$, $-4$, $3$, $-3$, $6$, $-6$ only) and the characteristic direction. 
-Symmetry type can be found according to table \ref{T:operation_properties}. To find the 
-symmetry direction in the standard basis, we first find the symmetry direction in the cartesian coordinate. 
-
-For symmetry $1$ or $\bar{1}$, a point $(0.0, 0.0, 0.0)$ will be assigned. If the symmetry operation is a rotoinversion,
-we multiplicity it by $-\mathbf{1}$ to obtain the rotation parts $\mathbf{W}$. 
-The symmetry direction is given by finding the eigenvector with eigenvalue $1$. 
+Characteristic directions can be found by finding the eigenvectors with eigenvalue of $1$. For each operation,
+we first find its rotation part $\mathbf{R}$ (i.e. multiple $-\mathbf{I}$ for rotoinversion). Then, the characteristic 
+direction is given by:
 \begin{equation}
-    \label{E:rotation_axes}
-    \mathbf{W}\mathbf{v} = \mathbf{v}
+    \label{E:eigendirection}
+    \mathbf{R}\mathbf{v} = \mathbf{v}
+\end{equation}
+For identity and inversion, we assigne $(0.0, 0.0, 0.0)$ as its characteristic direction. 
+After computing the directions of all the symmetry operation, we separate them into groups of equivalent directions 
+that are related by symmetry operations:
+\begin{equation}
+    \{\mathbf{v}' \mid \mathbf{W}\mathbf{v}, \mathbf{W} \in \mathbf{S_\mathbf{x}}\}
 \end{equation}
 
-After computing the directions of all the symmetry operation, we separate them into sets that are related by symmetry operations:
-\begin{equation}
-    \{\mathbf{v}' \mid \mathbf{W}\mathbf{v}, \mathbf{W} \in \mathbf{R}\}
-\end{equation}
-All symmetry direction belonging to the same set contain the same symmetry elements, and they correspond to the symmetry directions 
-used in Hermann--Mauguin symbol. For example, the result of the classification is listed in table \ref{T:6mmm} for group $6/mmm$
+These groups of equivalent symmetry directions correspond to the symmetry directions used in the Hermann-Mauguin symbol,
+and knowing the symmetry operation on each direction, it is straightforward to identify the primiary, 
+secondary and tertiary directions. For example, the result of an assignment at this step for group $6/mmm$
+is given in Table \ref{T:6mmm}
+
 \begin{table}[h]
     \centering
     \caption{Symmetry operation and directions in cartesian coordinate in $6/mmm$}
@@ -134,18 +150,16 @@ used in Hermann--Mauguin symbol. For example, the result of the classification i
 \end{table}
 
 Then, it is possible to choose the basis for the site symmetry group. The choice of 
-the axes are listed in table \ref{T:choice_of_axes}. 
+the basis for each group are listed in table \ref{T:choice_of_axes}. 
 After choosing $\mathbf{a}$ and $\mathbf{b}$, $\mathbf{c}$ is chosen so that the three axes
 form a right-handed system: $(\mathbf{a}\times \mathbf{b}) \cdot \mathbf{c} > 0$. 
-The direction in cartesian coordinates corresponding to the symmetry direction in the seitz symbol can also be computed and can be 
-compared to the symmetry direction found using equation \eqref{E:rotation_axes}. Finally, the 
-sense of the rotation can be computed using the method provided by 
-\emph{Efficient conversion from rotating matrix to rotation axis and angle by extending Rodrigues’ formula},
-by calculating the $\sin\theta$. 
+Given the chosen basis, each symmetry direction as vector in cartesian coordinates, found in Equation \eqref{E:eigendirection}
+can be converted to $[uvw]$ notation. Finally, the sense of rotation can be computed using $\sin\theta$ of the 
+rotation angle\cite{liang_ecient_2018}.
 
 \begin{table}[h]
     \centering
-    \caption{Choice of $\mathbf{a}$, $\mathbf{b}$ and $\mathbf{c}$}
+    \caption{Choice of basis for each point groups}
     \begin{tabular}{|c|c|}
         \hline
         Groups & Choice\\
@@ -160,29 +174,44 @@ by calculating the $\sin\theta$.
     \label{T:choice_of_axes}
 \end{table}
 
+In our implementation, the characters associated with each point group operation are taken from the Bilbao database, and 
+they are listed using the Seitz symbol. Therefore, after finding the corresponding Seitz symbol, assignment of characters to 
+each operation matrix is straightforward.
 
-\begin{figure}[h]
+
+\subsection{Character assignment for subgroups}
+
+In our application, we may need to find the subgroup of the site symmetry group. 
+To do so, we need to know which symmetry is kept when we move from a group to its subgroup. 
+
+It is non-trivial to find subgroups from a set of group operation matrices directly. However, since we 
+already assigned the Seitz symbol for each operation in the parent group, we can manually define a 
+map between the Seitz symbol of the parent group and all its subgroups. Therefore, we only need 
+to perform a simple lookup to obtain the operation and their characters for any subgroup of the site symmetry group. 
+For example, a lookup table for subgroup $3$ from a parent group $432$ is given in Table \ref{T:subgrouplookup}
+
+\begin{table}[h]
     \centering
-    \begin{tikzpicture}[node distance=2cm]
-        \node (start) [startstop] {start};
-        \node (pro1) [process, below of=start] {Process 1};
-        \draw [arrow] (start) -- (pro1);
-        \node (end) [startstop, below of=pro1] {end};
-        \draw [arrow] (pro1) -- node[anchor=east] {yes} (end);
-    \end{tikzpicture}
-    \caption{Workflow}
-    \label{F:workflow}
-\end{figure}
-
-\subsection{Symmetry reduction}
-In our application, we need to find the subgroup of the site symmetry group so that we can separate basis 
-uniquely for a representation with more than one dimension. To do so, we need to know which symmetry is 
-kept when we move from a group to its subgroup. Finding the subgroups is not a trivial task and we 
-manually assign maps from the seitz symbol of the subgroup to the ones in the supergroup. In this way, subgroup
-and the correspond characters are readily obtained onces the seitz symbol of the site-symmetry group is known.
+    \caption{Defined lookup table for subgroup $3$ from $432$}
+    \begin{tabular}{|c|c|}
+        \hline
+        Seitz symbol in $3$ & Seitz symbol in $432$\\
+        \hline
+        1 & 1 \\
+        $3^{+}_{001}$ & $3^{+}_{111}$ \\
+        $3^{-}_{001}$ & $3^{-}_{111}$ \\
+        \hline
+    \end{tabular}
+    \label{T:subgrouplookup}
+\end{table}
 
 \subsection{Subduction}
-Subduction enable us to perform symmetry descend that split the irreducible representation into 
-different subspaces with different symmetry. 
+Subduction enable us to perform symmetry descend that split the irreducible representation 
+in the parent group into different irreducible representations\cite{johansson_automatic_2017}. 
+
+For the effective split of irreducible representation of more than one dimension into distinct 
+irreducible representation of the subgroup, the choice of the subgroup, i.e., which operation 
+to keep as subgroup operation, is important. In our implementation, we select the subgroup operations
+following the subduction table provided in \cite{altmann_point-group_1994}. 
 
 \end{document}
