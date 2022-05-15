@@ -1,17 +1,25 @@
 \documentclass{article}
+
 \usepackage{amssymb, amsmath, amsthm}
 \usepackage[margin=1in]{geometry}
 \usepackage{verbatim}
 \usepackage{graphicx}
 \usepackage{hyperref} % \url \href
 \usepackage{docmute}
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\usepackage{tikz}
 
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 \DeclareMathOperator{\spn}{Span}
 
-\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
 \addbibresource{autoTB.bib}
+
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2cm,text centered, draw=black]
+\tikzstyle{process} = [rectangle, minimum width=2cm, text centered, draw=black]
+\tikzstyle{decision} = [diamond, minimum width=2cm, text centered, draw=black]
+\tikzstyle{arrow} = [thick,->,>=stealth]
 
 \begin{document}
 
@@ -28,7 +36,6 @@
 \include{A_SiteSymmetryGroup.tex}
 \include{A_GroupRepresentaiton.tex}
 \include{A_SymAdoptedBasis.tex}
-\include{A_ExampleTightBinding.tex}
 
 \printbibliography[title={Reference}]
 

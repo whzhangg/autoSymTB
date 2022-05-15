@@ -19,14 +19,16 @@
 \subsection{Molecular orbitals}
 Using character table and the orthogonality theorem for characters, we can find the basis functions 
 of the Hamiltonians knowing only the symmetry property of the structure. 
+
 We start by finding the vector space of all the participating atomic orbitals and their transformation 
-properties under group operation, then decompose the reducible representation to irreducible ones. 
+properties under group operation, then we decompose the reducible representation to irreducible ones. 
 We follow the example of Dresselhaus\cite{dresselhaus_group_2008} and consider the group $D_{3h}$ with 
 the following character table \ref{T:ct}
 \begin{table}[h!]
     \centering
     \caption{Character table of $D_{3h}$}
     \begin{tabular}{|c|c|c|c|c|c|c|}
+        \hline
                 & $E$ & $\sigma_h$ & 2$C_3$ & 2$S_3$ & 2$C_2'$ & 3$\sigma_v$ \\ \hline
          $A_1'$ &  1  &  1         &  1     &  1     &   1     &   1         \\
          $A_2'$ &  1  &  1         &  1     &  1     &  -1     &  -1         \\
@@ -37,6 +39,7 @@ the following character table \ref{T:ct}
     \end{tabular}
     \label{T:ct}
 \end{table}
+
 Suppose we have four atoms, one on the rotation axis and three other that transform to each other 
 by three fold rotation, and $s$ and $p$ orbitals on each of the atoms. Indexing each atomic 
 centered functions using atomic index $i$ and orbital index $l,m$ as $| i,l,m \rangle$ 
@@ -59,34 +62,28 @@ in this atomic orbital basis:
 \end{gather*}
 The uniqe decomposition of the reducible representation into the irreducible ones are given by:
 \begin{gather}
-    \chi(C_k) = \sum_{\Gamma_i} a_i \chi^{\Gamma_i}(C_k) \\
     a_i = \frac{1}{h} \sum_{k} N_k \chi^{\Gamma_i}(C_k)^* \chi(C_k)
 \end{gather}
-where $C_k$ and $N_k$ denote the class of symmetry operation (whose elements have the same character)
-and their multiplicity. $h = |G|$ is the order of the group. Decomposing the 
-above represention in atomic orbital space, we obtain the following relationship:
+Decomposing the above represention in atomic orbital space, we obtain the following relationship:
 \begin{equation}
     \Gamma^{AOs} = 
       3\Gamma^{A_1'} + \Gamma^{A_2'}  + 2\Gamma^{A_2''} + 4\Gamma^{E'} + \Gamma^{E''}
 \end{equation}
 
-\subsection{Projecting into invariant subspace}
-Knowing who the vector space constructed from the atomic orbitals can be organized into invariant subspaces 
+\subsection{Projecting into Vector Space of Irreducible Representation}
+Knowing how the vector space of atomic orbitals can be splitted into invariant subspaces 
 under symmetry group does not tell us what these subspaces are. 
-More importantly, to start to reason about the energy of these orbitals, we should start from the approximate
-shape of these orbitals.
-
-To start, we first identify what these subspaces are using the projection operation on the atomic basis functions
+To find those subspaces, we need to use the projection operator and apply them to atomic basis functions.
 \begin{equation}
     P^{\Gamma_i} = \frac{l_n}{h}\sum_R \chi^{\Gamma_i}(R) P_R
 \end{equation}
-where $P^{\Gamma_i}$ is the projection operation onto the representation $\Gamma_i$, $l_n$ is the dimension of the 
-representation. 
-Operating this projection operator on an arbitrary function in the vector space $V^{AOs}$ produce a vector in the 
-subspace that correspond to the required representation. In our previous example, 
-if we consider the vector subspace formed by the $s$ orbital centered on three equivalent atoms corresponding to the 
-corner of the triangle, the group representation can be decomposed to $\Gamma^{s3} = \Gamma^{A_1'} + \Gamma^{E'}$
-with dimension one and two. 
+The resulting vector of the projection will belong to the 
+subspace that correspond to the required representation. 
+
+In our example, consider only the vector subspace formed by the $s$ orbital centered on three equivalent atoms 
+corresponding to the corner of the triangle for simplicity. 
+The group representation can be decomposed to $\Gamma^{s3} = \Gamma^{A_1'} + \Gamma^{E'}$ 
+with dimension one and two respectively. 
 Projecting from each of the $s$ function onto these subspaces, we find that, for $A_1'$:
 \begin{align}
     \psi_1^{A_1'} = \frac{1}{3}|s,1\rangle + \frac{1}{3}|s,2\rangle + \frac{1}{3}|s,3\rangle 
@@ -104,26 +101,25 @@ subspace.
 
 \subsection{Symmetry adopted linear combination}
 After separating the invariant subspaces into different irreducible representations, the problem remains to 
-find the suitable basis functions. These basis functions should be mutually orthogonality and, at the same times,
-exhibit symmetry properties of the group. 
-To do so, we need to reduce the symmetry of the system artifically. An irreducible representation become 
-reducible when the number of symmetric decreases and the resulting subspaces will be linearly independent 
-regarding to the subgroup. As an example, consider the above invariant subspace span by the three functions
-$\psi_1^{E'}$, $\psi_1^{E'}$ and $\psi_1^{E'}$. It is clear that these three functions are related to each 
-other by rotations, however, they are not orthogonal and each of them do not exhibit clear symmetry property
-by themselves. Furthermore, the dimension of this subspace is two and we should eliminate one of the function
-from these three, which cannot be done uniquely. 
+find the suitable basis functions. For one dimension represetation, the basis function is unique up to a sign.
+However, for irreducible representation larger than one dimension, the choice of basis is not unqie. 
+For example, any two of the three functions $\psi_1^{E'}$, $\psi_2^{E'}$ or $\psi_3^{E'}$ gives a basis in $E'$. 
 
-By descending down symmetry, however, we are able to find better basis functions: group $C_s$ is a subgroup 
+To find basis functions that has symmetry properties, we artifically decrease the symmetry of the system. 
+Such a symmetry descend would split irreducible representation into different irreducible representation 
+of the subgroup. 
+In the previous example, by descending down symmetry from $D_{3h}$ to $C_s$, 
+we are able to find better basis functions: group $C_s$ is a subgroup 
 of $D_3h$ with only two elements: $\{E, \sigma_v\}$ where $\sigma_v$ is one of the three vertical reflection, 
-choosen arbitrarily. 
-The two dimensional representation $E'$ splits under the reduction of symmetry into two one dimensional representation.
+which we can choose arbitrarily in this case. 
+The two dimensional representation $E'$ thus splits under the reduction of symmetry into two one dimensional representation.
 Projection of the three functions in $E'$ yield one basis function for each one dimensional representation:
 \begin{align}
     \psi_1^{A'} &= \frac{2}{\sqrt{6}} |s,2\rangle - \frac{1}{\sqrt{6}} |s,1\rangle - \frac{1}{\sqrt{6}} |s,3\rangle \\
     \psi_1^{A"} &= \frac{\sqrt{2}}{2} |s,1\rangle - \frac{\sqrt{2}}{2} |s,3\rangle
 \end{align}
 Being the one dimensional representation of $C_s$, we can identify them to be 
-symmetric and anti-symmetric under vertical mirror reflection. 
+symmetric and anti-symmetric under vertical mirror reflection. Furthermore, the two wavefunctions 
+are not allowed to interact with each other since they have different symmetry properties.
 
 \end{document}
