@@ -1,6 +1,6 @@
 import numpy as np
 import typing, dataclasses
-from ..linear_combination import LinearCombination
+from ..linear_combination import LinearCombination, Site
 from ..SALCs.vectorspace import VectorSpace
 
 @dataclasses.dataclass
@@ -15,7 +15,8 @@ class InteractingLCPair:
     lc1: LinearCombination
     lc2: LinearCombination
 
-class ListofNamedLC:
+
+class RepLabelledBasis:
     # this is similar to VectorSpace, maybe we should extract a common parent
     def __init__(self, nlc_list: typing.List[NamedLC]) -> None:
         self._orbitals = nlc_list[0].lc.orbitals
@@ -54,7 +55,12 @@ class ListofNamedLC:
         return self._matrix_A
 
     @property
+    def num_AOs(self):
+        return len(self._sites * self._orbitals.num_orb)
+
+    @property
     def rank(self):
+        # rank of matrix A, number of pairs
         return len(self._tp_tuple)
 
     @property
@@ -74,4 +80,3 @@ class ListofNamedLC:
             LinearCombination(self._sites, self._orbitals, self._LC_coefficients[tp[0]].reshape(lcshape)),
             LinearCombination(self._sites, self._orbitals, self._LC_coefficients[tp[1]].reshape(lcshape)),
         )
-

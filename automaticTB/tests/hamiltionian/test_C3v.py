@@ -4,7 +4,7 @@ from automaticTB.SALCs.decompose import decompose_vectorspace
 from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup, get_point_group_as_SiteSymmetryGroup
 import numpy as np
 import typing
-from automaticTB.hamiltionian.lc_product import ListofNamedLC
+from automaticTB.hamiltionian.lc_product import RepLabelledBasis
 
 def get_vectorspace_group_C3v() -> typing.Tuple[VectorSpace, SiteSymmetryGroup]:
     w = np.sqrt(3) / 2
@@ -36,7 +36,7 @@ def all_value_equal(inputlist: typing.List[float]) -> bool:
 def test_formulate_equation_system_C3v():
     vectorspace, group = get_vectorspace_group_C3v()
     subspaces = decompose_vectorspace(vectorspace, group)
-    lcs = ListofNamedLC.from_decomposed_vectorspace(subspaces)
+    lcs = RepLabelledBasis.from_decomposed_vectorspace(subspaces)
     b = []
 
     random_interaction = RandomInteraction()
