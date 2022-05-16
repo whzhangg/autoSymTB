@@ -1,28 +1,11 @@
 import numpy as np
-import dataclasses, typing
+import dataclasses, typing, abc
 from ase.data import chemical_symbols
+from .structure.sites import Site
 
 class SphericalHarmonic(typing.NamedTuple):
     l: int
     m: int
-
-
-@dataclasses.dataclass
-class Site:
-    type: int
-    pos: np.ndarray
-
-    def __eq__(self, other) -> bool:
-        return self.type == other.type and np.allclose(self.pos, other.pos)
-
-    def rotate(self, matrix:np.ndarray):
-        newpos = matrix.dot(self.pos)
-        return Site(self.type, newpos)
-
-    def __repr__(self) -> str:
-        atom = chemical_symbols[self.type]
-        return "{:>2s} @ ({:> 6.2f},{:> 6.2f},{:> 6.2f})".format(atom, *self.pos)
-
 
 class Orbitals:
     _aoirrep_ref = {"s": "1x0e",  "p": "1x1o", "d": "1x2e"}
@@ -68,6 +51,84 @@ class Orbitals:
 
     def __contains__(self, item: str) -> bool:
         return item in self._orbitals
+
+
+class LinearCombination:
+    tolorance = 1e-6
+
+    def __init__(self, sites: typing.List[Site], orbitals: typing.List[Orbitals], coefficient: np.ndarray):
+        assert len(sites) == len(orbitals)
+        self._sites = sites
+        self._orbitals = orbitals
+        self._coefficient_length = sum([orb.num_orb for orb in orbitals])
+        self._coefficients = coefficient
+        assert len(coefficient) == self._coefficient_length
+
+    @property
+    def coefficients(self) -> np.ndarray:
+        return self._coefficients
+
+    @property
+    def sites(self) -> typing.List[Site]:
+        return self._sites
+
+    @property
+    def orbitals(self) -> Orbitals:
+        return self._orbitals
+        
+    @property
+    def norm(self) -> float:
+        return np.linalg.norm(self._coefficients)
+
+    @property
+    def is_normalized(self) -> bool:
+        return np.isclose(self.norm, 1.0)
+
+    def __bool__(self):
+        return self.norm > self.tolorance
+
+    def scale_coefficients(self, factor: float) -> None:
+        self._coefficients *= factor
+
+    def get_normalized(self): # LinearCombination
+        coefficient = self._coefficients
+        norm = self.norm
+        if norm > self.tolorance:
+            coefficient /= norm
+        
+        return LinearCombination(self._sites, self._orbitals, coefficient)
+        
+    def __str__(self):
+        to_display: typing.List[str] = []
+        start = 0
+        for site, orbital in zip(self._sites, self._orbitals):
+            end = start + orbital.num_orb
+            sliced_coefficient = self._coefficients[start: end]
+            if np.linalg.norm(sliced_coefficient) < self.tolorance: continue
+
+            to_display.append(
+                self._site_string(site, orbital, sliced_coefficient)
+            )
+
+            start = end
+
+        prefix_middle = '├─'
+        prefix_last = '└─'
+        result = ""
+        for i, aline in enumerate(to_display):
+            if i < len(to_display) - 1:
+                result += f"{prefix_middle} {aline}\n"
+            else:
+                result += f"{prefix_last} {aline}"
+        return result
+    
+    def _site_string(self, site: Site, orbitals: Orbitals, coefficient: np.ndarray) -> str: 
+        aline = str(site) + " :: "
+        for i, coeff in enumerate(coefficient):
+            if np.abs(coeff) < self.tolorance: continue
+            aline += "{:>+6.3f}({:>1d}{:> 2d})".format(
+                coeff, orbitals.aolist[i].l, orbitals.aolist[i].m)
+        return aline
 
 
 class LinearCombination:

@@ -5,7 +5,7 @@ from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
 from automaticTB.structure.sites import CrystalSite, NearestNeighborSites
 from automaticTB.linear_combination import Orbitals
 from DFTtools.SiteSymmetry.utilities import rotation_fraction_to_cartesian
-from ase.data import chemical_symbols
+from ase.data import chemical_symbols, atomic_numbers
 
 
 def get_home_position_and_cell_translation(fractional_positions: np.ndarray):
@@ -20,31 +20,34 @@ def position_string(pos: np.ndarray):
 
 Atomlm = collections.namedtuple("Atomlm", "i l m")
 
+
 class Structure:
     symprec: float = 1e-4
     def __init__(self,
         cell: np.ndarray,
         positions: typing.List[np.ndarray],
         types: typing.List[int],
-        clusters: typing.List[NearestNeighborSites],
-        symmetry_groups: typing.List[SiteSymmetryGroup]
+        clusters: typing.List[NearestNeighborSites]
     ):
         self._cell = cell
         self._positions = positions
         self._types = types
         self._clusters = clusters
-        self._symmetry_groups = symmetry_groups
 
 
-    def get_basis_for_vectorspace(self, orbital_dict: typing.Dict[str, Orbitals]):
+    def get_basis_for_vectorspace(self, orbital_dict: typing.Dict[int, str]):
+        #orbital_dict_type = {
+        #    atomic_numbers(key): value for key, value in orbital_dict
+        #}
         all_orbitals = []
         for it, t in enumerate(self._types):
             all_orbitals += [
-                Atomlm(it, sp.l, sp.m) for sp in orbital_dict[chemical_symbols[t]].aolist
+                Atomlm(it, sp.l, sp.m) for sp in Orbitals(orbital_dict[t]).aolist
             ]
         
-        for 
-
+    @property
+    def nearest_neighbor_clusters(self) -> typing.List[NearestNeighborSites]:
+        return self._clusters
 
     @classmethod
     def from_cpt_rcut(
@@ -62,7 +65,6 @@ class Structure:
 
         pymatgen_structure = matgenStructure.Structure(lattice = c, species = t, coords = p)
         nnsites = []
-        ssgroups = []
         for i, cpos in enumerate(cartesian_p):
             crystalsites = []
             sites = pymatgen_structure.get_sites_in_sphere(cpos, rcut)
@@ -77,13 +79,11 @@ class Structure:
                 crystalsites.append(
                     CrystalSite.from_data(atomic_type, relative_cartesian, index, tr)
                 )
-            nnsite = NearestNeighborSites(crystalsites, cpos)
-            site_symmetry = nnsite.find_site_symmetry_operation(cartesian_rotations)
-            group = SiteSymmetryGroup.from_cartesian_matrices(site_symmetry)
+            nnsite = NearestNeighborSites(crystalsites, cpos, cartesian_rotations)
+            
             nnsites.append(nnsite)
-            ssgroups.append(group)
 
-        return cls(c, p, t, nnsites, ssgroups)
+        return cls(c, p, t, nnsites)
         
         
     @classmethod
@@ -98,7 +98,13 @@ if __name__ == "__main__":
     c,p,t = read_generic_to_cpt("/Users/wenhao/work/code/python/DFTtools/tests/structures/Si_ICSD51688.cif")
     structure: Structure = Structure.from_cpt_rcut(c, p, t, 3.0)
     orbital = {
-        "Si": Orbitals("s p")
+        atomic_numbers["Si"]: "s p"
     }
-    structure.get_basis_for_vectorspace(orbital)
+
+    cluster1 = structure.nearest_neighbor_clusters[0]
+    print(cluster1)
+    result = cluster1.get_vector_basises(orbital)
+    for namedvector in result:
+        print(namedvector.name)
+    print(len(result))
 
