@@ -1,13 +1,12 @@
 import numpy as np
-import dataclasses, typing, abc
-from ase.data import chemical_symbols
-from .structure.sites import Site
-from .rotation import orbital_rotation_from_symmetry_matrix
-from e3nn import o3
+import dataclasses, typing
+from ..structure.sites import Site
+from ..rotation import orbital_rotation_from_symmetry_matrix
 
 class SphericalHarmonic(typing.NamedTuple):
     l: int
     m: int
+
 
 class Orbitals:
     _aoirrep_ref = {"s": "1x0e",  "p": "1x1o", "d": "1x2e"}
@@ -87,6 +86,10 @@ class LinearCombination:
         return np.isclose(self.norm, 1.0)
 
     @property
+    def nonzero(self) -> bool:
+        return self.norm > self.tolorance
+
+    @property
     def atomic_slice(self) -> typing.List[slice]:
         result = []
         start = 0
@@ -97,7 +100,7 @@ class LinearCombination:
         return result
 
     def __bool__(self):
-        return self.norm > self.tolorance
+        return self.nonzero
 
     def scale_coefficients(self, factor: float) -> None:
         self._coefficients *= factor
@@ -168,94 +171,3 @@ class LinearCombination:
         new_coefficient = np.dot(orbital_rotataion, self._coefficients)
         return new_sites, new_coefficient
 
-
-class LinearCombination:
-    display_tol = 1e-5
-
-    def __init__(self, sites: typing.List[Site], orbitals: Orbitals, coefficient: np.ndarray, normalize: bool = False) -> None:
-        self._orbitals = orbitals
-        if len(sites) != len(coefficient):
-            raise "Number of coefficient different from number of site"
-        if coefficient.shape[1] != self._orbitals.num_orb:
-            raise f"only {self._orbitals.num_orb} atomic orbitals are supported"
-
-        if normalize:
-            self._coefficients = self._normalize_coefficients(coefficient)
-        else:
-            self._coefficients = coefficient
-        
-        self._sites = sites
-
-    @property
-    def coefficients(self) -> np.ndarray:
-        return self._coefficients
-
-    @property
-    def sites(self) -> typing.List[Site]:
-        return self._sites
-
-    @property
-    def orbitals(self) -> Orbitals:
-        return self._orbitals
-
-    @property
-    def is_normalized(self):
-        norm = np.linalg.norm(self.coefficients.flatten())
-        return np.isclose(norm, 1.0)
-
-    def scale_coefficients(self, factor: float) -> None:
-        self._coefficients *= factor
-
-    def normalized(self): # -> LinearCombination
-        normalized = self._normalize_coefficients(self._coefficients)
-        return LinearCombination(self._sites, self._orbitals, normalized)
-
-    def get_orbital_subspace(self, orbital: Orbitals): # -> LinearCombination
-        coefficient_slice = [
-            self._orbitals.slice_dict[o] for o in orbital.orblist
-        ]
-        sliced = np.hstack([
-            self._coefficients[:,s] for s in coefficient_slice
-        ])
-        return LinearCombination(
-            self.sites, orbital, sliced
-        )
-
-    def __str__(self):
-        prefix_middle = '├─'
-        prefix_last = '└─'
-        to_display: typing.List[str] = []
-        for site, coeff_on_site in zip(self._sites, self._coefficients):
-            if np.linalg.norm(coeff_on_site) < self.display_tol: continue
-            aline = self._site_string(site, coeff_on_site)
-            to_display.append(aline)
-
-        result = ""
-        for i, aline in enumerate(to_display):
-            if i < len(to_display) - 1:
-                result += f"{prefix_middle} {aline}\n"
-            else:
-                result += f"{prefix_last} {aline}"
-        return result
-        
-    def __bool__(self):
-        if np.linalg.norm(self._coefficients.flatten()) > self.display_tol:
-            return True
-        else:
-            return False
-
-    def _normalize_coefficients(self, coefficient: np.ndarray):
-        # so that norm equal to 1
-        norm = np.linalg.norm(coefficient.flatten())
-        if np.isclose(norm, 0.0):
-            return coefficient
-        else:
-            return coefficient / norm
-
-    def _site_string(self, site: Site, coefficient: np.ndarray) -> str:
-        aline = str(site) + " :: "
-        for i, coeff in enumerate(coefficient):
-            if np.abs(coeff) < self.display_tol: continue
-            aline += "{:>+6.3f}({:>1d}{:> 2d})".format(
-                coeff, self._orbitals.aolist[i].l, self._orbitals.aolist[i].m)
-        return aline

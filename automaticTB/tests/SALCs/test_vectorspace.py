@@ -1,5 +1,6 @@
 from automaticTB.SALCs.vectorspace import VectorSpace
-from automaticTB.linear_combination import Site
+from automaticTB.structure.sites import Site
+from automaticTB.SALCs.linear_combination import Orbitals
 import numpy as np
 
 sites = [
@@ -10,7 +11,32 @@ sites = [
     Site(1, np.array([0,0,1])),
     Site(1, np.array([0,0,-1])),
 ]
+orbitals = [
+    Orbitals("s"),
+    Orbitals("p"),
+    Orbitals("d"),
+    Orbitals("s p"),
+    Orbitals("s d"),
+    Orbitals("p d")
+]
 
+def test_initiating_vectorspace():
+    vectorspace = VectorSpace.from_sites(sites, orbitals)
+    assert vectorspace.rank == 27
+    assert vectorspace.nbasis == 27
+
+def test_initiating_vectorspace_from_linearcombination():
+    vectorspace = VectorSpace.from_sites(sites, orbitals)
+    lcs = vectorspace.get_nonzero_linear_combinations()
+    vectorspace_rebuilt = VectorSpace.from_list_of_linear_combinations(lcs)
+
+    assert np.allclose(
+        vectorspace._vector_coefficients, vectorspace_rebuilt._vector_coefficients
+    )
+
+
+
+"""
 def test_initiating_from_sites_s():
     vectorspace = VectorSpace.from_sites(sites, starting_basis="s")
     assert vectorspace.rank == len(sites) * 1
@@ -35,3 +61,5 @@ def test_initiating_from_linear_combinations():
     assert vectorspace._sites == vectorspace_built._sites
     assert np.allclose(
         vectorspace._vector_coefficients, vectorspace_built._vector_coefficients)
+
+"""

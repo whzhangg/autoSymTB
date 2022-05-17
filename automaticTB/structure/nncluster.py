@@ -1,15 +1,15 @@
 import dataclasses, typing, collections
 import numpy as np
-from ase.data import chemical_symbols
-from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
-from ..linear_combination import Site as BareSite
-from ..linear_combination import Orbitals, LinearCombination
-from ..SALCs.vectorspace import VectorSpace
-from ..SALCs.decompose import decompose_vectorspace
 from .sites import Site, CrystalSite
+from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
 
-# index in the primitive cell, l, m
-Atomlm = collections.namedtuple("Atomlm", "i l m")
+
+@dataclasses.dataclass
+class CrystalSitesWithSymmetry:
+    crystalsites: typing.List[CrystalSite]
+    symmetrygroup: SiteSymmetryGroup
+    equivalent_atoms: typing.Dict[int, typing.Set[int]]
+
 
 @dataclasses.dataclass
 class NNCluster:
@@ -57,7 +57,13 @@ class NNCluster:
                         found.append(j)
         return result
 
+    def get_CrystalSitesWithSymmetry_from_group(self, group: SiteSymmetryGroup) -> CrystalSitesWithSymmetry:
+        equivalent_dict = self.get_equivalent_atoms_from_SiteSymmetryGroup(group)
+        return CrystalSitesWithSymmetry(
+            self.crystalsites, group, equivalent_dict
+        )
 
+'''
 @dataclasses.dataclass
 class SubspaceName:
     equivalent_index: int
@@ -172,3 +178,4 @@ class NearestNeighborSites:
             if is_symmetry:
                 result.append(sym)
         return result
+'''

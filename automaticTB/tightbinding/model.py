@@ -11,3 +11,4 @@ class TightBindingBase(abc.ABC):
         return np.vstack(
             [ self.solveE_at_k(k) for k in ks ]
         )
+

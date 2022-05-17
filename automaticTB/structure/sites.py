@@ -17,7 +17,7 @@ class Site:
 
     def rotate(self, matrix:np.ndarray):
         newpos = matrix.dot(self.pos)
-        return Site(self.type, newpos)
+        return Site(self.atomic_number, newpos)
 
     def __repr__(self) -> str:
         atom = self.chemical_symbol
