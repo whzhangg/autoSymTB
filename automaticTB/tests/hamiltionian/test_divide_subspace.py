@@ -1,5 +1,5 @@
 from automaticTB.structure.sites import Site
-from automaticTB.structure.nncluster import CrystalSitesWithSymmetry
+from automaticTB.structure.nncluster import CrystalSites_and_Equivalence
 from automaticTB.SALCs.linear_combination import Orbitals
 from automaticTB.SALCs.vectorspace import VectorSpace
 from automaticTB.SALCs.decompose import decompose_vectorspace
@@ -23,7 +23,7 @@ def test_dividesubspace_C3v():
         0: {0}, 1: {1,2,3}
     }
     subspaces = decompose_vectorspace(vectorspace, group)
-    site_sym = CrystalSitesWithSymmetry(sites, equivalent)
+    site_sym = CrystalSites_and_Equivalence(sites, equivalent)
 
     mo = MOCoefficient(site_sym, subspaces)
     #print(mo.matrixA)

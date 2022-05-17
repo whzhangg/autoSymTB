@@ -1,5 +1,7 @@
 import numpy as np
 import abc, typing, copy
+from ..utilities import find_RCL
+from ..hamiltionian.model import TightBindingBase
 
 class SpinDegenerateDOSBase(abc.ABC):
     """for all the three public methods, should return dict containing dos of each spin"""
@@ -306,3 +308,19 @@ class TetraDOS(SpinDegenerateDOSBase):
                 nsum += (1.0/num_tetra)
 
         return nsum
+
+
+def get_tetrados_result(
+    tb: TightBindingBase, ngrid: typing.Tuple[int, int, int], x_density: int = 50, 
+) -> TetraDOS:
+    reciprocal_cell = find_RCL(tb.cell)
+
+    kmesh = Kmesh(reciprocal_cell, ngrid)
+    energies = tb.solveE_at_ks(kmesh.kpoints)
+
+    e_min = np.min(energies)
+    e_max = np.max(energies)
+    e_min = e_min - (e_max - e_min) * 0.05
+    e_max = e_max + (e_max - e_min) * 0.05
+    
+    return TetraDOS(kmesh, energies, np.linspace(e_min, e_max, x_density))

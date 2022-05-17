@@ -1,74 +1,112 @@
-import typing, dataclasses
+import typing, dataclasses, collections
 import numpy as np
 from ..SALCs.linear_combination import Site, Orbitals, LinearCombination
 from ..SALCs.vectorspace import VectorSpace
-from ..structure.nncluster import CrystalSitesWithSymmetry
+from ..structure.nncluster import CrystalSites_and_Equivalence
+
+
+NamedLC = collections.namedtuple("NamedLC", "name lc")
+BraKet = collections.namedtuple("BraKet", "bra ket")
 
 
 @dataclasses.dataclass
-class NamedLC:
-    name: str
-    lc: LinearCombination
+class InteractionMatrix:
+    states: list
+    interactions: np.ndarray
+    """
+    this class help to find value in an interaction matrix, we store the data as a list of items
+    and we should return the index by giving a pair item1, item2
+    the item must have the __equal__ method so that we can use .index()
+    """
+    def get_index(self, state1, state2) -> typing.Tuple[int,int]:
+        i = self.states.index(state1)
+        j = self.states.index(state2)
+        return (i, j)
+    
+    @classmethod
+    def random_from_states(cls, states: list):
+        nstate = len(states)
+        coefficients = np.random.random((nstate, nstate))
+        return cls(states, coefficients)
+
+    @classmethod
+    def from_states(cls, states: list, dtype = float):
+        nstate = len(states)
+        coefficients = np.zeros((nstate, nstate), dtype=dtype)
+        return cls(states, coefficients)
+
+    @property
+    def flattened_braket(self) -> typing.List[BraKet]:
+        result = []
+        for item1 in self.states:
+            for item2 in self.states:
+                result.append(
+                    BraKet(item1, item2)
+                )
+        return result
+
+    @property
+    def flattened_interaction(self) -> np.ndarray:
+        return self.interactions.flatten()
 
 
 @dataclasses.dataclass
-class SubspaceName:
+class MO:
     equivalent_index: int
     orbital: str
     irreps: str
+    lc: LinearCombination
 
     @property
     def irrep_sequence(self) -> typing.List[str]:
         return self.irreps.split("->")
 
-    @property
-    def __eq__(self, other) -> bool:
-        return self.equivalent_index == other.equivalent_index and \
-            self.orbital == other.orbital and \
-            self.irreps == other.irreps
-
-    # unique value so that we can put them in sets
-    def __hash__(self):
-        return hash(
-            ", ".join([str(self.equivalent_index), self.orbital, self.irreps])
-        )
+    def __eq__(self, o: object) -> bool:
+        return self.equivalent_index == o.equivalent_index \
+            and self.orbital == o.orbital \
+            and self.irreps == o.irreps \
+            and np.allclose(self.lc.coefficients, o.lc.coefficients)
 
 
-@dataclasses.dataclass
-class InteractingLCPair:
-    rep1: SubspaceName
-    rep2: SubspaceName
-    lc1: LinearCombination
-    lc2: LinearCombination
+@dataclasses.dataclass()
+class AO:
+    cluster_index: int
+    primitive_index: int
+    translation: np.ndarray
+    chemical_symbol: int
+    at_origin: bool
+    l: int
+    m: int
+
+    def __eq__(self, o) -> bool:
+        return self.primitive_index == o.primitive_index \
+            and self.l == o.l and self.m == o.m \
+            and np.allclose(self.translation == o.translation)
 
 
+# this should be an intermediate method that transform MO and AO
 class MOCoefficient:
     def __init__(self, 
-        sitewithsymmetry: CrystalSitesWithSymmetry, labelledvectorspace: typing.Dict[str, VectorSpace]
+        sitewithequivalence: CrystalSites_and_Equivalence, labelledvectorspace: typing.Dict[str, VectorSpace]
     ):
-        self._crystalsite_with_sym = sitewithsymmetry
+        self._crystalsites = sitewithequivalence.crystalsites
         list_named_lcs = _get_namedLC_from_decomposed_vectorspace(labelledvectorspace)
-
-        self._lcs = [namedlc.lc for namedlc in list_named_lcs]
+        self._orbitals: typing.List[Orbitals] = list_named_lcs[0].lc.orbitals
         coefficient_matrix = np.vstack(
             [ namedlc.lc.coefficients for namedlc in list_named_lcs ]
         )
 
-        equivalent_atoms = self._crystalsite_with_sym.equivalent_atoms
-        self._orbitals = list_named_lcs[0].lc.orbitals
+        equivalent_atoms = sitewithequivalence.equivalent_atoms
         named_subspace = _divide_subspace(equivalent_atoms, self._orbitals, coefficient_matrix)
-        
-        self._subspacenames: typing.List[SubspaceName] = []
+        self._list_of_MOs: typing.List[MO] = []
         for namedlc, ao_name in zip(list_named_lcs, named_subspace):
-            self._subspacenames.append(
-                SubspaceName(ao_name[0], ao_name[1], namedlc.name)
+            self._list_of_MOs.append(
+                MO(ao_name[0], ao_name[1], namedlc.name, namedlc.lc)
             )
         
         matrix_A = []
-        self._tp_tuple = []
-        for i, lcc_i in enumerate(coefficient_matrix):
-            for j, lcc_j in enumerate(coefficient_matrix):
-                self._tp_tuple.append((i,j))
+        for _, lcc_i in enumerate(coefficient_matrix):
+            for _, lcc_j in enumerate(coefficient_matrix):
                 matrix_A.append(
                     np.tensordot(lcc_i, lcc_j, axes=0).flatten()
                 )
@@ -76,16 +114,21 @@ class MOCoefficient:
         assert self._matrix_A.shape[0] == self._matrix_A.shape[1]
 
     @property
-    def all_aos(self):
+    def AOs(self) -> typing.List[AO]:
+        zero = np.zeros(3, dtype=float)
         result = []
-        for i, orb in enumerate(self._orbitals):
+        for i, csite, orb in zip(range(len(self._crystalsites)), self._crystalsites, self._orbitals):
+            at_origin = False
+            if np.allclose(csite.site.pos, zero): at_origin = True
             for ao in orb.aolist:
-                result.append((i,ao.l,ao.m))
+                result.append(
+                    AO(i, csite.index_pcell, csite.translation, csite.site.chemical_symbol, at_origin, ao.l, ao.m)
+                )
         return result
 
     @property
-    def orbitals(self) -> typing.List[Orbitals]:
-        return self._orbitals
+    def MOs(self) -> typing.List[MO]:
+        return self._list_of_MOs
 
     @property
     def matrixA(self) -> np.ndarray:
@@ -95,17 +138,19 @@ class MOCoefficient:
     def inv_matrixA(self) -> np.ndarray:
         return np.linalg.inv(self._matrix_A)
 
-    @property
-    def num_MOpairs(self) -> int:
-        return len(self._tp_tuple)
 
-    def get_paired_lc_with_name_by_index(self, input_index: int) \
-    -> InteractingLCPair:
-        i,j = self._tp_tuple[input_index]
-        return InteractingLCPair(
-            self._subspacenames[i], self._subspacenames[j], 
-            self._lcs[i], self._lcs[j]
-        )
+def AO_from_MO(coefficient: MOCoefficient, MOinteraction: InteractionMatrix) -> InteractionMatrix:
+    aos = coefficient.AOs
+    h_ij = np.dot(coefficient.inv_matrixA, MOinteraction.flattened_interaction)
+    h_ij = h_ij.reshape((len(aos), len(aos)))
+    return InteractionMatrix(aos, h_ij)
+
+
+def MO_from_AO(coefficient: MOCoefficient, AOinteraction: InteractionMatrix) -> InteractionMatrix:
+    mos = coefficient.MOs
+    h_ij = np.dot(coefficient.matrixA, AOinteraction.flattened_interaction)
+    h_ij = h_ij.reshape((len(mos), len(mos)))
+    return InteractionMatrix(mos, h_ij)
 
 
 def _get_namedLC_from_decomposed_vectorspace(vc_dicts: typing.Dict[str, VectorSpace]) -> typing.List[NamedLC]:
@@ -117,6 +162,7 @@ def _get_namedLC_from_decomposed_vectorspace(vc_dicts: typing.Dict[str, VectorSp
                 NamedLC(irrepname, lc.get_normalized())
             )
     return result
+
 
 def _divide_subspace(equivalent_dict: typing.Dict[int, typing.Set[int]], 
                     orbitals: typing.List[Orbitals], coefficients: np.ndarray) \

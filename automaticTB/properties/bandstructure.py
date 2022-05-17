@@ -1,6 +1,6 @@
 import typing, dataclasses
 import numpy as np
-from .model import TightBindingBase
+from ..hamiltionian.model import TightBindingBase
 
 @dataclasses.dataclass
 class Kline:

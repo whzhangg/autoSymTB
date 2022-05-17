@@ -1,27 +1,21 @@
 import typing, abc
 import numpy as np
-from ..SALCs.linear_combination import LinearCombination
-from .MOcoefficient import SubspaceName, InteractingLCPair
+from .MOcoefficient import BraKet
+
 
 class Interaction(abc.ABC):
 
     @abc.abstractmethod
-    def get_interactions(self, pair: InteractingLCPair) -> float:
+    def get_interactions(self, pair: BraKet) -> float:
         pass
-
-def interaction_zero(pair: InteractingLCPair):
-    name1 = pair.rep1
-    name2 = pair.rep2
-    if name1.irreps != name2.irreps:
-        return True
 
 
 class RandomInteraction(Interaction):
     def __init__(self) -> None:
         self._stored_interaction = {}
 
-    def get_interactions(self, pair: InteractingLCPair) -> float:
-        if pair.rep1.irreps != pair.rep2.irreps:
+    def get_interactions(self, pair: BraKet) -> float:
+        if pair.bra.irreps != pair.ket.irreps:
             return 0.0
         
         random_value = np.random.rand()

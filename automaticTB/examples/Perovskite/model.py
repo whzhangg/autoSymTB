@@ -31,7 +31,7 @@ for cluster in structure.nnclusters:
     assert group.groupname in ["m-3m", "4/mmm"]
     
     vectorspace = get_vectorspace_from_NNCluster(cluster, orbits_used)
-    crystalsiteswithsymmetry = cluster.get_CrystalSitesWithSymmetry_from_group(group)
+    crystalsiteswithsymmetry = cluster.get_CrystalSites_and_Equivalence_from_group(group)
 
     if len(cluster.crystalsites) == 7: continue
     print(cluster.crystalsites)
