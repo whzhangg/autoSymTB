@@ -26,6 +26,9 @@ class Structure:
     nnclusters: typing.List[NNCluster]
     cartesian_rotations: typing.List[np.ndarray]
 
+    @property
+    def cpt(self) -> typing.Tuple[np.ndarray, typing.List[np.ndarray], typing.List[int]]:
+        return (self.cell, self.positions, self.types)
 
     @classmethod
     def from_cpt_rcut(

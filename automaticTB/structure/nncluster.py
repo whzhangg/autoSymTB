@@ -7,7 +7,6 @@ from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
 @dataclasses.dataclass
 class CrystalSitesWithSymmetry:
     crystalsites: typing.List[CrystalSite]
-    symmetrygroup: SiteSymmetryGroup
     equivalent_atoms: typing.Dict[int, typing.Set[int]]
 
 
@@ -23,6 +22,13 @@ class NNCluster:
     @property
     def baresites(self) -> typing.List[Site]:
         return [ csite.site for csite in self.crystalsites ]
+
+    @property
+    def origin_index(self) -> int:
+        for i,csite in enumerate(self.crystalsites):
+            if np.linalg.norm(csite.site.pos) < 1e-6:
+                return i
+        raise
 
     def __str__(self):
         result = "cluster center: {:> 6.2f},{:> 6.2f},{:> 6.2f}\n".format(*self.origin)
@@ -60,7 +66,7 @@ class NNCluster:
     def get_CrystalSitesWithSymmetry_from_group(self, group: SiteSymmetryGroup) -> CrystalSitesWithSymmetry:
         equivalent_dict = self.get_equivalent_atoms_from_SiteSymmetryGroup(group)
         return CrystalSitesWithSymmetry(
-            self.crystalsites, group, equivalent_dict
+            self.crystalsites, equivalent_dict
         )
 
 '''

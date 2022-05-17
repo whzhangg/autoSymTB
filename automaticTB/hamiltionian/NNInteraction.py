@@ -9,8 +9,13 @@ class Index_lm(typing.NamedTuple):
     l: int
     m: int
 
+@dataclasses.dataclass
+class OrbitalandInteraction:
+    ilms: typing.List[Index_lm]
+    interaction: np.ndarray
+
 def get_interaction_matrix_from_MO_and_interaction(mocoeff: MOCoefficient, interaction: Interaction) \
--> typing.Tuple[ typing.List[Index_lm], np.ndarray ]:
+-> OrbitalandInteraction:
     mointeractions = []
     for i in range(mocoeff.num_MOpairs):
         pair: InteractingLCPair = mocoeff.get_paired_lc_with_name_by_index(i)
@@ -26,4 +31,4 @@ def get_interaction_matrix_from_MO_and_interaction(mocoeff: MOCoefficient, inter
     h_ij = np.dot(mocoeff.inv_matrixA, mointeractions)
     h_ij = h_ij.reshape((num_orbital,num_orbital))
 
-    return ilm, h_ij
+    return OrbitalandInteraction(ilm, h_ij)

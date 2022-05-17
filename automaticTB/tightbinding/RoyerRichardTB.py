@@ -147,8 +147,4 @@ class Royer_Richard_TB(TightBindingBase):
                 ham[i,j] += value * np.exp(2j * np.pi * kR)
         return ham
 
-    def solveE_at_k(self, k: np.ndarray) -> np.ndarray:
-        ham = self.Hijk(k)
-        w, v = np.linalg.eig(ham)
-        return np.sort(w.real)
 

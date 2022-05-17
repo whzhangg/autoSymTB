@@ -23,7 +23,7 @@ def test_dividesubspace_C3v():
         0: {0}, 1: {1,2,3}
     }
     subspaces = decompose_vectorspace(vectorspace, group)
-    site_sym = CrystalSitesWithSymmetry(sites, group, equivalent)
+    site_sym = CrystalSitesWithSymmetry(sites, equivalent)
 
     mo = MOCoefficient(site_sym, subspaces)
     #print(mo.matrixA)

@@ -21,6 +21,18 @@ class SubspaceName:
     def irrep_sequence(self) -> typing.List[str]:
         return self.irreps.split("->")
 
+    @property
+    def __eq__(self, other) -> bool:
+        return self.equivalent_index == other.equivalent_index and \
+            self.orbital == other.orbital and \
+            self.irreps == other.irreps
+
+    # unique value so that we can put them in sets
+    def __hash__(self):
+        return hash(
+            ", ".join([str(self.equivalent_index), self.orbital, self.irreps])
+        )
+
 
 @dataclasses.dataclass
 class InteractingLCPair:
@@ -62,6 +74,14 @@ class MOCoefficient:
                 )
         self._matrix_A = np.vstack(matrix_A)
         assert self._matrix_A.shape[0] == self._matrix_A.shape[1]
+
+    @property
+    def all_aos(self):
+        result = []
+        for i, orb in enumerate(self._orbitals):
+            for ao in orb.aolist:
+                result.append((i,ao.l,ao.m))
+        return result
 
     @property
     def orbitals(self) -> typing.List[Orbitals]:
