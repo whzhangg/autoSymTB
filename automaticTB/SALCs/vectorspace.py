@@ -1,10 +1,10 @@
 import typing
 import numpy as np
 from ..structure.sites import Site
-from ..structure.nncluster import NNCluster
+from ..structure.nncluster import NearestNeighborCluster
 from .linear_combination import LinearCombination, Orbitals
 
-def get_vectorspace_from_NNCluster(cluster: NNCluster, orbital_dict: typing.Dict[str, str]):
+def get_vectorspace_from_NNCluster(cluster: NearestNeighborCluster, orbital_dict: typing.Dict[str, str]):
     sites = cluster.baresites
     orbital_list = [
         Orbitals(orbital_dict[s.chemical_symbol]) for s in sites

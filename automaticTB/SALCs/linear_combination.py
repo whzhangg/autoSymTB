@@ -1,6 +1,6 @@
 import numpy as np
 import dataclasses, typing
-from ..structure.sites import Site
+from ..structure import Site, NearestNeighborCluster
 from ..rotation import orbital_rotation_from_symmetry_matrix
 
 class SphericalHarmonic(typing.NamedTuple):

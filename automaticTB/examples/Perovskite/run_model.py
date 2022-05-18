@@ -1,12 +1,14 @@
 import numpy as np
-import os
+import os, typing
 
 from automaticTB.structure.structure import Structure
 from automaticTB.SALCs.vectorspace import get_vectorspace_from_NNCluster
 from automaticTB.SALCs.decompose import decompose_vectorspace
-from automaticTB.hamiltionian.MOcoefficient import MOCoefficient, get_AOlists_from_crystalsites_orbitals
-from automaticTB.hamiltionian.tightbinding_data import make_HijR_list
-from automaticTB.hamiltionian.model import TightBindingModel
+from automaticTB.hamiltionian.MOcoefficient import (
+    MOCoefficient, get_AOlists_from_crystalsites_orbitals, InteractionMatrix,
+    AO_from_MO, MO_from_AO
+)
+from automaticTB.hamiltionian.tightbinding_model import make_HijR_list, TightBindingModel
 from automaticTB.utilities import print_matrix, find_RCL
 
 from structure import cell, types, positions, orbits_used
@@ -15,6 +17,35 @@ from ao_interaction import obtain_AO_interaction_from_AOlists
 structure: Structure = Structure.from_cpt_rcut(cell, positions, types, 3.0)  
 reciprocal_cell = find_RCL(structure.cell)
 # distance Pb - Cl is ~2.8 A
+
+
+def get_Perovskite_MOcoefficients() \
+-> typing.List[MOCoefficient]:
+    from automaticTB.utilities import save_yaml, load_yaml
+    filename = "Perovskite_MOcoeff.yml"
+
+    if os.path.exists(filename):
+        return load_yaml(filename)
+    
+    coefficients = []
+
+    for cluster in structure.nnclusters:
+        if len(cluster.crystalsites) == 7: continue
+        print(cluster.equivalent_atoms_reference)
+        print(cluster.sitesymmetrygroup.groupname)
+        print(cluster.orbitalslist)
+        raise
+        group = cluster.get_SiteSymmetryGroup_from_possible_rotations(structure.cartesian_rotations)
+        site_with_equivalence = cluster.get_CrystalSites_and_Equivalence_from_group(group)
+        vectorspace = get_vectorspace_from_NNCluster(cluster, orbits_used)
+        decomposed = decompose_vectorspace(vectorspace, group)
+
+        mocoeff = MOCoefficient(site_with_equivalence, decomposed)
+        coefficients.append(mocoeff)
+
+    save_yaml(coefficients, filename)
+    return coefficients
+    
 
 
 def get_Perovskite_tight_binding_model_from_AO_interaction():
@@ -42,8 +73,22 @@ def get_Perovskite_tight_binding_model_from_AO_interaction():
 
 
 def get_Perovskite_tight_binding_model_from_MO_interaction():
-    # TODO to be completed
-    pass
+    c, p, t = structure.cpt
+    MOcoefficients = get_Perovskite_MOcoefficients()
+    for mocoeff in MOcoefficients:
+        ao_interaction = obtain_AO_interaction_from_AOlists(c, p, mocoeff.AOs)
+        mo_interaction = MO_from_AO(mocoeff, ao_interaction)
+        # check that AO_from_MO is indeed the inverse of MO_from_AO
+        #ao_re = AO_from_MO(mocoeff, mo_interaction)
+        #assert np.allclose(ao_re.interactions, ao_interaction.interactions)
+        print_matrix(ao_interaction.interactions, "{:>6.2f}")
+        for pair, value in zip(mo_interaction.flattened_pair, mo_interaction.flattened_interaction):
+            if abs(value) > 1e-6:
+                print(pair.left.equivalent_index, pair.left.orbital, pair.left.at_origin)
+                print(pair.right.equivalent_index, pair.right.orbital, pair.right.at_origin)
+                print("---->", value)
+
+        raise
 
 
 def obtain_and_plot_bandstructure(model: TightBindingModel, filename: str = "HalidePerovskite_band.pdf") -> None:
@@ -79,5 +124,4 @@ def obtain_and_plot_dos(model: TightBindingModel, filename: str = "HalidePerovsk
 
 
 if __name__ == "__main__":
-    model = get_Perovskite_tight_binding_model_from_AO_interaction()
-    obtain_and_plot_bandstructure(model)
+    get_Perovskite_MOcoefficients()

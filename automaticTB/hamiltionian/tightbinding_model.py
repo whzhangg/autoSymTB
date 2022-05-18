@@ -1,6 +1,43 @@
-import abc, typing
+import abc, typing, dataclasses
 import numpy as np
-from .tightbinding_data import HijR, Pindex_lm
+from .MOcoefficient import AO, InteractionMatrix
+
+@dataclasses.dataclass
+class Pindex_lm:
+    pindex: int  # index in primitive cell
+    l: int
+    m: int
+    translation: np.ndarray
+
+    def __eq__(self, other) -> bool:
+        return self.pindex == other.pindex and \
+               self.l == other.l and self.m == other.m and \
+               np.allclose(self.translation, other.translation)
+
+
+@dataclasses.dataclass
+class HijR:
+    left: Pindex_lm
+    right: Pindex_lm
+    value: float
+
+
+def make_HijR_list(AOinteractions: typing.List[InteractionMatrix]) -> typing.List[HijR]:
+    HijR_list: typing.List[HijR] = []
+    for interaction in AOinteractions:
+        for pair, value in zip(interaction.flattened_pair, interaction.flattened_interaction):
+            left: AO = pair.left
+            right: AO = pair.right
+            if left.at_origin == True:
+                HijR_list.append(
+                    HijR(
+                        Pindex_lm(left.primitive_index, left.l, left.m, left.translation),
+                        Pindex_lm(right.primitive_index, right.l, right.m, right.translation),
+                        value
+                    )
+                )
+    return HijR_list
+
 
 class TightBindingBase(abc.ABC):
 

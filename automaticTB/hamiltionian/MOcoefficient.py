@@ -1,13 +1,13 @@
 import typing, dataclasses, collections
 import numpy as np
-from ..SALCs.linear_combination import Site, Orbitals, LinearCombination
+from ..SALCs.linear_combination import Orbitals, LinearCombination
 from ..SALCs.vectorspace import VectorSpace
 from ..structure.nncluster import CrystalSites_and_Equivalence
 from ..structure.sites import CrystalSite
 
 
 NamedLC = collections.namedtuple("NamedLC", "name lc")
-BraKet = collections.namedtuple("BraKet", "bra ket")
+Pair = collections.namedtuple("Pair", "left right")
 
 
 @dataclasses.dataclass
@@ -37,12 +37,12 @@ class InteractionMatrix:
         return cls(states, coefficients)
 
     @property
-    def flattened_braket(self) -> typing.List[BraKet]:
+    def flattened_pair(self) -> typing.List[Pair]:
         result = []
         for item1 in self.states:
             for item2 in self.states:
                 result.append(
-                    BraKet(item1, item2)
+                    Pair(item1, item2)
                 )
         return result
 
@@ -57,6 +57,7 @@ class MO:
     orbital: str
     irreps: str
     lc: LinearCombination
+    at_origin: bool
 
     @property
     def irrep_sequence(self) -> typing.List[str]:
@@ -100,6 +101,8 @@ def get_AOlists_from_crystalsites_orbitals(csites: typing.List[CrystalSite], orb
             )
     return list_of_AOs
 
+# TODO: the idea is to separate the complete interaction into blocks, which give a natural way to treat MO interactions
+
 # this should be an intermediate method that transform MO and AO
 class MOCoefficient:
     def __init__(self, 
@@ -116,8 +119,10 @@ class MOCoefficient:
         named_subspace = _divide_subspace(equivalent_atoms, orbitals, coefficient_matrix)
         self._list_of_MOs: typing.List[MO] = []
         for namedlc, ao_name in zip(list_named_lcs, named_subspace):
+            at_origin = \
+                np.allclose(sitewithequivalence.crystalsites[ao_name[0]].site.pos, np.zeros(3))
             self._list_of_MOs.append(
-                MO(ao_name[0], ao_name[1], namedlc.name, namedlc.lc)
+                MO(ao_name[0], ao_name[1], namedlc.name, namedlc.lc, at_origin)
             )
 
         # make AOs
@@ -133,15 +138,6 @@ class MOCoefficient:
                 )
         self._matrix_A = np.vstack(matrix_A)
         assert self._matrix_A.shape[0] == self._matrix_A.shape[1]
-
-    def save(self, fn: str):
-        # AOs can be saved conveniently, but MOs are difficult to save
-        pass
-
-    @classmethod
-    def from_file(self, fn: str): # -> MOCoefficient
-        pass
-
 
     @property
     def AOs(self) -> typing.List[AO]:
@@ -187,10 +183,10 @@ def _get_namedLC_from_decomposed_vectorspace(vc_dicts: typing.Dict[str, VectorSp
 
 def _divide_subspace(equivalent_dict: typing.Dict[int, typing.Set[int]], 
                     orbitals: typing.List[Orbitals], coefficients: np.ndarray) \
-    -> typing.List[tuple]: # list of (i, "s"), i is the index of equivalent atom in the sites
+-> typing.List[tuple]: # list of (i, "s"), i is the index of equivalent atom in the sites
+    # make a list of slices for each atom and each orbitals
     start = 0
     range_dicts = []
-    
     for i, orb in enumerate(orbitals):
         subslice = orb.slice_dict
         range_dict = {}
@@ -200,6 +196,8 @@ def _divide_subspace(equivalent_dict: typing.Dict[int, typing.Set[int]],
             start = end
         range_dicts.append(range_dict)
 
+    # slices for each equivalent atom and each orbital sets, 
+    # tuple with all the possible index
     eq_orb_slice = {}
     for ieq, eqset in equivalent_dict.items():
         orb = orbitals[ieq]
@@ -209,6 +207,7 @@ def _divide_subspace(equivalent_dict: typing.Dict[int, typing.Set[int]],
                 all_index += range_dicts[eq_atom][o]
             eq_orb_slice[(ieq, o)] = all_index
 
+    # prepare row names
     row_name = []
     subspace_namelist = list(eq_orb_slice.keys())
     for row in coefficients:

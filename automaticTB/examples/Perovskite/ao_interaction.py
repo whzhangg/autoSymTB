@@ -33,9 +33,9 @@ def obtain_AO_interaction_from_AOlists(cell: np.ndarray, positions: np.ndarray, 
     cpos = np.einsum("ji, kj -> ki", cell, positions)
     interaction = InteractionMatrix.zero_from_states(aolist)
 
-    for pair in interaction.flattened_braket:
-        left: AO = pair.bra
-        right: AO = pair.ket
+    for pair in interaction.flattened_pair:
+        left: AO = pair.left
+        right: AO = pair.right
         value = 0
 
         if (left.cluster_index == right.cluster_index) \

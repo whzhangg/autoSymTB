@@ -1,5 +1,16 @@
 import numpy as np
+import yaml
 
+def save_yaml(data, filename: str):
+    # it is able to save python objects
+    yaml_str = yaml.dump(data)
+    with open(filename, 'w') as f:
+        f.write(yaml_str)
+
+def load_yaml(filename: str):
+    with open(filename, 'r') as f:
+        groupdata = yaml.load(f, Loader=yaml.Loader)
+    return groupdata
 
 def find_RCL(cell: np.ndarray) -> np.ndarray:
     '''

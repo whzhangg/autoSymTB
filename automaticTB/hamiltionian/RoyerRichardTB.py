@@ -119,7 +119,6 @@ HijR = {
     },
 }
 
-
 class Royer_Richard_TB(TightBindingBase):
     """
     it return the model given in the article
