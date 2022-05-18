@@ -7,20 +7,16 @@ import os
 from automaticTB.SALCs.vectorspace import get_vectorspace_from_NNCluster
 from automaticTB.SALCs.decompose import decompose_vectorspace
 from automaticTB.hamiltionian.interaction import RandomInteraction, Interaction
-from automaticTB.hamiltionian.MOcoefficient import MOCoefficient, InteractingLCPair
-from automaticTB.hamiltionian.NNInteraction import get_interaction_matrix_from_MO_and_interaction
-from automaticTB.tightbinding.model_generation import generate_tightbinding_data
-from automaticTB.tightbinding.model import TightBindingModel
+from automaticTB.hamiltionian.MOcoefficient import MOCoefficient, get_AOlists_from_crystalsites_orbitals
+from automaticTB.hamiltionian.tightbinding_data import make_HijR_list
+from automaticTB.hamiltionian.model import TightBindingModel
 from automaticTB.utilities import print_matrix
-
-def non_interacting(pair: InteractingLCPair):
-    name1 = pair.rep1
-    name2 = pair.rep2
-    if name1.irreps != name2.irreps:
-        return True
-
+from model_interaction import obtain_AO_interaction_from_AOlists
+import numpy as np
 
 structure: Structure = Structure.from_cpt_rcut(cell, positions, types, 3.0)  
+
+c, p, t = structure.cpt
 # distance Pb - Cl is ~2.8 A
 
 interactions = []
@@ -31,37 +27,25 @@ for cluster in structure.nnclusters:
     assert group.groupname in ["m-3m", "4/mmm"]
     
     vectorspace = get_vectorspace_from_NNCluster(cluster, orbits_used)
+    orbitals = vectorspace.orbitals
     crystalsiteswithsymmetry = cluster.get_CrystalSites_and_Equivalence_from_group(group)
 
-    if len(cluster.crystalsites) == 7: continue
-    print(cluster.crystalsites)
-    decomposed_vectorspace = decompose_vectorspace(vectorspace, group)
-    mos = MOCoefficient(crystalsiteswithsymmetry, decomposed_vectorspace)
-    print(mos.all_aos)
-    #for i in range(mos.num_MOpairs):
-    #    pair = mos.get_paired_lc_with_name_by_index(i)
-    #    if not non_interacting(pair):
-    #        print(pair.rep1)
-    #        print(pair.lc1)
-    #        print(pair.rep2)
-    #        print(pair.lc2)
-    #        print()
-    #raise
-    orb_and_interaction = get_interaction_matrix_from_MO_and_interaction(
-        mos, RandomInteraction()
-    )
-    print_matrix(orb_and_interaction.interaction, "{:>5.2f}")
-    
-    #interactions.append(orb_and_interaction)
-    raise
+    aos = get_AOlists_from_crystalsites_orbitals(cluster.crystalsites, orbitals)
+    interaction = obtain_AO_interaction_from_AOlists(c, p, aos)
+    interactions.append(interaction)
+    assert np.allclose(interaction.interactions, interaction.interactions.T)
+    #if len(cluster.crystalsites) == 7: continue
 
-raise
+    #print(cluster.crystalsites)
+    #decomposed_vectorspace = decompose_vectorspace(vectorspace, group)
+    #mos = MOCoefficient(crystalsiteswithsymmetry, decomposed_vectorspace)
+    #aolist = mos.AOs
 
-c, p, t = structure.cpt
-tbd = generate_tightbinding_data(c, p, t, structure.nnclusters, interactions)
-for hij in tbd.HijR_list:
-    print(hij)
 
-model = TightBindingModel(tbd)
-print(model.Hijk((0.5,0,0)))
+hijr_list = make_HijR_list(interactions)
+
+
+model = TightBindingModel(c, p, t, hijr_list)
+#print_matrix(model.Hijk((0.0,0.0,0.0)).real, "{:>6.2f}")
+print(model.solveE_at_k((0.0,0,0)))
 print(model.solveE_at_k((0.5,0,0)))

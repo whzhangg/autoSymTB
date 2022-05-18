@@ -3,6 +3,7 @@ import numpy as np
 from ..SALCs.linear_combination import Site, Orbitals, LinearCombination
 from ..SALCs.vectorspace import VectorSpace
 from ..structure.nncluster import CrystalSites_and_Equivalence
+from ..structure.sites import CrystalSite
 
 
 NamedLC = collections.namedtuple("NamedLC", "name lc")
@@ -30,7 +31,7 @@ class InteractionMatrix:
         return cls(states, coefficients)
 
     @classmethod
-    def from_states(cls, states: list, dtype = float):
+    def zero_from_states(cls, states: list, dtype = float):
         nstate = len(states)
         coefficients = np.zeros((nstate, nstate), dtype=dtype)
         return cls(states, coefficients)
@@ -81,29 +82,49 @@ class AO:
     def __eq__(self, o) -> bool:
         return self.primitive_index == o.primitive_index \
             and self.l == o.l and self.m == o.m \
-            and np.allclose(self.translation == o.translation)
+            and np.allclose(self.translation, o.translation)
 
+
+def get_AOlists_from_crystalsites_orbitals(csites: typing.List[CrystalSite], orbitals: typing.List[Orbitals]) \
+-> typing.List[AO]:
+    list_of_AOs = []
+    num_sites = len(csites)
+    zero = np.zeros(3, dtype=float)
+    
+    for i, csite, orb in zip(range(num_sites), csites, orbitals):
+        at_origin = False
+        if np.allclose(csite.site.pos, zero): at_origin = True
+        for ao in orb.aolist:
+            list_of_AOs.append(
+                AO(i, csite.index_pcell, csite.translation, csite.site.chemical_symbol, at_origin, ao.l, ao.m)
+            )
+    return list_of_AOs
 
 # this should be an intermediate method that transform MO and AO
 class MOCoefficient:
     def __init__(self, 
         sitewithequivalence: CrystalSites_and_Equivalence, labelledvectorspace: typing.Dict[str, VectorSpace]
     ):
-        self._crystalsites = sitewithequivalence.crystalsites
         list_named_lcs = _get_namedLC_from_decomposed_vectorspace(labelledvectorspace)
-        self._orbitals: typing.List[Orbitals] = list_named_lcs[0].lc.orbitals
+        orbitals: typing.List[Orbitals] = list_named_lcs[0].lc.orbitals
         coefficient_matrix = np.vstack(
             [ namedlc.lc.coefficients for namedlc in list_named_lcs ]
         )
 
+        # make MOs
         equivalent_atoms = sitewithequivalence.equivalent_atoms
-        named_subspace = _divide_subspace(equivalent_atoms, self._orbitals, coefficient_matrix)
+        named_subspace = _divide_subspace(equivalent_atoms, orbitals, coefficient_matrix)
         self._list_of_MOs: typing.List[MO] = []
         for namedlc, ao_name in zip(list_named_lcs, named_subspace):
             self._list_of_MOs.append(
                 MO(ao_name[0], ao_name[1], namedlc.name, namedlc.lc)
             )
+
+        # make AOs
+        self._list_of_AOs = get_AOlists_from_crystalsites_orbitals(sitewithequivalence.crystalsites, orbitals)
+
         
+        # make matrix A
         matrix_A = []
         for _, lcc_i in enumerate(coefficient_matrix):
             for _, lcc_j in enumerate(coefficient_matrix):
@@ -113,18 +134,18 @@ class MOCoefficient:
         self._matrix_A = np.vstack(matrix_A)
         assert self._matrix_A.shape[0] == self._matrix_A.shape[1]
 
+    def save(self, fn: str):
+        # AOs can be saved conveniently, but MOs are difficult to save
+        pass
+
+    @classmethod
+    def from_file(self, fn: str): # -> MOCoefficient
+        pass
+
+
     @property
     def AOs(self) -> typing.List[AO]:
-        zero = np.zeros(3, dtype=float)
-        result = []
-        for i, csite, orb in zip(range(len(self._crystalsites)), self._crystalsites, self._orbitals):
-            at_origin = False
-            if np.allclose(csite.site.pos, zero): at_origin = True
-            for ao in orb.aolist:
-                result.append(
-                    AO(i, csite.index_pcell, csite.translation, csite.site.chemical_symbol, at_origin, ao.l, ao.m)
-                )
-        return result
+        return self._list_of_AOs
 
     @property
     def MOs(self) -> typing.List[MO]:

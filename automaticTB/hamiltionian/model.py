@@ -74,6 +74,7 @@ class TightBindingModel(TightBindingBase):
         nbasis = len(self._basis)
         ham = np.zeros((nbasis,nbasis), dtype=complex)
         for HijR in self._HijR:
+            assert np.allclose(HijR.left.translation, np.zeros(3))
             r = HijR.right.translation
             index_i = self._index_ref[
                 (HijR.left.pindex, HijR.left.l, HijR.left.m)

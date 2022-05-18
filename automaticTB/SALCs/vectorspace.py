@@ -48,7 +48,7 @@ class VectorSpace:
         return sum([orb.num_orb for orb in self._orbitals])
 
     @property
-    def orbitals(self) -> Orbitals:
+    def orbitals(self) -> typing.List[Orbitals]:
         return self._orbitals
     
     @property

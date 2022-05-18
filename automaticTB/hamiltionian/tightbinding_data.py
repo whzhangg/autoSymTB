@@ -30,9 +30,9 @@ class TBData:
     HijR_list: typing.List[HijR]
 
 
-def make_HijR_list(interactions: typing.List[InteractionMatrix]) -> typing.List[HijR]:
+def make_HijR_list(AOinteractions: typing.List[InteractionMatrix]) -> typing.List[HijR]:
     HijR_list: typing.List[HijR] = []
-    for interaction in interactions:
+    for interaction in AOinteractions:
         for pair, value in zip(interaction.flattened_braket, interaction.flattened_interaction):
             left: AO = pair.bra
             right: AO = pair.ket
@@ -51,10 +51,10 @@ def generate_tightbinding_data(
     cell: np.ndarray, 
     positions: typing.List[np.ndarray],
     types: typing.List[int],
-    interactions: typing.List[InteractionMatrix]
+    AOinteractions: typing.List[InteractionMatrix]
 ):
     HijR_list: typing.List[HijR] = []
-    for interaction in interactions:
+    for interaction in AOinteractions:
         for pair, value in zip(interaction.flattened_braket, interaction.flattened_interaction):
             left: AO = pair.bra
             right: AO = pair.ket
