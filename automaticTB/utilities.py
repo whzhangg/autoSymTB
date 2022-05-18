@@ -13,7 +13,7 @@ def find_RCL(cell: np.ndarray) -> np.ndarray:
     b1=(2*np.pi/volumn)*np.cross(a2,a3)
     b2=(2*np.pi/volumn)*np.cross(a3,a1)
     b3=(2*np.pi/volumn)*np.cross(a1,a2)
-    return np.vstack(b1,b2,b3)
+    return np.vstack([b1,b2,b3])
 
 def print_matrix(m: np.ndarray, format:str):
     # print an matrix using the given string format

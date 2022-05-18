@@ -1,7 +1,12 @@
-# 0 for Pb atom, 1 - 3 for Cl atoms
 import numpy as np
 import typing
 from automaticTB.hamiltionian.MOcoefficient import InteractionMatrix, AO
+
+"""
+this module create AO interactions matrix from the parameter used in the article. 
+In the parameters, index 0 indicate the Pb atom and index 1-3 indicate Cl atoms, the minimum parameters 
+are stored here.
+"""
 
 parameters = {
         "V_ss"   :  -1.10,
@@ -15,24 +20,28 @@ parameters = {
         "E_p1"   :  -1.96
     }
 
-l_to_symbol = ["s", "p", "d"]
 p_direction = {
-    -1: np.array([0.0, 1.0, 0.0]),
-     0: np.array([0.0, 0.0, 1.0]),
-     1: np.array([1.0, 0.0, 0.0])
+    -1: np.array([0.0, 1.0, 0.0]), # py
+     0: np.array([0.0, 0.0, 1.0]), # pz
+     1: np.array([1.0, 0.0, 0.0])  # px
+     # the direction of p orbital determines the p-p sigma or pi bond, as well as the interaction between s and p bond
 }
 
-def obtain_AO_interaction_from_AOlists(cell: np.ndarray, positions: np.ndarray, aolist: typing.List[AO]) -> InteractionMatrix:
+def obtain_AO_interaction_from_AOlists(cell: np.ndarray, positions: np.ndarray, aolist: typing.List[AO]) \
+-> InteractionMatrix:
+    # this is an ad-hoc way to create the AO interaction
     cpos = np.einsum("ji, kj -> ki", cell, positions)
     interaction = InteractionMatrix.zero_from_states(aolist)
+
     for pair in interaction.flattened_braket:
         left: AO = pair.bra
         right: AO = pair.ket
         value = 0
+
         if (left.cluster_index == right.cluster_index) \
             and (left.l == right.l) and (left.m == right.m):
             # self interaction
-            symbol = "E_" + l_to_symbol[left.l]
+            symbol = "E_" + ["s", "p", "d"][left.l]
             if left.chemical_symbol == "Pb":
                 symbol += "0"
             else: 
@@ -83,8 +92,7 @@ def obtain_AO_interaction_from_AOlists(cell: np.ndarray, positions: np.ndarray, 
                 else:
                     value = 0.0
             
-        #print(left.chemical_symbol, left.primitive_index, left.l, left.m, right.chemical_symbol, right.primitive_index, right.l, right.m, value)
         indices = interaction.get_index(left, right)
         interaction.interactions[indices] = value
-    #print(interaction.states)
+    
     return interaction
