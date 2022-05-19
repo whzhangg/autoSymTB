@@ -1,6 +1,7 @@
 import numpy as np
 import typing
-from automaticTB.hamiltionian.MOcoefficient import InteractionMatrix, AO
+from automaticTB.atomic_orbitals import AO
+from automaticTB.utilities import Pair
 
 """
 this module create AO interactions matrix from the parameter used in the article. 
@@ -27,13 +28,13 @@ p_direction = {
      # the direction of p orbital determines the p-p sigma or pi bond, as well as the interaction between s and p bond
 }
 
-def obtain_AO_interaction_from_AOlists(cell: np.ndarray, positions: np.ndarray, aolist: typing.List[AO]) \
--> InteractionMatrix:
+def get_interaction_values_from_list_AOpairs(cell: np.ndarray, positions: np.ndarray, aopairs: typing.List[Pair]) \
+-> typing.List[float]:
     # this is an ad-hoc way to create the AO interaction
     cpos = np.einsum("ji, kj -> ki", cell, positions)
-    interaction = InteractionMatrix.zero_from_states(aolist)
 
-    for pair in interaction.flattened_pair:
+    values = []
+    for pair in aopairs:
         left: AO = pair.left
         right: AO = pair.right
         value = 0
@@ -92,7 +93,6 @@ def obtain_AO_interaction_from_AOlists(cell: np.ndarray, positions: np.ndarray, 
                 else:
                     value = 0.0
             
-        indices = interaction.get_index(left, right)
-        interaction.interactions[indices] = value
+        values.append(value)
     
-    return interaction
+    return values

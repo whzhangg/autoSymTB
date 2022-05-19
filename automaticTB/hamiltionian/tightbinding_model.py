@@ -1,6 +1,7 @@
 import abc, typing, dataclasses
 import numpy as np
-from .MOcoefficient import AO, InteractionMatrix
+from ..interaction import InteractionPairs
+from ..atomic_orbitals import AO
 
 @dataclasses.dataclass
 class Pindex_lm:
@@ -22,20 +23,19 @@ class HijR:
     value: float
 
 
-def make_HijR_list(AOinteractions: typing.List[InteractionMatrix]) -> typing.List[HijR]:
+def make_HijR_list(AOinteractions: typing.List[InteractionPairs]) -> typing.List[HijR]:
     HijR_list: typing.List[HijR] = []
     for interaction in AOinteractions:
-        for pair, value in zip(interaction.flattened_pair, interaction.flattened_interaction):
+        for pair, value in zip(interaction.pairs, interaction.interactions):
             left: AO = pair.left
             right: AO = pair.right
-            if left.at_origin == True:
-                HijR_list.append(
-                    HijR(
-                        Pindex_lm(left.primitive_index, left.l, left.m, left.translation),
-                        Pindex_lm(right.primitive_index, right.l, right.m, right.translation),
-                        value
-                    )
+            HijR_list.append(
+                HijR(
+                    Pindex_lm(left.primitive_index, left.l, left.m, left.translation),
+                    Pindex_lm(right.primitive_index, right.l, right.m, right.translation),
+                    value
                 )
+            )
     return HijR_list
 
 

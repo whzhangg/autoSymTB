@@ -7,7 +7,7 @@ from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
 from .nncluster import NearestNeighborCluster
 from .sites import CrystalSite
 from ..parameters import symprec
-from ..orbitals import Orbitals
+from ..atomic_orbitals import Orbitals, OrbitalsList
 
 
 def _get_home_position_and_cell_translation(fractional_positions: np.ndarray):
@@ -48,7 +48,7 @@ class Structure:
     @classmethod
     def from_cpt_rcut(
         cls, cell: np.ndarray, positions: typing.List[np.ndarray], types: typing.List[int], 
-        orbital_dict: typing.Dict[str, str], rcut: float
+        orbital_dict: typing.Dict[str, int], rcut: float
     ): # -> Structure
         pcell = spglib.find_primitive((cell, positions, types))
         rotations = spglib.get_symmetry(pcell, symprec = symprec)["rotations"]
@@ -77,14 +77,14 @@ class Structure:
                 csite = CrystalSite.from_data(atomic_type, relative_cartesian, index, tr)
                 crystalsites.append(csite)
                 orbitals.append(
-                    Orbitals[orbital_dict[csite.site.chemical_symbol]]
+                    Orbitals(orbital_dict[csite.site.chemical_symbol])
                 )
             
             group = _get_SiteSymmetryGroup_from_crystalsites_and_rotations(
                 crystalsites, cartesian_rotations
             )
             nnsites.append(
-                NearestNeighborCluster(crystalsites, orbitals, group)
+                NearestNeighborCluster(crystalsites, OrbitalsList(orbitals), group)
             )
 
         return cls(c, p, t, nnsites)

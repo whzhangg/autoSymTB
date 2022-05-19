@@ -16,6 +16,6 @@ positions = np.array([
 ])
 
 orbits_used = {
-    "Pb": "s p",
-    "Cl": "s p"
+    "Pb": [0, 1],
+    "Cl": [0, 1]
 }

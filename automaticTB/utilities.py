@@ -1,5 +1,19 @@
 import numpy as np
-import yaml
+import yaml, collections, typing
+
+
+Pair = collections.namedtuple("Pair", "left right")
+
+PairwithValue = collections.namedtuple("PairwithValue", "left right value")
+
+
+def tensor_dot(list_left, list_right) -> typing.List[Pair]:
+    r = []
+    for item1 in list_left:
+        for item2 in list_right:
+            r.append(Pair(item1, item2))
+    return r
+
 
 def save_yaml(data, filename: str):
     # it is able to save python objects
@@ -7,10 +21,12 @@ def save_yaml(data, filename: str):
     with open(filename, 'w') as f:
         f.write(yaml_str)
 
+
 def load_yaml(filename: str):
     with open(filename, 'r') as f:
         groupdata = yaml.load(f, Loader=yaml.Loader)
     return groupdata
+
 
 def find_RCL(cell: np.ndarray) -> np.ndarray:
     '''
@@ -26,6 +42,7 @@ def find_RCL(cell: np.ndarray) -> np.ndarray:
     b3=(2*np.pi/volumn)*np.cross(a1,a2)
     return np.vstack([b1,b2,b3])
 
+
 def print_matrix(m: np.ndarray, format:str):
     # print an matrix using the given string format
     assert len(m.shape) == 2
@@ -35,6 +52,7 @@ def print_matrix(m: np.ndarray, format:str):
             result += " " + format.format(cell)
         result += "\n"
     print(result)
+
 
 def random_rotation_matrix() -> np.ndarray:
     angles = np.random.rand(3) * 2 * np.pi

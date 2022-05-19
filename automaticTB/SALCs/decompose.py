@@ -3,7 +3,7 @@ import numpy as np
 from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
 from .vectorspace import VectorSpace
 from .subduction import subduction_data
-from .linear_combination import LinearCombination
+
 
 def decompose_vectorspace(vectorspace: VectorSpace, group: SiteSymmetryGroup) \
 -> typing.Dict[str, VectorSpace]:
@@ -26,7 +26,7 @@ def decompose_vectorspace_recursive(vectorspace: VectorSpace, group: SiteSymmetr
                 rotated = lc.symmetry_rotation(op)
                 rotated.scale_coefficients(chi * irrep_dimension / group_order)
                 sum_coefficients += rotated.coefficients
-            transformed_LCs.append(LinearCombination(vectorspace.sites, vectorspace.orbitals, sum_coefficients))
+            transformed_LCs.append(lc.create_new_with_coefficients(sum_coefficients))
         subspaces[irrep] = VectorSpace.from_list_of_linear_combinations(transformed_LCs)
 
     subduction = subduction_data[group.groupname]
@@ -59,7 +59,7 @@ def decompose_vectorspace_onelevel(vectorspace: VectorSpace, group: SiteSymmetry
                 rotated.scale_coefficients(chi * irrep_dimension / group_order)
                 sum_coefficients += rotated.coefficients
                 
-            transformed_LCs.append(LinearCombination(vectorspace.sites, vectorspace.orbitals, sum_coefficients))
+            transformed_LCs.append(lc.create_new_with_coefficients(sum_coefficients))
         
         subspaces[irrep] = VectorSpace.from_list_of_linear_combinations(transformed_LCs)
 
