@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import typing
 from scipy.special import sph_harm
-from ..linear_combination import LinearCombination, Site, Orbitals
+from ..SALCs.linear_combination import LinearCombination
+from ..atomic_orbitals import Orbitals
+from ..structure import Site
 
 
 def sh_functions(l, m, theta, phi):
@@ -31,7 +33,7 @@ def precompute_data() -> typing.Tuple[np.ndarray, np.ndarray]:
 
     computed_y_dict = {}
 
-    for ao in Orbitals("s p d").aolist:
+    for ao in Orbitals([0,1,2]).sh_list:
         y = sh_functions(ao.l, ao.m, theta, phi)
         computed_y_dict[ao] = y
 
@@ -43,8 +45,8 @@ unit_vector, computed_y_dict = precompute_data()
 
 def on_site_xyz_color(coefficient: np.ndarray, orb: Orbitals, pos: np.ndarray):
     # with coefficient
-    y = np.zeros_like(computed_y_dict[orb.aolist[0]])
-    for co, orb in zip(coefficient, orb.aolist):
+    y = np.zeros_like(computed_y_dict[orb.sh_list[0]])
+    for co, orb in zip(coefficient, orb.sh_list):
         y += co * computed_y_dict[orb]
 
     scaled_vector = np.abs(y) * unit_vector
@@ -60,9 +62,12 @@ def plot_vectors(combination: LinearCombination, ax, ax_lim):
     cmap = plt.cm.ScalarMappable(cmap=plt.get_cmap('PRGn'))
     cmap.set_clim(-0.5, 0.5)
 
-    for site, coefficient in zip(combination.sites, combination.coefficients):
-        pos = site.pos
-        vector, color = on_site_xyz_color(coefficient, combination.orbitals, pos)
+    orbital_atom_slice = combination.orbital_list.atomic_slice_dict
+    for i, site in enumerate(combination.sites):
+        coefficient_positions = orbital_atom_slice[i]
+        coeff = combination.coefficients[coefficient_positions]
+        
+        vector, color = on_site_xyz_color(coeff, combination.orbital_list.orbital_list[i], site.pos)
         Yx, Yy, Yz = vector
 
         ax.plot_surface(Yx, Yy, Yz,
@@ -96,7 +101,7 @@ def make_plot_normalized_LC(linearcombination: LinearCombination, filename: str 
     limit = overhead + get_limts(linearcombination.sites)
 
     if not linearcombination.is_normalized:
-        linearcombination = linearcombination.normalized()
+        linearcombination = linearcombination.get_normalized()
 
     fig = plt.figure(figsize=plt.figaspect(1.))
     ax = fig.add_subplot(projection='3d')

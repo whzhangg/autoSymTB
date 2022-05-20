@@ -14,6 +14,7 @@ parameters = {
         "E_p1"   :  -1.96
     }
 
+
 HijR = {
     ( 0, 0, 0): {
         ("S0","S0"): parameters["E_s0"],
@@ -119,6 +120,7 @@ HijR = {
     },
 }
 
+
 class Royer_Richard_TB(TightBindingBase):
     """
     it return the model given in the article
@@ -127,9 +129,22 @@ class Royer_Richard_TB(TightBindingBase):
     orbit_indices = {o:io for io, o in enumerate(orbits)}
 
     def __init__(self) -> None:
-        self.cell = np.eye(3)
-        self.position = np.array([[0,0,0], [0.5,0,0], [0,0.5,0], [0, 0, 0.5]])
+        self._cell = np.eye(3)
+        self._position = np.array([[0,0,0], [0.5,0,0], [0,0.5,0], [0, 0, 0.5]])
         self.size = len(self.orbits)
+
+    @property
+    def positions(self) -> np.ndarray:
+        return self._position
+
+    @property
+    def cell(self) -> np.ndarray:
+        return self.cell
+
+    @property
+    def types(self) -> typing.List[int]:
+        return [82, 17, 17, 17]
+
 
     def Hijk(self, k: typing.Tuple[float]):
         k = np.array(k)
@@ -139,8 +154,8 @@ class Royer_Richard_TB(TightBindingBase):
             for (iorb, jorb), value in Hij.items():
                 i = self.orbit_indices[iorb]
                 j = self.orbit_indices[jorb]
-                tau_i = self.position[(i+1)//4 - 1]
-                tau_j = self.position[(j+1)//4 - 1]
+                tau_i = self._position[(i+1)//4 - 1]
+                tau_j = self._position[(j+1)//4 - 1]
 
                 kR = np.dot(k, r + tau_j - tau_i)
                 ham[i,j] += value * np.exp(2j * np.pi * kR)

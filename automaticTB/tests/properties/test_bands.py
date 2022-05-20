@@ -1,7 +1,7 @@
 import numpy as np
 import typing
 from automaticTB.tightbinding.RoyerRichardTB import Royer_Richard_TB
-from automaticTB.tightbinding.bandstructure import Kpath, Kline, get_bandstructure_result, BandStructureResult
+from automaticTB.properties.bandstructure import Kpath, Kline, get_bandstructure_result, BandStructureResult
 
 
 def prepare_tightbinding_kpath() -> typing.Tuple[Royer_Richard_TB, Kpath]:
@@ -39,7 +39,7 @@ def test_BandStructureResult_read_and_write():
     os.remove(testfilename)
 
 def test_plot_bandstructure():
-    testfilename = "HalidePerovskite.pdf"
+    testfilename = "Band_RoyerRichardPerovskite.pdf"
     tb, kpath = prepare_tightbinding_kpath()
     band_result = get_bandstructure_result(tb, kpath)
     band_result.plot_data(testfilename)

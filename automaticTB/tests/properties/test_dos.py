@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from automaticTB.tightbinding.dos import TetraDOS, Kmesh
+from automaticTB.properties.dos import TetraDOS, Kmesh
 from automaticTB.tightbinding.RoyerRichardTB import Royer_Richard_TB
 
 
@@ -35,12 +35,12 @@ def test_Royer_Richard_dos():
     energies = tb.solveE_at_ks(kmesh.kpoints)
 
     tetrados = TetraDOS(kmesh, energies, np.linspace(-17.0, 10.0, 50))
-    tetrados.write_data_to_file("RoyerRichardPerovskite.dat")
-    tetrados.plot_data("RoyerRichardPerovskite.pdf")
+    tetrados.write_data_to_file("DOS_RoyerRichardPerovskite.dat")
+    tetrados.plot_data("DOS_RoyerRichardPerovskite.pdf")
 
 
 def test_single_band_dos():
     energy, kmesh = prepare_singleband_energy_kmesh()
     tetrados = TetraDOS(kmesh, energy, np.arange(-0.03, 0.6, 0.01))
-    tetrados.write_data_to_file("parabolic.dat")
-    tetrados.plot_data("parabolic.pdf")
+    tetrados.write_data_to_file("DOS_parabolic.dat")
+    tetrados.plot_data("DOS_parabolic.pdf")
