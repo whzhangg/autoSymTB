@@ -6,7 +6,7 @@ import numpy as np
 import os, typing
 
 from automaticTB.structure.structure import Structure
-from automaticTB.hamiltionian.tightbinding_model import TightBindingModel, make_HijR_list
+from automaticTB.tightbinding.tightbinding_model import TightBindingModel, make_HijR_list
 from automaticTB.utilities import print_matrix, find_RCL
 from automaticTB.interaction import InteractionPairs
 

@@ -4,11 +4,11 @@ from DFTtools.config import rootfolder
 import os
 from automaticTB.SALCs.vectorspace import get_vectorspace_from_NNCluster
 from automaticTB.SALCs.decompose import decompose_vectorspace
-from automaticTB.hamiltionian.MOcoefficient import MOCoefficient, InteractionMatrix, AO_from_MO
+from automaticTB.tightbinding.MOcoefficient import MOCoefficient, InteractionMatrix, AO_from_MO
 #from automaticTB.hamiltionian.NNInteraction import get_interaction_matrix_from_MO_and_interaction
 #from automaticTB.tightbinding.model_generation import generate_tightbinding_data
-from automaticTB.hamiltionian.model import TightBindingModel
-from automaticTB.hamiltionian.tightbinding_data import make_HijR_list
+from automaticTB.tightbinding.model import TightBindingModel
+from automaticTB.tightbinding.tightbinding_data import make_HijR_list
 
 
 Si_cif_fn = os.path.join(rootfolder, "tests/structures/Si_ICSD51688.cif")

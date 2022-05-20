@@ -1,7 +1,7 @@
 import numpy as np
 import abc, typing, copy
 from ..utilities import find_RCL
-from ..hamiltionian.model import TightBindingBase
+from ..tightbinding import TightBindingBase
 
 class SpinDegenerateDOSBase(abc.ABC):
     """for all the three public methods, should return dict containing dos of each spin"""

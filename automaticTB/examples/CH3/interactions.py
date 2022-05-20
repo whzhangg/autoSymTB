@@ -1,4 +1,4 @@
-from automaticTB.hamiltionian.MOInteraction import NamedLC
+from automaticTB.SALCs import NamedLC
 from automaticTB.utilities import Pair
 import typing
 import numpy as np

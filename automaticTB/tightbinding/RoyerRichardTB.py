@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from .model import TightBindingBase
+from .tightbinding_model import TightBindingBase
 
 parameters = {
         "V_ss"   :  -1.10,

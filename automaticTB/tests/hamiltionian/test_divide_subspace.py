@@ -3,9 +3,9 @@ from automaticTB.structure.nncluster import CrystalSites_and_Equivalence
 from automaticTB.SALCs.linear_combination import Orbitals
 from automaticTB.SALCs.vectorspace import VectorSpace
 from automaticTB.SALCs.decompose import decompose_vectorspace
-from automaticTB.hamiltionian.MOcoefficient import MOCoefficient
-from automaticTB.hamiltionian.interaction import RandomInteraction
-from automaticTB.hamiltionian.NNInteraction import get_interaction_matrix_from_MO_and_interaction
+from automaticTB.tightbinding.MOcoefficient import MOCoefficient
+from automaticTB.tightbinding.interaction import RandomInteraction
+from automaticTB.tightbinding.NNInteraction import get_interaction_matrix_from_MO_and_interaction
 from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup, get_point_group_as_SiteSymmetryGroup
 import numpy as np
 import typing

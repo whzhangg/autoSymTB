@@ -4,11 +4,11 @@ import os, typing
 from automaticTB.structure.structure import Structure
 from automaticTB.SALCs.vectorspace import get_vectorspace_from_NNCluster
 from automaticTB.SALCs.decompose import decompose_vectorspace
-from automaticTB.hamiltionian.MOcoefficient import (
+from automaticTB.tightbinding.MOcoefficient import (
     MOCoefficient, get_AOlists_from_crystalsites_orbitals, InteractionMatrix,
     AO_from_MO, MO_from_AO
 )
-from automaticTB.hamiltionian.tightbinding_model import make_HijR_list, TightBindingModel
+from automaticTB.tightbinding.tightbinding_model import make_HijR_list, TightBindingModel
 from automaticTB.utilities import print_matrix, find_RCL
 
 from structure import cell, types, positions, orbits_used

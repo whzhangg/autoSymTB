@@ -3,12 +3,34 @@ import numpy as np
 from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
 from .vectorspace import VectorSpace
 from .subduction import subduction_data
+from .linear_combination import LinearCombination
+
+
+class NamedLC(typing.NamedTuple):
+    name: str
+    lc: LinearCombination
+
+
+def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: SiteSymmetryGroup) \
+-> typing.List[NamedLC]:
+    decomposed = decompose_vectorspace(vectorspace, group)
+    return get_rep_LC_from_decomposed_vectorspace_as_dict(decomposed)
 
 
 def decompose_vectorspace(vectorspace: VectorSpace, group: SiteSymmetryGroup) \
 -> typing.Dict[str, VectorSpace]:
+    """the return is a dictionary indexed by the irreducible representation"""
     recursive_result = decompose_vectorspace_recursive(vectorspace, group)
     return get_nested_nonzero_vectorspace(recursive_result)
+
+
+def get_rep_LC_from_decomposed_vectorspace_as_dict(vc_dicts: typing.Dict[str, VectorSpace]) -> typing.List[NamedLC]:
+    result = []
+    for irrepname, vs in vc_dicts.items():
+        lcs = vs.get_nonzero_linear_combinations()
+        for ilc in range(vs.rank):
+            result.append(NamedLC(irrepname, lcs[ilc].get_normalized()))
+    return result
 
 
 def decompose_vectorspace_recursive(vectorspace: VectorSpace, group: SiteSymmetryGroup) \

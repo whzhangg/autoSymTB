@@ -1,0 +1,10 @@
+numpy
+ase
+e3nn
+torch
+pymatgen
+scipy
+matplotlib
+ase
+DFTtools.SiteSymmetry
+DFTtools.tools

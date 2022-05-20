@@ -4,7 +4,7 @@ from automaticTB.SALCs.decompose import decompose_vectorspace
 from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup, get_point_group_as_SiteSymmetryGroup
 import numpy as np
 import typing
-from automaticTB.hamiltionian.lc_product import RepLabelledBasis
+from automaticTB.tightbinding.lc_product import RepLabelledBasis
 
 def get_vectorspace_group_C3v() -> typing.Tuple[VectorSpace, SiteSymmetryGroup]:
     w = np.sqrt(3) / 2
