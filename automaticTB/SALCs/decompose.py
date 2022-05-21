@@ -44,7 +44,7 @@ def decompose_vectorspace_recursive(vectorspace: VectorSpace, group: SiteSymmetr
         for lc in vectorspace.get_nonzero_linear_combinations():
             sum_coefficients = np.zeros_like(lc.coefficients)
             for op, chi in zip(group.operations, characters):
-                rotated = lc.symmetry_rotation(op)
+                rotated = lc.symmetry_rotate(op)
                 rotated.scale_coefficients(chi * irrep_dimension / group_order)
                 sum_coefficients += rotated.coefficients
             transformed_LCs.append(lc.create_new_with_coefficients(sum_coefficients))
@@ -76,7 +76,7 @@ def decompose_vectorspace_onelevel(vectorspace: VectorSpace, group: SiteSymmetry
         for lc in vectorspace.get_nonzero_linear_combinations():
             sum_coefficients = np.zeros_like(lc.coefficients)
             for op, chi in zip(group.operations, characters):
-                rotated = lc.symmetry_rotation(op)
+                rotated = lc.symmetry_rotate(op)
                 rotated.scale_coefficients(chi * irrep_dimension / group_order)
                 sum_coefficients += rotated.coefficients
                 

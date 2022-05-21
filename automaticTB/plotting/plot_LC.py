@@ -59,13 +59,14 @@ def on_site_xyz_color(coefficient: np.ndarray, orb: Orbitals, pos: np.ndarray):
     return shifted_scaled, color
 
 def plot_vectors(combination: LinearCombination, ax, ax_lim):
+    real_coefficients = combination.coefficients.real if np.iscomplex(combination.coefficients) else combination.coefficients
     cmap = plt.cm.ScalarMappable(cmap=plt.get_cmap('PRGn'))
     cmap.set_clim(-0.5, 0.5)
 
     orbital_atom_slice = combination.orbital_list.atomic_slice_dict
     for i, site in enumerate(combination.sites):
         coefficient_positions = orbital_atom_slice[i]
-        coeff = combination.coefficients[coefficient_positions]
+        coeff = real_coefficients[coefficient_positions]
         
         vector, color = on_site_xyz_color(coeff, combination.orbital_list.orbital_list[i], site.pos)
         Yx, Yy, Yz = vector

@@ -6,7 +6,7 @@ from .utilities import get_pointgroupname_from_rotation_matrices
 from .symmetry_reduction import symmetry_reduction
 from .SeitzFinder.dress_operation import dress_symmetry_operation
 from .Bilbao.interface import PointGroupData, BilbaoGroupOperation
-from automaticTB.config import use_complex_character
+from automaticTB.parameters import use_complex_character
 
 #references = BilbaoStandardGroups(complex_characters=True)
 references = PointGroupData(complex_character = use_complex_character)

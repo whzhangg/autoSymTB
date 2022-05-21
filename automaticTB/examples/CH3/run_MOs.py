@@ -32,8 +32,8 @@ for i, cm in enumerate(conversion_matrices):
     for aopair,value in zip(cm.ao_pairs, aointer):
         left = AOs[aopair.left]
         right = AOs[aopair.right]
-        #print(left.chemical_symbol, left.l, left.m, 
-        #    right.chemical_symbol, right.l, right.m, )
-        #print(value)
+        print(left.chemical_symbol, left.l, left.m, 
+            right.chemical_symbol, right.l, right.m, )
+        print(value)
 
 print(total_number_MO_pair)

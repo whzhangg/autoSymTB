@@ -5,7 +5,7 @@ from ..rotation import orbital_rotation_from_symmetry_matrix
 from ..atomic_orbitals import Orbitals, OrbitalsList
 from ..parameters import zero_tolerance
 
-
+# it should not be created manually, but from vector space and get_nonzero_LC methods
 @dataclasses.dataclass
 class LinearCombination:
     sites: typing.List[Site]
@@ -36,6 +36,7 @@ class LinearCombination:
 
     def create_new_with_coefficients(self, new_coefficients: np.ndarray):
         assert len(new_coefficients) == len(self.coefficients)
+        assert new_coefficients.dtype == self.coefficients.dtype
         return LinearCombination(self.sites, self.orbital_list, new_coefficients)
 
     def scale_coefficients(self, factor: float) -> None:
@@ -73,8 +74,14 @@ class LinearCombination:
         aline = str(site) + " :: "
         for i, coeff in enumerate(coefficient):
             if np.abs(coeff) < zero_tolerance: continue
-            aline += "{:>+6.3f}({:>1d}{:> 2d})".format(
-                coeff, orbitals.sh_list[i].l, orbitals.sh_list[i].m)
+            if np.isreal(coeff):
+                coeff_to_print = coeff.real
+                formatter = "{:>+6.3f}({:>1d}{:> 2d})"
+            else:
+                coeff_to_print = coeff
+                formatter = "{:>+12.2f}({:>1d}{:> 2d})"
+            aline += formatter.format(
+                coeff_to_print, orbitals.sh_list[i].l, orbitals.sh_list[i].m)
         return aline
 
     def general_rotate(self, cartesian_matrix: np.ndarray): # -> LinearCombination
@@ -83,7 +90,7 @@ class LinearCombination:
             new_sites, self.orbital_list, new_coefficient
         )
         
-    def symmetry_rotation(self, cartesian_matrix: np.ndarray): # -> LinearCombination
+    def symmetry_rotate(self, cartesian_matrix: np.ndarray): # -> LinearCombination
         new_sites, new_coefficient = self._rotate_site_and_coefficient(cartesian_matrix)
         
         from_which = [

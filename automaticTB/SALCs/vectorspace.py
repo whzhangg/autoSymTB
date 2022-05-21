@@ -3,14 +3,14 @@ import numpy as np
 from ..structure.sites import Site
 from ..structure.nncluster import NearestNeighborCluster
 from .linear_combination import LinearCombination, OrbitalsList
-from ..parameters import zero_tolerance
+from ..parameters import zero_tolerance, LC_coefficients_dtype
 
 
 @dataclasses.dataclass
 class VectorSpace:
     sites: typing.List[Site]
     orbital_list: OrbitalsList
-    coefficients_matrix: np.ndarray
+    coefficients_matrix: np.ndarray  # dtype = complex
 
     @classmethod
     def from_NNCluster(cls, cluster: NearestNeighborCluster):
@@ -19,7 +19,7 @@ class VectorSpace:
     @classmethod
     def from_sites_and_orbitals(cls, sites: typing.List[Site], orbital_list: OrbitalsList):
         nbasis = orbital_list.num_orb
-        coefficients = np.eye(nbasis, dtype=float)
+        coefficients = np.eye(nbasis, dtype=LC_coefficients_dtype)
         return cls(sites, orbital_list, coefficients)
 
     @classmethod
