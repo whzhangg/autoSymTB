@@ -8,4 +8,6 @@ automaticTB/SALCs/SubductionTables.tar.gz
 automaticTB/tests/**/*.pdf
 automaticTB/tests/**/*.dat
 
+automaticTB/sitesymmetry/Bilbao/local
+
 **/.DS_Store

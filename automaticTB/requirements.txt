@@ -1,6 +1,4 @@
 e3nn
-DFTtools.SiteSymmetry
-DFTtools.tools
 ase==3.22.1
 matplotlib==3.5.1
 numpy==1.22.2

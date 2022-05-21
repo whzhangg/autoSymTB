@@ -1,5 +1,5 @@
 import numpy as np
-import yaml, collections, typing
+import yaml, collections, typing, json
 
 
 Pair = collections.namedtuple("Pair", "left right")
@@ -14,6 +14,18 @@ def tensor_dot(list_left, list_right) -> typing.List[Pair]:
             r.append(Pair(item1, item2))
     return r
 
+
+def write_json(dictionary, filename):
+    f=open(filename,'w')
+    json.dump(dictionary,f,indent="    ")
+    f.close()
+
+
+def read_json(filename):
+    f=open(filename,'r')
+    data=json.load(f)
+    f.close()
+    return data
 
 def save_yaml(data, filename: str):
     # it is able to save python objects

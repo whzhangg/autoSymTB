@@ -1,8 +1,8 @@
 from automaticTB.SALCs.subduction import subduction_data
-from DFTtools.SiteSymmetry.group_list import GroupsList
+from automaticTB.sitesymmetry.group_list import GroupsList
 
 def test_subduction_operation_is_probably_correct():
-    from DFTtools.SiteSymmetry.Bilbao.interface import PointGroupData
+    from automaticTB.sitesymmetry.Bilbao.interface import PointGroupData
     pgd = PointGroupData(complex_character=False)
 
     for group in GroupsList:
@@ -18,7 +18,7 @@ def test_subduction_operation_is_probably_correct():
             assert super_seitz in group_data.seitz_operation_dict, f"{group} -> {subgroup}"
 
 def test_generate_subduction():
-    from DFTtools.SiteSymmetry.site_symmetry_group import get_point_group_as_SiteSymmetryGroup
+    from automaticTB.sitesymmetry.site_symmetry_group import get_point_group_as_SiteSymmetryGroup
     for group in GroupsList:
         sitesymmetrygroup = get_point_group_as_SiteSymmetryGroup(group)
         subgroup_info = subduction_data[group]

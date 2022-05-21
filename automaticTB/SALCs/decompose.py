@@ -1,6 +1,6 @@
 import typing
 import numpy as np
-from DFTtools.SiteSymmetry.site_symmetry_group import SiteSymmetryGroup
+from automaticTB.sitesymmetry.site_symmetry_group import SiteSymmetryGroup
 from .vectorspace import VectorSpace
 from .subduction import subduction_data
 from .linear_combination import LinearCombination

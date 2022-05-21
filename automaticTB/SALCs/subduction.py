@@ -354,14 +354,14 @@ _subduction_table = {
 }
 
 def print_subduction():
-    from DFTtools.SiteSymmetry.group_list import GroupsList
-    from DFTtools.tools import write_json
+    from automaticTB.sitesymmetry.group_list import GroupsList
+    from automaticTB.utilities import write_json
     table = { group: "" for group in GroupsList }
     write_json(table, "tmp.txt")
 
 def print_subduction_operations_template_real():
-    from DFTtools.SiteSymmetry.group_list import GroupsList
-    from DFTtools.SiteSymmetry.Bilbao.interface import PointGroupData
+    from automaticTB.sitesymmetry.group_list import GroupsList
+    from automaticTB.sitesymmetry.Bilbao.interface import PointGroupData
     pgd = PointGroupData(complex_character=False)
     for group in GroupsList:
         group_data = pgd.get_BilbaoPointGroup(group)
