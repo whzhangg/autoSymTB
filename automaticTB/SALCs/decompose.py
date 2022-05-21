@@ -1,8 +1,7 @@
 import typing
 import numpy as np
-from automaticTB.sitesymmetry.site_symmetry_group import SiteSymmetryGroup
+from automaticTB.sitesymmetry import subduction_data, SiteSymmetryGroup
 from .vectorspace import VectorSpace
-from .subduction import subduction_data
 from .linear_combination import LinearCombination
 
 

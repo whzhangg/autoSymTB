@@ -1,12 +1,9 @@
 from spglib import get_symmetry_dataset
-from collections import Counter
 import numpy as np
 import typing
 from pymatgen.core.structure import Structure
 import dataclasses
-from automaticTB.sitesymmetry.utilities import (
-    rotation_cartesian_to_fraction, rotation_fraction_to_cartesian
-)
+from .utilities import rotation_fraction_to_cartesian
 
 @dataclasses.dataclass
 class Site:

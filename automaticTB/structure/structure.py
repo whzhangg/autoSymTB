@@ -1,9 +1,7 @@
 import numpy as np
 import typing, spglib, dataclasses
 import pymatgen.core.structure as matgenStructure
-from automaticTB.sitesymmetry.utilities import rotation_fraction_to_cartesian
-from automaticTB.sitesymmetry.site_symmetry_group import SiteSymmetryGroup
-
+from automaticTB.sitesymmetry import rotation_fraction_to_cartesian, SiteSymmetryGroup
 from .nncluster import NearestNeighborCluster
 from .sites import CrystalSite
 from ..parameters import symprec

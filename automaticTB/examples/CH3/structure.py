@@ -1,7 +1,7 @@
 import numpy as np
 from automaticTB.structure import CrystalSite, NearestNeighborCluster
 from automaticTB.atomic_orbitals import Orbitals, OrbitalsList
-from automaticTB.sitesymmetry.site_symmetry_group import get_point_group_as_SiteSymmetryGroup
+from automaticTB.sitesymmetry import get_point_group_as_SiteSymmetryGroup
 
 group = get_point_group_as_SiteSymmetryGroup("3m")
 w = np.sqrt(3) / 2

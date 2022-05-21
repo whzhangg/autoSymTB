@@ -1,6 +1,6 @@
 import dataclasses, typing
 import numpy as np
-from automaticTB.sitesymmetry.site_symmetry_group import SiteSymmetryGroup
+from automaticTB.sitesymmetry import SiteSymmetryGroup
 from .sites import Site, CrystalSite
 from ..parameters import zero_tolerance
 from ..atomic_orbitals import OrbitalsList

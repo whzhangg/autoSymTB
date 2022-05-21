@@ -2,14 +2,14 @@
 # rotation matrixs
 import typing, dataclasses
 import numpy as np
-from automaticTB.sitesymmetry.utilities import get_pointgroupname_from_rotation_matrices
-from automaticTB.sitesymmetry.symmetry_reduction import symmetry_reduction
-from automaticTB.sitesymmetry.SeitzFinder.dress_operation import dress_symmetry_operation
-from automaticTB.sitesymmetry.Bilbao.interface import PointGroupData, BilbaoGroupOperation
-
+from .utilities import get_pointgroupname_from_rotation_matrices
+from .symmetry_reduction import symmetry_reduction
+from .SeitzFinder.dress_operation import dress_symmetry_operation
+from .Bilbao.interface import PointGroupData, BilbaoGroupOperation
+from automaticTB.config import use_complex_character
 
 #references = BilbaoStandardGroups(complex_characters=True)
-references = PointGroupData(complex_character=False)
+references = PointGroupData(complex_character = use_complex_character)
 
 def find_cooresponding_characters_from_map(
     dressed: typing.Dict[str, np.ndarray], 

@@ -1,7 +1,7 @@
 # We attempt to detemint the seitz symbol for the operation and dress them
 import numpy as np
 import dataclasses, typing
-from automaticTB.sitesymmetry.utilities import operation_type_from_rotation_matrix
+from ..utilities import operation_type_from_rotation_matrix
 
 
 class SymDirection:

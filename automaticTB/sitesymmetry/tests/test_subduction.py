@@ -1,5 +1,5 @@
-from automaticTB.SALCs.subduction import subduction_data
 from automaticTB.sitesymmetry.group_list import GroupsList
+from automaticTB.sitesymmetry import subduction_data
 
 def test_subduction_operation_is_probably_correct():
     from automaticTB.sitesymmetry.Bilbao.interface import PointGroupData

@@ -1,8 +1,7 @@
 import numpy as np
 import dataclasses, typing
-from automaticTB.sitesymmetry.utilities import get_pointgroupname_from_rotation_matrices
-
-from automaticTB.sitesymmetry.Bilbao.group_operations import SeitzSymbol
+from ..utilities import get_pointgroupname_from_rotation_matrices
+from ..Bilbao.group_operations import SeitzSymbol
 from .crystal_axes import CrystalAxes
 from .axes_finder import get_finder
 from .symmetry_elements import (
