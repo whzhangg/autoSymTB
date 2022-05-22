@@ -58,8 +58,8 @@ def on_site_xyz_color(coefficient: np.ndarray, orb: Orbitals, pos: np.ndarray):
     color = y
     return shifted_scaled, color
 
-def plot_vectors(combination: LinearCombination, ax, ax_lim):
-    real_coefficients = combination.coefficients.real if np.iscomplex(combination.coefficients) else combination.coefficients
+def plot_vectors(combination: LinearCombination, ax, ax_lim, axis_off = True):
+    real_coefficients = combination.coefficients.real if np.all(np.iscomplex(combination.coefficients)) else combination.coefficients
     cmap = plt.cm.ScalarMappable(cmap=plt.get_cmap('PRGn'))
     cmap.set_clim(-0.5, 0.5)
 
@@ -76,9 +76,10 @@ def plot_vectors(combination: LinearCombination, ax, ax_lim):
                         rstride=2, cstride=2)
 
     # Draw a set of x, y, z axes for reference.
-    ax.plot([-ax_lim, ax_lim], [0,0], [0,0], c='0.5', lw=1, zorder=10)
-    ax.plot([0,0], [-ax_lim, ax_lim], [0,0], c='0.5', lw=1, zorder=10)
-    ax.plot([0,0], [0,0], [-ax_lim, ax_lim], c='0.5', lw=1, zorder=10)
+    if not axis_off:
+        ax.plot([-ax_lim, ax_lim], [0,0], [0,0], c='0.5', lw=1, zorder=10)
+        ax.plot([0,0], [-ax_lim, ax_lim], [0,0], c='0.5', lw=1, zorder=10)
+        ax.plot([0,0], [0,0], [-ax_lim, ax_lim], c='0.5', lw=1, zorder=10)
     # Set the Axes limits and title, turn off the Axes frame.
     ax.set_xlim(-ax_lim, ax_lim)
     ax.set_ylim(-ax_lim, ax_lim)
@@ -86,7 +87,8 @@ def plot_vectors(combination: LinearCombination, ax, ax_lim):
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
-    #ax.axis('off')
+    if axis_off:
+        ax.axis('off')
     ax.set_box_aspect((ax_lim * 2.2, ax_lim * 2.2, ax_lim * 2.2))
 
 def get_limts(sites: typing.List[Site]) -> float:
