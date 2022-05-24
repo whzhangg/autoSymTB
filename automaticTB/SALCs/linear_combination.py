@@ -47,7 +47,6 @@ class LinearCombination:
         norm = self.norm
         if norm > zero_tolerance:
             coefficients /= norm
-        
         return LinearCombination(self.sites, self.orbital_list, coefficients)
        
     def __str__(self):

@@ -7,6 +7,7 @@ automaticTB/SALCs/examples
 automaticTB/SALCs/SubductionTables.tar.gz
 automaticTB/tests/**/*.pdf
 automaticTB/tests/**/*.dat
+automaticTB/config.py
 
 automaticTB/sitesymmetry/Bilbao/local
 
