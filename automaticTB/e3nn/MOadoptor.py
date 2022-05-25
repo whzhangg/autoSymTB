@@ -10,10 +10,12 @@ import numpy as np
 embed_atomic_orbital_coefficients = Orbitals([0,1,2])
 
 def get_embedded_AOs(lc: LinearCombination) -> np.ndarray:
+
     embedded_coefficients = np.zeros(
         (len(lc.sites),len(embed_atomic_orbital_coefficients.sh_list)),
         dtype=real_coefficient_type
     )
+    
     embed_l_slice = embed_atomic_orbital_coefficients.slice_dict
     for i, subspaceslice in enumerate(lc.orbital_list.subspace_slice_dict):
         for l_given, slice_given in subspaceslice.items():

@@ -1,0 +1,191 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{hyperref} % \url \href
+\usepackage{docmute}
+\usepackage{blkarray}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\DeclareMathOperator{\spn}{Span}
+
+\usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
+\addbibresource{autoTB.bib}
+
+\begin{document}
+
+\section{METHODS}
+
+\subsection{AO and Tight-binding Method}
+Tight-binding methods is a well known technique to solve the band structure of 
+crystalline material with a model Hamiltonian\cite{ziman_principles_1999}. 
+It is fast to run and is able to reproduce the DFT calculated band structure accurately 
+provided a suitable set of parameters. In this section, we provide a short review of the 
+basic methods.
+
+In the tight binding approximation, we write the Hamiltonian in some \emph{local}
+basis orbitals:
+\begin{equation}
+    H_{ij}(R) = \langle \phi_{R',i} | H | \phi_{R'+R,j} \rangle = \langle \phi_{0,i} | H | \phi_{R,j} \rangle
+\end{equation}
+where index $R'$, $R$ are lattice vectors. Due to periodicity, we can arbitrarily choose $R'$ to be zero
+and arrive at the simplified expression.
+The Bloch-like basis functions are given by:
+\begin{equation}
+    |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j)} |\phi_{Rj} \rangle
+\end{equation}
+and the Hamiltonian matrix at reciprocal vector $\mathbf{k}$ is related to the 
+Hamiltonian in real space by:
+\begin{equation}
+    \label{E:TB}
+    H_{ij}^{\mathbf{k}} = \langle \psi_i^k | H |\psi_j^k\rangle = \sum_R e^{ik\cdot(R+t_j-t_i)} H_{ij}(R)
+\end{equation}
+Diagonalizing the square matrix $H_{ij}^{\mathbf{k}}$ gives the eigen energies $\varepsilon_{i,\mathbf{k}}$ 
+at $\mathbf{k}$ in the tight-binding approximation. 
+
+An important point in the tight-binding approximation is that the interaction matrix elements in real
+space should decay rapidly, so that the number of $R$ in the summation \eqref{E:TB} can be greatly 
+reduced. In the extreme case, nearest neighbor interactions are considered only. 
+The decay depend on the spatial extension of orbitals $|\phi_{R,j}\rangle$. 
+The valid of this approximate therefore depend on the chemical nature of the bonding. In this work, we use 
+atomic orbitals (AOs) as basis functions and assume nearest neighbor interaction only to reduce the 
+number of parameters in the model. 
+
+Given set of tight binding parameters $H_{ij}(R)$, crystal Hamiltonian can be diagonalized at any k points. Therefore, 
+band structure and density of states can be obtained straightforwardly. We use tetrahedron method to solve for 
+the density of states on a regularly spaced $\mathbf{k}$-grid. 
+
+\subsection{Symmetry Adopted Molecular Orbitals}
+For the following, we label atomic orbitals using $|\chi\rangle$ and molecular orbitals $|\psi\rangle$. The $i^{th}$ molecular 
+orbital can be expressed as a linear combination of atomic orbitals (LCAO): 
+\begin{equation}
+    \psi_i\rangle = c_{i\mu} |\chi_{\mu}\rangle + \cdots + c_{i\nu} |\chi_{\nu}\rangle
+\end{equation}
+Assume that each atomic orbitals are normalized and orthogonal if they are on the same atom. Further assume 
+that atomic orbitals at different sites have ignorable overlap, then the normalization 
+of $\psi_i\rangle$ is simply given by the normalization of the coefficients. 
+The Hamiltonian in molecular $H_{ij} = \langle \psi_i | H | \psi_j \rangle$ is then:
+\begin{equation}
+    \label{E:HAO_HMO_transformation}
+    H_{ij} = \sum_{\mu} \sum_{\nu} c_{i\mu} c_{j\nu} H_{\mu\nu}
+\end{equation}
+where $H_{\mu\nu} = \langle \chi_{\mu} | H | \chi_{\nu} \rangle$ is the interaction in atomic orbitals.
+
+According to the result from application of group theory in quantum chemistry, it can be 
+shown that the eigenfunction of the Hamiltonian occupy differrent subspaces, labelled by the 
+irreducible representation of the symmetry group. Furthermore, given a vector space consists 
+of a set of basis functions, it is possible to find these subspaces using groups' character table
+by projection operator into representation $\Gamma_i$
+\begin{equation}
+    P^{\Gamma_i} = \frac{l_i}{h} \sum_R \chi^{\Gamma_i}(R) P_R
+\end{equation}
+where $R$ is a group operation, $P_R$ operate on the given functions. 
+$l_i$ is the dimension of the representation, $h$ is the order of the group and
+$\chi^{\Gamma_i}(R)$ is the character. 
+
+We use group $D_{3h}$ and planar molecular AH$_3$ as an example. The 
+three dimensional vector space span by three $s$ functions on each H atoms
+is given by:
+\begin{equation}
+    V = \spn(|\chi^s_{1}\rangle, |\chi^s_2\rangle, |\chi^s_3\rangle)
+\end{equation}
+Using the projection operator, we find two subspaces corresponding to representation $A_1'$ 
+and $E'$ with basis:
+\begin{align}
+    | \psi_1^{A_1'} \rangle &= \frac{\sqrt{3}}{3} (|\chi^s_1\rangle + |\chi^s_2\rangle + |\chi^s_3\rangle) \\
+    |\psi_2^{E'}\rangle   &= \frac{\sqrt{6}}{6}( 2|\chi^s_1\rangle - |\chi^s_2\rangle - |\chi^s_3\rangle) \\
+    |\psi_3^{E'}\rangle   &= \frac{\sqrt{6}}{6}(- |\chi^s_1\rangle + 2|\chi^s_2\rangle - |\chi^s_3\rangle)
+\end{align}
+We note that the two basis for representation $E'$ is not orthogonal.
+To explore the most from symmetries, we can further split the representation $E'$ into one
+that is symmetric and antisymmetric under mirror reflection, by descending symmetry $D_{3h}\to C_s$:
+\begin{align}
+    |\psi_2^{E'_{D_{3h}}\to A'_{C_s}} \rangle &= \frac{2}{\sqrt{6}} |\chi^s_2\rangle - \frac{1}{\sqrt{6}} |\chi^s_1\rangle - \frac{1}{\sqrt{6}} |\chi^s_3\rangle \\
+    |\psi_3^{E'_{D_{3h}}\to A''_{C_s}}\rangle &= \frac{\sqrt{2}}{2} |\chi^s_1\rangle - \frac{\sqrt{2}}{2} |\chi^s_3\rangle
+\end{align}
+
+We follow the same method for sites in crystals. Interested in local interactions, we focus on one atomic site at a time and its neighbors. 
+The symmetry group is therefore given by the site symmetry group of that atomic site. 
+There are in total 32 possible site symmetry (point) groups in crystal and all of their character tables can be obtained from Bilbao. 
+The method to identify site syemmtry and characters for each site symmetry operation are provided in the supplementary. 
+To perform symmetry descend to separate degenerate subspaces, we choose the suitable subgroups that are able to separate degenerate 
+subspace into representations of different symmetry properties, following the subduction tables 
+given in \cite{altmann_point-group_1994}. In principle, all representation can be split into one dimensional subspace. 
+For detail, we refer to supplementary information.
+
+\subsection{Using MOs instead of AOs}
+Our goal in this work is concerned with the generation of a nearest neighbor tight binding model, in which 
+the parameters are Hamiltonian matrix elements between AOs $H_{\mu\nu}$. However, we choose to find 
+the Hamiltonian matrix elements between MOs $H_{ij}$ first and recover $H_{\mu\nu}$s by inverting the linear equation \eqref{E:HAO_HMO_transformation}.
+The symmetry adopted MOs lead to two following properties of the 
+result and simplifies the problem:
+\begin{enumerate}
+    \item automatic symmetrization of tight-binding model, and 
+    \item utilize crystal symmetry to remove the number of parameters ML required to predict.
+\end{enumerate}
+The first property is straightforward. Since MOs are symmetries, interaction between AOs would also be symmetrized. The simplification come 
+from the fact that interactions are automatically forbidden by symmetry between MOs in different representations. Therefore, the non-zero interaction 
+in MOs is sparse, especially when the crystal symmetry is high. 
+
+To illustrate these two point, we use a simple case of $p_x^l$--$s$--$p_x^r$ interaction, where superscript $l$ and $r$ indicate left and right, in 
+a site symmetry of $C_s$ (mirror). Suppose the interaction $s$--$p_x^r$ is $a$, it is apparent to us that the interaction $p_x^l$--$s$ is $-a$. However,
+this is not apparent for a machine learning model, even if it is rotational invariant or equivariant, because it is not possible to transform $p_x^l$
+into $p_x^r$. 
+
+On the second hand, due to symmetry, the two $p_x$ function can be combined into a symmetric and anti-symmetric part, and 
+only the symmetric part interact with the $s$ function. So we have:
+\begin{align}
+    \label{E:px_s_AO_MO}
+    \langle s | H | \psi_A'' \rangle = \frac{\sqrt{2}}{2} \left( \langle s | H | p_x^l \rangle + \langle s | H | p_x^r \rangle\right) = 0 \\
+    \langle s | H | \psi_A' \rangle = \frac{\sqrt{2}}{2} \left( \langle s | H | p_x^l \rangle - \langle s | H | p_x^r \rangle\right) = b
+\end{align}
+which readily give the solution  $\langle s | H | p_x^l \rangle = \langle s | H | p_x^r \rangle = b/2$.
+
+\subsection{Transformation between AOs and MOs}
+As stated previous, we treat each atom in the unit cell on at a time to find relevant tight binding matrix element $\langle \chi_{i} | H | \chi^{NN}_{R,j} \rangle$.
+where the $\langle \chi_{i} |$ is an atomic orbtial on the atom in focus and $| \chi^{NN}_{R,j} \rangle$ are the set of atomic orbitals in the nearest neighbors (NN)
+including the center atom. 
+The selection of nearest neighbors atoms can either be the first shell or the Voronoi bonding, depending on the simplification level desired. 
+
+Next, we find the symmetry adopted linear combinations (SALCs) composed of $N_c$ AOs of the center atom and $N_{nn}$ of all the neighboring atoms. 
+There are $N_c\times (N_c + N_{nn})$ matrix elements $H_{\mu\nu}$ to be found as tight binding matrix element and the same number of $H_{ij}$ for 
+the interaction between molecular orbitals. We find a linear equation system given by equation \eqref{E:HAO_HMO_transformation} and 
+obtain the solution once the interaction energy between pairs MOs are known.
+
+\subsection{Form of the interaction Hamiltonian in MOs}
+We mentioned previously that interactions are forbidden between MOs belonging to different 
+irreducible representations. Here, we describe in detail the form of interaction matrix. 
+We assume that all MOs are of the form that utilize symmetry, denoted in the form 
+$|\psi_i^{\Gamma_1\to \cdots \to \Gamma_n} \rangle$. As shown in the previous section, using crystallographic 
+point groups and subduction, all MOs can be separated into one dimensional subspace. However, we note that 
+the first classification of irreducible representation $\Gamma_1$ is the most important (main irreducible representation), since it correspond
+to the true symmetry of the structure and the degeneracy of energy. 
+The rest symbols $\to \cdots \to \Gamma_n$ of subduction aim to separate basis of the degenerate subspaces and 
+ensure that the basis are orthogonal. 
+
+The interaction matrix in MOs can then be separated into different diagonal blocks, each blocks are of the form $a\cdot \mathbf{I}$ if 
+the interacting MOs correspond to the same main irreducible representation, zero otherwise.
+For example, in the case of AH$_3$ molecular.
+\begin{equation}
+    H_{ij} = \begin{blockarray}{cccccccc}
+        & |s^{A_1'}\rangle & |p_z^{A_2''}\rangle & |p_x^{E'}\rangle & |p_y^{E'}\rangle 
+        & |S^{A_1'}\rangle & |S^{E'}_{p_x}\rangle & |S^{E'}_{p_y}\rangle \\
+        \begin{block}{c(ccccccc)}
+        \langle s^{A_1'}    |  & a & 0 & 0 & 0 & d & 0 & 0 \\
+        \langle p_z^{A_2''} |  & 0 & b & 0 & 0 & 0 & 0 & 0 \\
+        \langle p_x^{E'}    |  & 0 & 0 & c & 0 & 0 & e & 0 \\
+        \langle p_y^{E'}    |  & 0 & 0 & 0 & c & 0 & 0 & e \\
+        \end{block}
+        \end{blockarray}
+\end{equation}
+In our work, the parameters $a \cdots e$ are to be found using machine learning methods, for example. 
+
+\subsection{Generation of interaction Hamiltionian in AOs}
+For a given cluster, the above procedure generate the values corresponding $H_{\mu\nu}$s, and 
+therefore $H_{\nu\mu}$s as well. It is important to note that once a set of parameter is determind 
+for one cluster, any parameters in other clusters are also determined, both by the transpose 
+property of Hamiltonian and by the symmetry constrains. 
+ 
+\end{document}
