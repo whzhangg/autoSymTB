@@ -4,7 +4,25 @@ from ..structure.sites import Site
 from ..structure.nncluster import NearestNeighborCluster
 from .linear_combination import LinearCombination, OrbitalsList
 from ..parameters import zero_tolerance, LC_coefficients_dtype
+from .mathLA import remove_same_direction, remove_zero_vector_from_coefficients, find_linearly_independent_rows
 
+def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearCombination]) -> typing.List[LinearCombination]:
+    coefficient_matrix = np.vstack([
+        lc.coefficients for lc in inputLCs
+    ])
+    result = []
+    sites = inputLCs[0].sites
+    orbital_list = inputLCs[0].orbital_list
+    non_zero = remove_zero_vector_from_coefficients(coefficient_matrix)
+    if len(non_zero) > 0:
+        distinct = find_linearly_independent_rows(non_zero)
+            
+        for row in distinct:
+            result.append(
+                LinearCombination(sites, orbital_list, row)
+            )
+            
+    return result
 
 @dataclasses.dataclass
 class VectorSpace:
@@ -42,36 +60,22 @@ class VectorSpace:
 
     def _remove_linear_dependent(self):
         # remove the redundent linear combination (same direction) or zero 
-        non_zero = _remove_zero_vector_from_coefficients(self.coefficients_matrix)
+        non_zero = remove_zero_vector_from_coefficients(self.coefficients_matrix)
         if len(non_zero) > 0:
-            distinct = _remove_same_direction(non_zero)
+            distinct = find_linearly_independent_rows(non_zero)
             self.coefficients_matrix = distinct
 
     def get_nonzero_linear_combinations(self) -> typing.List[LinearCombination]:
-        self._remove_linear_dependent()
+        # we do not change the coefficient itself
         result = []
-        for row in self.coefficients_matrix:
-            result.append(
-                LinearCombination(self.sites, self.orbital_list, row)
-            )
+        non_zero = remove_zero_vector_from_coefficients(self.coefficients_matrix)
+        if len(non_zero) > 0:
+            distinct = find_linearly_independent_rows(non_zero)
+            
+            for row in distinct:
+                result.append(
+                    LinearCombination(self.sites, self.orbital_list, row)
+                )
+            
         return result
 
-
-def _remove_zero_vector_from_coefficients(coeff_matrix: np.ndarray) -> np.ndarray:
-    is_zero = np.isclose(np.linalg.norm(coeff_matrix, axis = 1), 0.0)
-    not_zero = np.invert(is_zero)
-    return coeff_matrix[not_zero, :]
-
-
-def _remove_same_direction(vectors: np.ndarray) -> np.ndarray:
-    distinct_direction = [vectors[0]]
-    for vector in vectors:
-        is_close = False
-        for compare in distinct_direction:
-            cos = np.dot(vector, compare) / np.linalg.norm(vector) / np.linalg.norm(compare)
-            if np.isclose(np.abs(cos), 1.0):
-                is_close = True
-                break
-        if not is_close:
-            distinct_direction.append(vector)
-    return np.array(distinct_direction)

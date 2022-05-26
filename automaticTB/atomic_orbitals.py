@@ -113,3 +113,8 @@ class AO:
         return self.primitive_index == o.primitive_index \
             and self.l == o.l and self.m == o.m \
             and np.allclose(self.translation, o.translation)
+
+    def __repr__(self) -> str:
+        result = f"n={self.primitive_index}({self.chemical_symbol}) l={self.l} m={self.m}"
+        trans = " @{:>5.2f}{:>5.2f}{:>5.2f}".format(*self.translation)
+        return result + trans

@@ -115,6 +115,43 @@ class NearestNeighborCluster:
 
 
     @property
+    def center_AOs(self) -> typing.List[AO]:
+        aos = self.AOlist
+        return [
+            ao for ao in aos if ao.cluster_index == self.origin_index
+        ]
+
+    @property
+    def interaction_subspace_pairs(self) -> typing.List[Pair]:
+        # similar to subspace pair, but does not include self-interaction
+        if "interaction_subspace_pairs" in self._meta:
+            return self._meta["interaction_subspace_pairs"]
+
+        center_index = self.origin_index
+        orbital_slices = self.orbitalslist.subspace_slice_dict
+        center_subspace = []
+        other_subspaces = []
+        for eq_type, each_atom_set in self.equivalent_atoms_dict.items():
+            for orb in self.orbitalslist.orbital_list[eq_type].l_list:
+                indices = []
+                for iatom in each_atom_set:
+                    indices += list(range(orbital_slices[iatom][orb].start, orbital_slices[iatom][orb].stop))
+                
+                if eq_type == center_index:
+                    center_subspace.append(ClusterSubSpace(eq_type, orb, indices))
+                else:
+                    other_subspaces.append(ClusterSubSpace(eq_type, orb, indices))
+
+        result = []
+        for center in center_subspace:
+            for other in other_subspaces:
+                result.append(
+                    Pair(center, other)
+                )
+        self._meta["interaction_subspace_pairs"] = result
+        return result
+
+    @property
     def AOlist(self) -> typing.List[AO]:
         if "AOlist" in self._meta:
             return self._meta["AOlist"]

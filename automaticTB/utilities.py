@@ -55,7 +55,7 @@ def find_RCL(cell: np.ndarray) -> np.ndarray:
     return np.vstack([b1,b2,b3])
 
 
-def print_matrix(m: np.ndarray, format:str):
+def print_matrix(m: np.ndarray, format:str = "{:>6.2f}"):
     # print an matrix using the given string format
     assert len(m.shape) == 2
     result = ""

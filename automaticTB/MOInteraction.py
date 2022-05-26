@@ -1,10 +1,11 @@
 import typing
 import numpy as np
 from scipy.linalg import lu
-from .utilities import Pair, tensor_dot
+from .utilities import Pair, tensor_dot, print_matrix
 from .structure import NearestNeighborCluster, ClusterSubSpace
 from .parameters import zero_tolerance
-from .SALCs import NamedLC
+from .SALCs import NamedLC, IrrepSymbol
+from .SALCs.mathLA import find_linearly_independent_rows
 
 class BlockTransformer:
     def __init__(
@@ -43,7 +44,7 @@ def get_block_transformer(nncluster: NearestNeighborCluster, named_lcs: typing.L
 -> typing.List[BlockTransformer]:
     stacked_coefficients = np.vstack([nlc.lc.coefficients for nlc in named_lcs])
     conversion_matrices: typing.List[BlockTransformer] = []
-    for pair in nncluster.subspace_pairs:
+    for pair in nncluster.interaction_subspace_pairs:
         left: ClusterSubSpace = pair.left
         right: ClusterSubSpace = pair.right
 
@@ -63,22 +64,17 @@ def get_block_transformer(nncluster: NearestNeighborCluster, named_lcs: typing.L
     return conversion_matrices
 
 
-class EquationFinder:
+class HomogeneousEquationFinder:
     def __init__(self) -> None:
         self.memory = {}
 
     
-    def get_equation(self, rep1: str, rep2: str, tp: np.ndarray) -> typing.Optional[np.ndarray]:
-        #tp = np.tensordot(namedLC1.lc.coefficients, namedLC2.lc.coefficients, axes=0)
-        #rep1 = namedLC1.name
-        #rep2 = namedLC2.name
-
-        if rep1 != rep2:
+    def get_equation(self, rep1: IrrepSymbol, rep2: IrrepSymbol, tp: np.ndarray) -> typing.Optional[np.ndarray]:
+        if rep1.symmetry_symbol != rep2.symmetry_symbol:
             return tp
 
-        # rep1 == rep2
-        main1 = rep1.split("->")[0]
-        main2 = rep2.split("->")[0]
+        main1 = f"{rep1.main_irrep}^{rep1.main_index}"
+        main2 = f"{rep2.main_irrep}^{rep2.main_index}"
         pair = " ".join([main1, main2])
         if pair not in self.memory:
             self.memory[pair] = tp
@@ -86,53 +82,49 @@ class EquationFinder:
         else:
             return tp - self.memory[pair]
 
+
 def find_free_variable_indices(A:np.ndarray) -> typing.Set[int]:
     P, L, U = lu(A)
-    for row in U:
-        print(row)
     basis_columns = {np.flatnonzero(U[i, :])[0] for i in range(U.shape[0])}
     free_variables = set(range(U.shape[1])) - basis_columns
     return free_variables
 
-# We can also operate at the level of conversion matrix
-def get_free_AO_pairs(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC]) \
+
+def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC], debug = False) \
 -> typing.List[Pair]:
-    stacked_coefficients = np.vstack([nlc.lc.coefficients for nlc in named_lcs])
+    transformer = get_block_transformer(nncluster, named_lcs)
+    ao_pairs = []
 
-    origin = nncluster.origin_index
-    center_ao_indices = nncluster.orbitalslist.atomic_slice_dict[origin]
+    if debug:
+        for mo in named_lcs:
+            print(mo.name)
+            print(mo.lc)
+            print()
 
-    ao_pairs = tensor_dot(nncluster.AOlist[center_ao_indices], nncluster.AOlist)
-
-    homogeneous_equations = []
-    for pair in nncluster.subspace_pairs:
-        left: ClusterSubSpace = pair.left
-        right: ClusterSubSpace = pair.right
-
-        moindex_left: typing.List[int] = []
-        moindex_right: typing.List[int] = []
-        for i, namedlc in enumerate(named_lcs):
-            if np.linalg.norm(namedlc.lc.coefficients[left.indices]) > zero_tolerance:
-                # if this subspace is non-zero, then other coefficients would be necessary zero
-                moindex_left.append(i)
-            if np.linalg.norm(namedlc.lc.coefficients[right.indices]) > zero_tolerance:
-                moindex_right.append(i)
+    for conversion in transformer:
+        finder = HomogeneousEquationFinder()
+        equations = []
+        assert len(conversion.matrix) == len(conversion.mo_pairs)
+        print(len(conversion.mo_pairs))
+        for row, mopair in zip(conversion.matrix, conversion.mo_pairs):
+            left_rep = named_lcs[mopair.left].name
+            right_rep = named_lcs[mopair.right].name
+            if debug:
+                print(" - ".join([str(left_rep), str(right_rep)]))
+            found = finder.get_equation(left_rep, right_rep, row)
+            if not (found is None):
+                equations.append(found)
         
-        all_MO_pairs = tensor_dot(moindex_left, moindex_right)
-        homogeneous_finder = EquationFinder()
-        for mo_pair in all_MO_pairs:
-            tp = np.tensordot(
-                named_lcs[mo_pair.left].lc.coefficients[center_ao_indices],
-                named_lcs[mo_pair.right].lc.coefficients, axes=0
-                ).flatten()
-            result = homogeneous_finder.get_equation(
-                named_lcs[mo_pair.left].name, named_lcs[mo_pair.right].name, tp
-            )
-            if not (result is None): 
-                homogeneous_equations.append(result)
-    
-    homogeneous_equations = np.array(homogeneous_equations)
-    free_indices = find_free_variable_indices(homogeneous_equations.real)
-    print(free_indices)
-    return [ao_pairs[i] for i in free_indices]
+        if len(equations) == 0:
+            ao_pairs += conversion.ao_pairs
+            continue
 
+        homogeneous_equations = np.array(equations)
+        #independent_rows = find_linearly_independent_rows(homogeneous_equations.real)
+        free_indices = find_free_variable_indices(homogeneous_equations.real)
+        ao_pairs += [conversion.ao_pairs[i] for i in free_indices]
+        if debug:
+            print_matrix(homogeneous_equations.real, "{:>6.2f}")
+            print(free_indices)
+
+    return ao_pairs
