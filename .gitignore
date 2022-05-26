@@ -1,6 +1,7 @@
 docs/**/*.pdf
 **/__pycache__
 **/.pytest_cache
+**/*.aux
 
 applications/
 automaticTB/SALCs/examples

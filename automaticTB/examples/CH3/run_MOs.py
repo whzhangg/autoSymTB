@@ -1,5 +1,5 @@
 from automaticTB.SALCs import VectorSpace, decompose_vectorspace_to_namedLC
-from automaticTB.MOInteraction import get_block_transformer, BlockTransformer
+from automaticTB.MOInteraction import get_block_transformer, BlockTransformer, get_free_AO_pairs
 from structure import nncluster
 from automaticTB.utilities import Pair
 import numpy as np
@@ -29,6 +29,11 @@ vectorspace = VectorSpace.from_NNCluster(nncluster)
 
 named_lcs = decompose_vectorspace_to_namedLC(vectorspace, nncluster.sitesymmetrygroup)
 
+free_pairs = get_free_AO_pairs(nncluster, named_lcs)
+for pair in free_pairs:
+    print(pair.left, pair.right)
+
+raise
 conversion_matrices = get_block_transformer(nncluster, named_lcs)
 AOs = nncluster.AOlist
 MOs = [nlc.name for nlc in named_lcs]
