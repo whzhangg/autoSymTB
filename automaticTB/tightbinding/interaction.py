@@ -1,15 +1,6 @@
 import typing, dataclasses
 import numpy as np
-from .utilities import Pair, PairwithValue
-
-def make_interacting_pairs(states) -> typing.List[Pair]:
-    result = []
-    for item1 in states:
-        for item2 in states:
-            result.append(
-                Pair(item1, item2)
-            )
-    return result
+from ..utilities import Pair, PairwithValue, tensor_dot
 
 
 @dataclasses.dataclass
@@ -26,13 +17,13 @@ class InteractionPairs:
     
     @classmethod
     def random_from_states(cls, states: list):
-        pairs = make_interacting_pairs(states)
+        pairs = tensor_dot(states, states)
         coefficients = np.random.random(len(pairs))
         return cls(pairs, coefficients)
 
     @classmethod
     def zero_from_states(cls, states: list):
-        pairs = make_interacting_pairs(states)
+        pairs = tensor_dot(states, states)
         coefficients = np.zeros(len(pairs))
         return cls(pairs, coefficients)
 

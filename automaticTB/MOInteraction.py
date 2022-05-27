@@ -5,7 +5,7 @@ from .utilities import Pair, tensor_dot, print_matrix
 from .structure import NearestNeighborCluster, ClusterSubSpace
 from .parameters import zero_tolerance
 from .SALCs import NamedLC, IrrepSymbol
-from .SALCs.mathLA import find_linearly_independent_rows
+from .mathLA import find_free_variable_indices
 
 class BlockTransformer:
     def __init__(
@@ -83,13 +83,6 @@ class HomogeneousEquationFinder:
             return tp - self.memory[pair]
 
 
-def find_free_variable_indices(A:np.ndarray) -> typing.Set[int]:
-    P, L, U = lu(A)
-    basis_columns = {np.flatnonzero(U[i, :])[0] for i in range(U.shape[0])}
-    free_variables = set(range(U.shape[1])) - basis_columns
-    return free_variables
-
-
 def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC], debug = False) \
 -> typing.List[Pair]:
     transformer = get_block_transformer(nncluster, named_lcs)
@@ -105,7 +98,6 @@ def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing
         finder = HomogeneousEquationFinder()
         equations = []
         assert len(conversion.matrix) == len(conversion.mo_pairs)
-        print(len(conversion.mo_pairs))
         for row, mopair in zip(conversion.matrix, conversion.mo_pairs):
             left_rep = named_lcs[mopair.left].name
             right_rep = named_lcs[mopair.right].name
@@ -120,7 +112,6 @@ def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing
             continue
 
         homogeneous_equations = np.array(equations)
-        #independent_rows = find_linearly_independent_rows(homogeneous_equations.real)
         free_indices = find_free_variable_indices(homogeneous_equations.real)
         ao_pairs += [conversion.ao_pairs[i] for i in free_indices]
         if debug:

@@ -11,5 +11,6 @@ automaticTB/tests/**/*.dat
 automaticTB/config.py
 
 automaticTB/sitesymmetry/Bilbao/local
+automaticTB/examples/**/*.yml
 
 **/.DS_Store

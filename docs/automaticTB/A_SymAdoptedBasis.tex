@@ -122,4 +122,37 @@ Being the one dimensional representation of $C_s$, we can identify them to be
 symmetric and anti-symmetric under vertical mirror reflection. Furthermore, the two wavefunctions 
 are not allowed to interact with each other since they have different symmetry properties.
 
+\subsection{Separating mixed vector subspace}
+Projected basis functions can be mixed togather, if the irreducible representation 
+is more than one dimension and if there are more than one set of the same irreducible 
+representations. For example, in a tetrahedral coordinated system ($-43m$) with $p$ orbitals on 
+each of the tetrahedron vertex, projection will yield 6 basis functions corresponding to 
+$T_2$ symmetry. 
+Denoting the 6 dimension vector space as $U$, we have:
+\begin{equation}
+    U = V_{T_2}^{(1)} \oplus V_{T_2}^{(2)}
+\end{equation}
+where the 3 dimension subspace corresponding to the irreducible representation is span by 
+vectors $V_{T_2}^{(1)} = \spn(\phi_1^{(1)},\phi_2^{(1)},\phi_3^{(1)})$ and so on, and the 
+group operation in $U$ are of a block diagonal form.
+
+Mixing occurs when the projected results $\phi_p^{(1)},\cdots,\phi_p^{(6)}$ are general 
+vectors in $U$, having components in both $V_{T_2}^{(1)}$ and $V_{T_2}^{(2)}$ and it is 
+difficult to directly separate the two subspaces without any previous knowledge of neither
+$V_{T_2}^{(1)}$ nor $V_{T_2}^{(2)}$. 
+
+In this work, we purpose different methods based on symmetry reduction. From the 6 projected 
+vectors, it is possible to split first the vector space using subduction, as described in the 
+previous section. For the case of $T_2$ in a tetrahedral coordination, we can find three 
+subspaces corresponding to representation $A_1$, $B_1$ and $B_2$ in symmetry group $-43m\to mm2$. 
+Each consists of two basis vectors. It is important to point out that the obtained subspace are 
+each one dimensional with the same symmetry. They correspond to a mix of different subspace 
+($V_{T_2}^{(1)}$ or $V_{T_2}^{(2)}$). However, it is possible to obtain an orthogonal basis 
+that contain only $V_{T_2}^{(1)}$ or $V_{T_2}^{(2)}$ by projecting out the other components. 
+In this way, we find two basis vectors that either belong to $V_{T_2}^{(1)}$ or $V_{T_2}^{(2)}$.
+
+Knowing one basis in each vector space $V_{T_2}^{(1)}$ or $V_{T_2}^{(2)}$, we can find 
+the complete subspace by simply rotating the basis using symmetry operation. In this way,
+it is possible to separate $V_{T_2}^{(1)}$ and $V_{T_2}^{(2)}$ from a mixed vectorspace.
+
 \end{document}

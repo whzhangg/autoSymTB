@@ -4,7 +4,7 @@ from ..structure.sites import Site
 from ..structure.nncluster import NearestNeighborCluster
 from .linear_combination import LinearCombination, OrbitalsList
 from ..parameters import zero_tolerance, LC_coefficients_dtype
-from .mathLA import remove_same_direction, remove_zero_vector_from_coefficients, find_linearly_independent_rows
+from ..mathLA import remove_zero_vector_from_coefficients, find_linearly_independent_rows, remove_same_direction
 
 def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearCombination]) -> typing.List[LinearCombination]:
     coefficient_matrix = np.vstack([
@@ -15,6 +15,7 @@ def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearComb
     orbital_list = inputLCs[0].orbital_list
     non_zero = remove_zero_vector_from_coefficients(coefficient_matrix)
     if len(non_zero) > 0:
+        non_zero = remove_same_direction(non_zero)
         distinct = find_linearly_independent_rows(non_zero)
             
         for row in distinct:

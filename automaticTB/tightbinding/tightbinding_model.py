@@ -1,6 +1,6 @@
 import abc, typing, dataclasses
 import numpy as np
-from ..interaction import InteractionPairs
+from .interaction import InteractionPairs
 from ..atomic_orbitals import AO
 
 @dataclasses.dataclass

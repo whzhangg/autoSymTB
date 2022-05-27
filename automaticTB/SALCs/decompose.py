@@ -4,7 +4,6 @@ from automaticTB.sitesymmetry import subduction_data, SiteSymmetryGroup
 from .vectorspace import VectorSpace, get_nonzero_independent_linear_combinations
 from .linear_combination import LinearCombination
 from automaticTB.parameters import zero_tolerance
-from automaticTB.utilities import print_matrix
 
 @dataclasses.dataclass
 class IrrepSymbol:
@@ -81,13 +80,13 @@ def decompose_vectorspace_to_dict(vectorspace: VectorSpace, group: SiteSymmetryG
             transformed_LCs.append(lc.create_new_with_coefficients(sum_coefficients))
         
         linearly_independ = get_nonzero_independent_linear_combinations(transformed_LCs)
-        #assert len(linearly_independ)%irrep_dimension == 0
-        #print(irrep)
+        assert len(linearly_independ) % irrep_dimension == 0  # contain complete irreducible representations
+        
         if len(linearly_independ) > 0:
-        #    organized = organize_decomposed_lcs(linearly_independ, group, irrep_dimension)
-        #    for i, sublcs in enumerate(organized):
-        #        subspaces[irrep + f"^{i+1}"] = VectorSpace.from_list_of_linear_combinations(sublcs)
-            subspaces[irrep] = VectorSpace.from_list_of_linear_combinations(linearly_independ)
+            #organized = organize_decomposed_lcs(linearly_independ, group, irrep_dimension)
+            #for i, sublcs in enumerate(organized):
+            #    subspaces[irrep + f"^{i+1}"] = VectorSpace.from_list_of_linear_combinations(sublcs)
+            subspaces[irrep + f"^1"] = VectorSpace.from_list_of_linear_combinations(linearly_independ)
 
     if not recursive:
         return subspaces
@@ -105,27 +104,6 @@ def decompose_vectorspace_to_dict(vectorspace: VectorSpace, group: SiteSymmetryG
             if irrep_main in subduction["splittable_rep"]:
                 subspaces[irrep] = decompose_vectorspace_to_dict(subspace, subgroup, recursive)
         return subspaces
-
-# I think this is not correct
-def organize_decomposed_lcs(decomposedLCs: typing.List[LinearCombination], group: SiteSymmetryGroup, rep_dimension: int) \
--> typing.List[typing.List[LinearCombination]]:
-    
-    identified_index = []
-    result = []
-    for i, lc in enumerate(decomposedLCs):
-        if i in identified_index:
-            continue
-        found = []
-        finished = False
-        for rot in group.operations:
-            rotated = lc.symmetry_rotate(rot)
-            for j, jlc in enumerate(decomposedLCs):
-                if j in identified_index: continue
-                if np.abs(np.dot(rotated.coefficients, jlc.coefficients)) > zero_tolerance:
-                    found.append(jlc)
-                    identified_index.append(j)
-        result.append(found)
-    return result
 
 
 def get_nested_nonzero_vectorspace(space: dict) -> typing.Dict[str,VectorSpace]:
