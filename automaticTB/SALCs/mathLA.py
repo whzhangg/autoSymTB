@@ -3,6 +3,13 @@ import typing
 from automaticTB.utilities import print_matrix
 from automaticTB.parameters import zero_tolerance
 
+def get_jordan_normal_form(a: np.ndarray) -> typing.Tuple[np.ndarray,np.ndarray]:
+    from sympy import Matrix
+    m = Matrix(a)
+    P, J = m.jordan_form()
+    return np.array(P), np.array(J)
+
+
 def remove_zero_vector_from_coefficients(coeff_matrix: np.ndarray) -> np.ndarray:
     is_zero = np.isclose(np.linalg.norm(coeff_matrix, axis = 1), 0.0)
     not_zero = np.invert(is_zero)
@@ -34,10 +41,10 @@ def find_linearly_independent_rows(coeff_matrix: np.ndarray) -> np.ndarray:
 
 if __name__ == "__main__":
     a = np.array([
-        [1, 0, 1, 0, 1],
-        [1, 0, 1, 0, 1],
-        [1, 0, 1, 0, 1],
-        [0, 1, 1, 0, 0],
+        [-0.5, 0.5, -0.5],
+        [ 0.0, 0.5,  1.0],
+        [0.5, 0.5, 0.5]
     ])
 
-    print(find_linearly_independent_rows(a))
+    P, J = get_jordan_normal_form(a)
+    print(J)
