@@ -11,8 +11,8 @@ def run_perovskite_SALCs():
     structure = get_perovskite_structure()
     print("Solving for the free nearest neighbor interaction in Perovskite")
     print("Starting ...")
-    for nncluster in structure.nnclusters:
-        
+    for i, nncluster in enumerate(structure.nnclusters):
+        #if i == 0: continue
         print("Cluster centered on " + str(nncluster.crystalsites[nncluster.origin_index]))
         print(nncluster.sitesymmetrygroup.groupname)
         vectorspace = VectorSpace.from_NNCluster(nncluster)
@@ -51,4 +51,4 @@ def test_perovskite_SALCs():
         print()
 
 if __name__ == "__main__":
-    test_perovskite_SALCs()
+    run_perovskite_SALCs()

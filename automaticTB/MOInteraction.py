@@ -2,6 +2,7 @@ import typing
 import numpy as np
 from scipy.linalg import lu
 from .tools import Pair, tensor_dot, find_free_variable_indices
+from .tools.mathLA import row_echelon
 from .structure import NearestNeighborCluster, ClusterSubSpace
 from .parameters import zero_tolerance
 from .SALCs import NamedLC, IrrepSymbol
@@ -100,8 +101,8 @@ def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing
             found = finder.get_equation(left_rep, right_rep, row)
             if not (found is None):
                 equations.append(found)
-                if debug:
-                    print_matrix(np.array([found.real]))
+                #if debug:
+                #    print_matrix(np.array([found.real]))
         
         if len(equations) == 0:
             ao_pairs += conversion.ao_pairs
@@ -112,7 +113,8 @@ def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing
         ao_pairs += [conversion.ao_pairs[i] for i in free_indices]
 
         if debug:
-            print(homogeneous_equations.real)
+            #print(homogeneous_equations.real)
+            print_matrix(row_echelon(homogeneous_equations.real))
             print(free_indices)
             for pair in [conversion.ao_pairs[i] for i in free_indices]:
                 print_ao_pairs(nncluster, [pair])
