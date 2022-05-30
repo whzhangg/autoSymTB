@@ -4,7 +4,7 @@ from automaticTB.sitesymmetry import SiteSymmetryGroup
 from .sites import Site, CrystalSite
 from ..parameters import zero_tolerance
 from ..atomic_orbitals import OrbitalsList
-from ..utilities import Pair, tensor_dot
+from ..tools import Pair, tensor_dot
 from ..atomic_orbitals import AO
 
 

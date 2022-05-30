@@ -1,6 +1,7 @@
 import os
-from ...structure import read_cif_to_cpt, Structure
+from ...structure import Structure
 from ...config import rootfolder
+from ...tools import read_cif_to_cpt
 
 structure_file = os.path.join(rootfolder, "examples", "Si", "Si_ICSD51688.cif")
 

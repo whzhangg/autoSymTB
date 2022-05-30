@@ -1,7 +1,6 @@
 import numpy as np
 import typing, scipy
-from .utilities import print_matrix
-from .parameters import zero_tolerance
+from ..parameters import zero_tolerance
 
 def remove_zero_vector_from_coefficients(coeff_matrix: np.ndarray) -> np.ndarray:
     is_zero = np.isclose(np.linalg.norm(coeff_matrix, axis = 1), 0.0)
@@ -34,10 +33,15 @@ def find_linearly_independent_rows(coeff_matrix: np.ndarray) -> np.ndarray:
     return coeff_matrix[indices.flatten(), :]
 
 
+def first_non_zero(row: np.ndarray) -> int:
+    close_to_zero = np.argwhere(np.abs(row) > zero_tolerance)
+    return int(close_to_zero[0])
+
+
 def find_free_variable_indices(A:np.ndarray) -> typing.Set[int]:
     # https://stackoverflow.com/questions/52303550/find-which-variables-are-free-in-underdetermined-linear-system
     P, L, U = scipy.linalg.lu(A)
-    basis_columns = {np.flatnonzero(U[i, :])[0] for i in range(U.shape[0])}
+    basis_columns = {first_non_zero(row) for row in U}
     free_variables = set(range(U.shape[1])) - basis_columns
     return free_variables
 

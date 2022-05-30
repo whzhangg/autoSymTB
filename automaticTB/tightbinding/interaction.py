@@ -1,6 +1,6 @@
 import typing, dataclasses
 import numpy as np
-from ..utilities import Pair, PairwithValue, tensor_dot
+from ..tools import Pair, PairwithValue, tensor_dot
 
 
 @dataclasses.dataclass

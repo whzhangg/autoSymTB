@@ -4,6 +4,7 @@ import yaml, collections, typing, json
 
 Pair = collections.namedtuple("Pair", "left right")
 
+
 PairwithValue = collections.namedtuple("PairwithValue", "left right value")
 
 
@@ -14,30 +15,6 @@ def tensor_dot(list_left, list_right) -> typing.List[Pair]:
             r.append(Pair(item1, item2))
     return r
 
-
-def write_json(dictionary, filename):
-    f=open(filename,'w')
-    json.dump(dictionary,f,indent="    ")
-    f.close()
-
-
-def read_json(filename):
-    f=open(filename,'r')
-    data=json.load(f)
-    f.close()
-    return data
-
-def save_yaml(data, filename: str):
-    # it is able to save python objects
-    yaml_str = yaml.dump(data)
-    with open(filename, 'w') as f:
-        f.write(yaml_str)
-
-
-def load_yaml(filename: str):
-    with open(filename, 'r') as f:
-        groupdata = yaml.load(f, Loader=yaml.Loader)
-    return groupdata
 
 
 def find_RCL(cell: np.ndarray) -> np.ndarray:
@@ -53,17 +30,6 @@ def find_RCL(cell: np.ndarray) -> np.ndarray:
     b2=(2*np.pi/volumn)*np.cross(a3,a1)
     b3=(2*np.pi/volumn)*np.cross(a1,a2)
     return np.vstack([b1,b2,b3])
-
-
-def print_matrix(m: np.ndarray, format:str = "{:>6.2f}"):
-    # print an matrix using the given string format
-    assert len(m.shape) == 2
-    result = ""
-    for row in m:
-        for cell in row:
-            result += " " + format.format(cell)
-        result += "\n"
-    print(result)
 
 
 def random_rotation_matrix() -> np.ndarray:

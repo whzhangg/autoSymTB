@@ -64,7 +64,7 @@ def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: SiteSymmet
                     if len(further_decomposed) > 0:
                         symbol = IrrepSymbol.from_str(f"{irrep.name}^{i+1}->{irrep_sub.name}")
                         results.append(
-                            NamedLC(symbol, further_decomposed[0])
+                            NamedLC(symbol, further_decomposed[0].get_normalized())
                         )
         
     return results

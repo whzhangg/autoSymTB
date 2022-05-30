@@ -7,8 +7,9 @@ import os, typing
 
 from automaticTB.structure.structure import Structure
 from automaticTB.tightbinding.tightbinding_model import TightBindingModel, make_HijR_list
-from automaticTB.utilities import print_matrix, find_RCL
-from automaticTB.interaction import InteractionPairs
+from automaticTB.tools import find_RCL
+from automaticTB.printing import print_matrix
+from automaticTB.tools import InteractionPairs
 
 from structure import cell, types, positions, orbits_used
 from ao_interaction import get_interaction_values_from_list_AOpairs

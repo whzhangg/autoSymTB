@@ -1,5 +1,5 @@
 from automaticTB.rotation import orbital_rotation_from_symmetry_matrix
-from automaticTB.utilities import random_rotation_matrix
+from automaticTB.tools import random_rotation_matrix
 import numpy as np
 
 def test_rotation_matrix_direction_corret():
