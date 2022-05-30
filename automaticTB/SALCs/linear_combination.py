@@ -2,6 +2,7 @@ import numpy as np
 import dataclasses, typing
 from ..structure import Site
 from ..rotation import orbital_rotation_from_symmetry_matrix
+from .symmetrygroup import CartesianOrbitalRotation
 from ..atomic_orbitals import Orbitals, OrbitalsList
 from ..parameters import zero_tolerance
 
@@ -109,6 +110,25 @@ class LinearCombination:
             site.rotate(cartesian_matrix) for site in self.sites
         ]
         orbital_rotataion = orbital_rotation_from_symmetry_matrix(cartesian_matrix, self.orbital_list.irreps_str)
+        print(self.orbital_list.irreps_str)
         new_coefficient = np.dot(orbital_rotataion, self.coefficients)
         return new_sites, new_coefficient
 
+    def symmetry_rotate_CartesianOrbital(self, rotation: CartesianOrbitalRotation):
+        assert self.orbital_list.irreps_str == rotation.irrep_str
+        new_sites = [
+            site.rotate(rotation.rot_cartesian) for site in self.sites
+        ]
+        new_coefficient = np.dot(rotation.rot_orbital, self.coefficients)
+
+        from_which = [
+            new_sites.index(site) for site in self.sites
+        ]
+        ordered_coefficient = np.zeros_like(new_coefficient)
+        coeff_slices = self.orbital_list.atomic_slice_dict
+        for current_pos, origin_pos in enumerate(from_which):
+            ordered_coefficient[coeff_slices[current_pos]] = new_coefficient[coeff_slices[origin_pos]]
+
+        return LinearCombination(
+            self.sites, self.orbital_list, ordered_coefficient
+        )

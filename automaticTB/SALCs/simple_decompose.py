@@ -1,33 +1,11 @@
-import typing, dataclasses
+import typing
 import numpy as np
 from automaticTB.sitesymmetry import subduction_data, SiteSymmetryGroup
 from .vectorspace import VectorSpace, get_nonzero_independent_linear_combinations
-from .linear_combination import LinearCombination
-from automaticTB.parameters import zero_tolerance
+from .named_lc import NamedLC, IrrepSymbol
 
-@dataclasses.dataclass
-class IrrepSymbol:
-    symmetry_symbol: str
-    main_irrep: str
-    main_index: int
-
-    @classmethod
-    def from_str(cls, input: str):
-        parts = input.split("->")
-        mains = parts[0].split("^")
-        main_irrep = mains[0]
-        main_index = int(mains[1])
-        sym_symbol = "->".join([p.split("^")[0] for p in parts])
-        return cls(sym_symbol, main_irrep, main_index)
-
-    def __repr__(self) -> str:
-        return f"{self.symmetry_symbol} @ {self.main_index}^th {self.main_irrep}"
-
-
-class NamedLC(typing.NamedTuple):
-    name: IrrepSymbol
-    lc: LinearCombination
-
+# this version of decomposition does not correctly separate mixed vector space, however, it keep it here 
+# for reference. It works, but is slow since it use the previous version of rotation
 
 def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: SiteSymmetryGroup) \
 -> typing.List[NamedLC]:

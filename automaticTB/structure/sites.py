@@ -39,7 +39,7 @@ class CrystalSite:
         )
 
     def __repr__(self) -> str:
-        return str(self.site) + "{:>3d} t = {:>+4.1f}{:>+4.1f}{:>+4.1f}\n".format(self.index_pcell, *self.translation)
+        return str(self.site) + "{:>3d} t = {:>+4.1f}{:>+4.1f}{:>+4.1f}".format(self.index_pcell, *self.translation)
 
     def __eq__(self, other) -> bool:
         return self.site == other.site and \
