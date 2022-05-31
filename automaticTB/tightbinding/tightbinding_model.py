@@ -1,6 +1,6 @@
 import abc, typing, dataclasses
 import numpy as np
-from .interaction import InteractionPairs
+from ..interaction import InteractionPairs
 from ..atomic_orbitals import AO
 
 @dataclasses.dataclass
@@ -23,7 +23,7 @@ class HijR:
     value: float
 
 
-def make_HijR_list(AOinteractions: typing.List[InteractionPairs]) -> typing.List[HijR]:
+def gather_InteractionPairs_into_HijRs(AOinteractions: typing.List[InteractionPairs]) -> typing.List[HijR]:
     HijR_list: typing.List[HijR] = []
     for interaction in AOinteractions:
         for pair, value in zip(interaction.pairs, interaction.interactions):

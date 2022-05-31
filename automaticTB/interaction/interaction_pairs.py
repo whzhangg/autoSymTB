@@ -14,24 +14,12 @@ class InteractionPairs:
     """
     def get_index(self, pair: Pair) -> typing.Tuple[int,int]:
         return self.pairs.index(pair)
-    
-    @classmethod
-    def random_from_states(cls, states: list):
-        pairs = tensor_dot(states, states)
-        coefficients = np.random.random(len(pairs))
-        return cls(pairs, coefficients)
-
-    @classmethod
-    def zero_from_states(cls, states: list):
-        pairs = tensor_dot(states, states)
-        coefficients = np.zeros(len(pairs))
-        return cls(pairs, coefficients)
 
     @property
-    def HijR(self) -> typing.List[PairwithValue]:
+    def AO_energies(self) -> typing.List[PairwithValue]:
         result = []
         for pair, value in zip(self.pairs, self.interactions):
-            result.append([
-                pair.left, pair.right, value
-            ])
+            result.append(
+                PairwithValue(pair.left, pair.right, value)
+            )
         return result

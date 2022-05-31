@@ -1,7 +1,7 @@
 import numpy as np
 import typing
 from automaticTB.atomic_orbitals import AO
-from automaticTB.utilities import Pair
+from automaticTB.tools import Pair
 
 """
 this module create AO interactions matrix from the parameter used in the article. 

@@ -1,41 +1,47 @@
-"""
-we obtain bandstructure using atomic interaction directly
-"""
-
 import numpy as np
 import os, typing
-
-from automaticTB.structure.structure import Structure
-from automaticTB.tightbinding.tightbinding_model import TightBindingModel, make_HijR_list
+from automaticTB.SALCs import VectorSpace, decompose_vectorspace_to_namedLC
+from automaticTB.interaction import get_free_interaction_AO, InteractionEquation, InteractionPairs
+from automaticTB.atomic_orbitals import AO
+from automaticTB.examples.Perovskite.structure import get_perovskite_structure
+from automaticTB.printing import print_ao_pairs, print_matrix, print_InteractionPairs
+from automaticTB.examples.Perovskite.ao_interaction import get_interaction_values_from_list_AOpairs
+from automaticTB.tightbinding import TightBindingModel, gather_InteractionPairs_into_HijRs
 from automaticTB.tools import find_RCL
-from automaticTB.printing import print_matrix
-from automaticTB.tools import InteractionPairs
 
-from structure import cell, types, positions, orbits_used
-from ao_interaction import get_interaction_values_from_list_AOpairs
+# seems to be a bit problematic
+def get_tightbinding_model():
+    structure = get_perovskite_structure()
+    print("Solving for the free nearest neighbor interaction in Perovskite")
+    print("Starting ...")
+    interaction_clusters = []
 
-structure: Structure = Structure.from_cpt_rcut(cell, positions, types, orbits_used, 3.0)  
-reciprocal_cell = find_RCL(structure.cell)
-# distance Pb - Cl is ~2.8 A
+    for i, nncluster in enumerate(structure.nnclusters):
+        #if i == 0: continue
+        print("Cluster centered on " + str(nncluster.crystalsites[nncluster.origin_index]))
+        print(nncluster.sitesymmetrygroup.groupname)
+        vectorspace = VectorSpace.from_NNCluster(nncluster)
+        named_lcs = decompose_vectorspace_to_namedLC(vectorspace, nncluster.sitesymmetrygroup)
+        print("Solve Interaction ...")
+        equation_system = InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs)
+        free_pairs = equation_system.free_AOpairs
+        values = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, free_pairs)
+        all_interactions = equation_system.solve_interactions_to_InteractionPairs(values)
+        interaction_clusters.append(all_interactions)
+        # self interaction
+        self_pairs = nncluster.centered_selfinteraction_pairs
+        values = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, self_pairs)
+        ipairs = InteractionPairs(self_pairs, values)
+        interaction_clusters.append(ipairs)
 
-def get_structure() -> Structure:
-    return Structure.from_cpt_rcut(cell, positions, types, orbits_used, 3.0)
-
-
-def get_AO_interactions(structure: Structure):
-    ao_pairs = []
-    interactions = []
-    for cluster in structure.nnclusters:
-        for subspace_pair in cluster.subspace_pairs:
-            ao_pairs_to_do = cluster.get_subspace_AO_Pairs(subspace_pair)
-            value = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, ao_pairs_to_do)
-            ao_pairs += ao_pairs_to_do
-            interactions += value
-    return InteractionPairs(ao_pairs, interactions)
+    hijRs = gather_InteractionPairs_into_HijRs(interaction_clusters)
+    return TightBindingModel(structure.cell, structure.positions, structure.types, hijRs)
 
 
 def obtain_and_plot_bandstructure(model: TightBindingModel, filename: str = "HalidePerovskite_band.pdf") -> None:
     from automaticTB.properties.bandstructure import Kline, Kpath, get_bandstructure_result
+    cell = model.cell
+    reciprocal_cell = find_RCL(cell)
 
     # as in the paper of 
     # Symmetry-Based Tight Binding Modeling of Halide Perovskite Semiconductors
@@ -67,10 +73,5 @@ def obtain_and_plot_dos(model: TightBindingModel, filename: str = "HalidePerovsk
 
 
 if __name__ == "__main__":
-    structure = get_structure()
-    interactions = get_AO_interactions(structure)
-    HijRlist = make_HijR_list([interactions])
-    for HijR in HijRlist:
-        print(HijR)
-    model = TightBindingModel(structure.cell, structure.positions, structure.types, HijRlist)
+    model = get_tightbinding_model()
     obtain_and_plot_bandstructure(model)

@@ -1,12 +1,10 @@
 import typing
 import numpy as np
-from scipy.linalg import lu
-from .tools import Pair, tensor_dot, find_free_variable_indices
-from .tools.mathLA import row_echelon
-from .structure import NearestNeighborCluster, ClusterSubSpace
-from .parameters import zero_tolerance
-from .SALCs import NamedLC, IrrepSymbol
-from .printing import print_matrix, print_ao_pairs
+from ..tools import Pair, tensor_dot, find_free_variable_indices
+from ..tools.mathLA import row_echelon
+from ..structure import NearestNeighborCluster, ClusterSubSpace
+from ..parameters import zero_tolerance
+from ..SALCs import NamedLC, IrrepSymbol
 
 class BlockTransformer:
     def __init__(
@@ -114,9 +112,9 @@ def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing
 
         if debug:
             #print(homogeneous_equations.real)
-            print_matrix(row_echelon(homogeneous_equations.real))
+            #print_matrix(row_echelon(homogeneous_equations.real))
             print(free_indices)
-            for pair in [conversion.ao_pairs[i] for i in free_indices]:
-                print_ao_pairs(nncluster, [pair])
+            #for pair in [conversion.ao_pairs[i] for i in free_indices]:
+                #print_ao_pairs(nncluster, [pair])
 
     return ao_pairs

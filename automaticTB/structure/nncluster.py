@@ -45,7 +45,7 @@ class NearestNeighborCluster:
             if np.linalg.norm(csite.site.pos) < zero_tolerance:
                 return i
         raise
-    
+
 
     @property
     def baresites(self) -> typing.List[Site]:
@@ -120,6 +120,13 @@ class NearestNeighborCluster:
         return [
             ao for ao in aos if ao.cluster_index == self.origin_index
         ]
+
+
+    @property
+    def centered_selfinteraction_pairs(self) -> typing.List[Pair]:
+        centered_aos = self.center_AOs
+        return [Pair(cao, cao) for cao in centered_aos]
+
 
     @property
     def interaction_subspace_pairs(self) -> typing.List[Pair]:

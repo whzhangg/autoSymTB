@@ -1,10 +1,11 @@
 import numpy as np
 import os, typing
 from automaticTB.SALCs import VectorSpace, decompose_vectorspace_to_namedLC
-from automaticTB.MOInteraction import get_free_interaction_AO
+from automaticTB.interaction import get_free_interaction_AO, InteractionEquation
 from automaticTB.atomic_orbitals import AO
 from automaticTB.examples.Perovskite.structure import get_perovskite_structure
-from automaticTB.printing import print_ao_pairs, print_matrix
+from automaticTB.printing import print_ao_pairs, print_matrix, print_InteractionPairs
+from automaticTB.examples.Perovskite.ao_interaction import get_interaction_values_from_list_AOpairs
 
 # seems to be a bit problematic
 def run_perovskite_SALCs():
@@ -18,7 +19,7 @@ def run_perovskite_SALCs():
         vectorspace = VectorSpace.from_NNCluster(nncluster)
         named_lcs = decompose_vectorspace_to_namedLC(vectorspace, nncluster.sitesymmetrygroup)
         print("Solve Interaction ...")
-        free_pairs = get_free_interaction_AO(nncluster, named_lcs, debug=False)
+        free_pairs = InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs).free_AOpairs
         
         print_ao_pairs(nncluster, free_pairs)
         print()
@@ -45,10 +46,12 @@ def test_perovskite_SALCs():
             print(nlcs.lc)
             print("")
         print("Solve Interaction ...")
-        free_pairs = get_free_interaction_AO(nncluster, named_lcs, debug=True)
-            
-        print_ao_pairs(nncluster, free_pairs)
+        equation_system = InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs)
+        free_pairs = equation_system.free_AOpairs
+        interactions = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, free_pairs)
+        all_interactions = equation_system.solve_interactions_to_InteractionPairs(interactions)
+        print_InteractionPairs(nncluster, all_interactions)
         print()
 
 if __name__ == "__main__":
-    run_perovskite_SALCs()
+    test_perovskite_SALCs()
