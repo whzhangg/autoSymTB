@@ -1,21 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import typing
-from scipy.special import sph_harm
 from ..SALCs.linear_combination import LinearCombination
 from ..atomic_orbitals import Orbitals
 from ..structure import Site
-
-
-def sh_functions(l, m, theta, phi):
-    # theta in 0-2pi; phi in 0-pi
-    Y = sph_harm(abs(m), l, theta, phi)
-    if m < 0:
-        Y = np.sqrt(2) * (-1)**m * Y.imag
-    elif m > 0:
-        Y = np.sqrt(2) * (-1)**m * Y.real
-    # real spherical harmonic
-    return Y.real
+from .wavefunctions import sh_functions
 
 
 def precompute_data() -> typing.Tuple[np.ndarray, np.ndarray]:
@@ -92,12 +81,14 @@ def plot_vectors(combination: LinearCombination, ax, ax_lim, axis_off = True):
         ax.axis('off')
     ax.set_box_aspect((ax_lim * 2.2, ax_lim * 2.2, ax_lim * 2.2))
 
+
 def get_limts(sites: typing.List[Site]) -> float:
     maximum = -1
     for site in sites:
         max_abs = max(np.abs(site.pos))
         maximum = max(maximum, max_abs)
     return maximum
+
 
 def make_plot_normalized_LC(linearcombination: LinearCombination, filename: str = "linear_combination"):
     # it is not very efficient

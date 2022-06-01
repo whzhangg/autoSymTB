@@ -2,6 +2,7 @@ import numpy as np
 import typing
 from .tools import Pair
 from .atomic_orbitals import AO
+from .SALCs import NamedLC
 from .structure import NearestNeighborCluster
 from .interaction import InteractionPairs
 
@@ -17,6 +18,11 @@ def _parse_orbital(l: int, m: int) -> str:
         return f"l={l};m={m}"
     else:
         return _print_lm[(l,m)]
+
+def print_namedLCs(namedLcs: typing.List[NamedLC]):
+    for nlc in namedLcs:
+        print(nlc.name)
+        print(nlc.lc)
 
 def print_ao_pairs(nncluster: NearestNeighborCluster, pairs: typing.List[Pair]):
     print("Free interaction parameters: ")

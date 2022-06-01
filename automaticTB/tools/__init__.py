@@ -17,3 +17,5 @@ from .io import (
     write_yaml, read_yaml,
     read_cif_to_cpt
 )
+
+from .valence_orbitals import valence_dictionary

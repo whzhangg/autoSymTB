@@ -146,8 +146,9 @@ class NearestNeighborCluster:
                 
                 if eq_type == center_index:
                     center_subspace.append(ClusterSubSpace(eq_type, orb, indices))
-                else:
-                    other_subspaces.append(ClusterSubSpace(eq_type, orb, indices))
+                #else:  
+                # self interaction are treated just as other interactions
+                other_subspaces.append(ClusterSubSpace(eq_type, orb, indices))
 
         result = []
         for center in center_subspace:

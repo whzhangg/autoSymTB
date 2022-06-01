@@ -54,4 +54,4 @@ def test_perovskite_SALCs():
         print()
 
 if __name__ == "__main__":
-    test_perovskite_SALCs()
+    run_perovskite_SALCs()
