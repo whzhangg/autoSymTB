@@ -17,6 +17,7 @@ def sh_functions(l, m, theta, phi):
     # real spherical harmonic
     return Y.real
 
+
 def precompute_data() -> typing.Tuple[np.ndarray, np.ndarray]:
     # each of the wavefunction is well defined, so we precompute and store the data
     # Grids of polar and azimuthal angles
