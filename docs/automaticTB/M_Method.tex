@@ -14,6 +14,14 @@
 \usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
 \addbibresource{autoTB.bib}
 
+\usepackage{tikz}
+
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2cm,text centered, draw=black]
+\tikzstyle{process} = [rectangle, minimum width=2cm, text centered, draw=black]
+\tikzstyle{decision} = [diamond, minimum width=2cm, text centered, draw=black]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
 \begin{document}
 
 \section{METHODS}
@@ -137,6 +145,16 @@ that is symmetric and antisymmetric under mirror reflection, by descending symme
     |\psi_2^{E'_{D_{3h}}\to A'_{C_s}} \rangle &= \frac{2}{\sqrt{6}} |\chi^s_2\rangle - \frac{1}{\sqrt{6}} |\chi^s_1\rangle - \frac{1}{\sqrt{6}} |\chi^s_3\rangle \\
     |\psi_3^{E'_{D_{3h}}\to A''_{C_s}}\rangle &= \frac{\sqrt{2}}{2} |\chi^s_1\rangle - \frac{\sqrt{2}}{2} |\chi^s_3\rangle
 \end{align}
+The symmetrized molecular orbitals formed by the three $s$ functions are shown on the right panel of Figure \ref{F:AH3_MO}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics{../figures/AH3_MO.pdf}
+    \caption{Interactions allowed between $s$ and $p$ orbitals on atom A and $s$ functions on H atoms,
+        belonging to a) representation $A_1'$, b) $E' \to A'$ (symmetric with respect to mirror reflection)
+        and c) $E'\to A''$ (antisymmetric with respect to mirror reflection) }
+    \label{F:AH3_MO}
+\end{figure}
 
 We follow the same method for sites in crystals. Interested in local interactions, we focus on one atomic site at a time and its neighbors. 
 The symmetry group is therefore given by the site symmetry group of that atomic site. 
@@ -152,6 +170,51 @@ subspaces and will not mix under symmetry operation. On the other hand, symmetry
 by symmetry descend, for example, a three fold rotation will mix $|\psi_2^{E'_{D_{3h}}\to A'_{C_s}} \rangle$ with 
 $|\psi_3^{E'_{D_{3h}}\to A''_{C_s}}\rangle$, which is the reason for their energy degeneracy.
 
+\subsection{Interactions Between Symmetrized MOs}
+In this section, we seek to systematically describe the form of $H_{ij}$, the interaction between molecular orbitals. We 
+label the symmetry adopted MOs using notation
+\begin{equation}
+    \psi^{\Gamma_i^{(\alpha)} \to \Gamma_m}_A
+\end{equation}
+where the superscript denote the symmetry properties. $\Gamma_i$ is the representation symbol of the site symmetry group. 
+In general, there can be multiple subspace that belong to the same representation and we use $(\alpha)$ to index them. 
+$\Gamma_m$ is the symbol of irreducible representation of the subgroup. \emph{This superscript uniquely identify all molecular 
+orbitals found from the previous section}. 
+Subscript denote the set of symmetry equivalent orbitals from which this molecular orbitals come from, 
+for example, $p$ orbitals on equivalent atoms $j$, which help to specify
+the nature of the molecular orbtials. We have the following symmetry restrains for $H_{ij}$:
+\begin{equation}
+    \langle \psi^{\Gamma_i^{(\alpha)} \to \Gamma_m} |  H | \psi^{\Gamma_j^{(\beta)} \to \Gamma_n} \rangle 
+    = 0 \quad \text{unless } \Gamma_i = \Gamma_j\text{ and } \Gamma_m = \Gamma_n
+\end{equation}
+i.e., interactions are only allowed between molecular orbtials with the same symmetry and 
+\begin{equation}
+    \langle \psi^{\Gamma_i^{(\alpha)} \to \Gamma_m} |  H | \psi^{\Gamma_i^{(\beta)} \to \Gamma_m} \rangle 
+    = \langle \psi^{\Gamma_i^{(\alpha)} \to \Gamma_n} |  H | \psi^{\Gamma_i^{(\beta)} \to \Gamma_n} \rangle 
+    = \cdots
+\end{equation}
+so that the value of the interactions are the same for corresponding molecular orbitals with the same symmetry 
+under two subspaces. This allow us to write the matrix $H_{ij}$ in a block form, with blocks between two 
+representations of the site symmetry group $\Gamma_i^{(\alpha)}$ and $\Gamma_j^{(\beta)}$, which is a 
+diagonal matrix with identical diagonal value ($a\cdot \mathbf{I}$) if $\Gamma_i = \Gamma_j$, and all zero otherwise. 
+
+In the example of AH3 molecular, the interaction between MOs on A atoms and MOs from H can be write as follows:
+\begin{equation}
+    H_{ij} = \begin{blockarray}{cccc}
+        % & |s^{A_1'}\rangle & |p_z^{A_2''}\rangle & |p_x^{E'}\rangle & |p_y^{E'}\rangle 
+        & \psi^{A_1'}_{H,s} & \psi^{E'\to A'}_{H,s} & \psi^{E'\to A''}_{H,s} \\
+        \begin{block}{c(ccc)}
+        \psi^{A_1'}_{A,s}      & a & 0 & 0 \\
+        \psi^{A_2''}_{A,p}     & 0 & 0 & 0 \\
+        \psi^{E'\to A'}_{A,p}  & 0 & b & 0 \\
+        \psi^{E'\to A''}_{A,p} & 0 & 0 & b \\
+        \end{block}
+        \end{blockarray}
+\end{equation}
+The interactions are shown in Figure \ref{F:AH3_MO}. Graphically, it is not easy to see that 
+$\langle \psi^{E'\to A'}_{A,p} | H | \psi^{E'\to A'}_{H,s} \rangle = \langle \psi^{E'\to A''}_{A,p} | H | \psi^{E'\to A''}_{H,s} \rangle$,
+we derive this relationship in the Appendix.
+
 
 \subsection{Eliminating symmetry equivalent interactions}
 We want to identify the minimum set of interations $H_{\mu\nu}$ which allow the generation of the entire tight-binding Hamiltonian, and we show 
@@ -160,7 +223,16 @@ the parameter finding problem as well as ensure the correct symmetry of the Hami
 rotational invariant models automatically gives some relationship between different $H_{\mu\nu}$s, however, as illustrated by 
 the following example, using representation theory, all symmetry relationship can be discovered in a systematic way. 
 
-We consider the simple case of $p_x^l$--$s$--$p_x^r$ interaction, where superscript $l$ and $r$ indicate left and right, in 
+\begin{figure}[h!]
+    \centering
+    \includegraphics{../figures/S-Px.pdf}
+    \caption{Interaction between $p_x^l \leftrightarrow s \leftrightarrow p_x^r$ on a linear molecular. 
+                a) Interactions is not allowed by symmetry, and b) Interaction is allowed}
+    \label{F:s_px_chain}
+\end{figure}
+
+We consider the simple case of $p_x^l \leftrightarrow s \leftrightarrow p_x^r$ interaction as shown in Figure \ref{F:s_px_chain}, 
+where superscript $l$ and $r$ indicate left and right, in 
 a site symmetry of $C_s$ (mirror). Suppose the interaction $s$--$p_x^r$ is $a$, it is apparent to us that the interaction $p_x^l$--$s$ is $-a$. However,
 fact is not apparent for an rotational invariant machine learning model, because it is not possible to transform $p_x^l$
 into $p_x^r$. 
@@ -187,41 +259,53 @@ unknown $n$. In such case, we will have in general $m-n$ free variables. To find
 coefficient matrix $C_{m\times n}$ into a row echelon form and each column without a leading variables would correspond to 
 a free parameters. In this work, we use Gaussian elimination to bring the coefficient matrix to row echelon form.
 
+\subsection{Generation of Tight-binding Hamiltonian}
 Once suitable values are assigned to each of the free variables, values of all the unknowns can be found by appending to the homogeneous 
 equation with rows, each has the free variables on the left and their corresponding on the right. This procedure produce a full rank 
 coefficient and an linear equation system with unique solution. 
 
-\subsection{Form of the interaction Hamiltonian in MOs}
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}[node distance=0.9cm]
+        \node (start) [startstop] {Crystal structure and starting orbitals};
+        \node (pro1) [process, below of=start] {Find primitive cell and atomic centered cluster};
+        \draw [arrow] (start) -- (pro1);
+        \node (pro2) [process, below of=pro1] {Determine site symmetry and character table};
+        \draw [arrow] (pro1) -- (pro2);
+        \node (pro3) [process, below of=pro2] {Find SALCs};
+        \draw [arrow] (pro2) -- (pro3);
+        \node (pro4) [process, below of=pro3] {Solve the homogeneous equation system for free interactions};
+        \draw [arrow] (pro3) -- (pro4);
+        \node (pro5) [process, below of=pro4] {Assign values for these interactions};
+        \draw [arrow] (pro4) -- (pro5);
+        \node (pro6) [process, below of=pro5] {Recovery all interactions $H_{\mu\nu}$};
+        \draw [arrow] (pro5) -- (pro6);
+        \node (pro7) [process, below of=pro6] {Transform to tightbinding Hamiltonian};
+        \draw [arrow] (pro6) -- (pro7);
+        \node (end) [startstop, below of=pro7] {end};
+        \draw [arrow] (pro7) -- (end);
+    \end{tikzpicture}
+    \caption{Workflow of the generation of Tightbinding Hamiltonian}
+    \label{F:workflow_Hamiltonian}
+\end{figure}
 
-We mentioned previously that interactions are forbidden between MOs belonging to different 
-irreducible representations. Here, we describe in detail the form of interaction matrix. 
-We assume that all MOs are of the form that utilize symmetry, denoted in the form 
-$|\psi_i^{\Gamma_1\to \cdots \to \Gamma_n} \rangle$. As shown in the previous section, using crystallographic 
-point groups and subduction, all MOs can be separated into one dimensional subspace. However, we note that 
-the first classification of irreducible representation $\Gamma_1$ is the most important (main irreducible representation), since it correspond
-to the true symmetry of the structure and the degeneracy of energy. 
-The rest symbols $\to \cdots \to \Gamma_n$ of subduction aim to separate basis of the degenerate subspaces and 
-ensure that the basis are orthogonal. 
+To bring everything together, the workflow to generate the tight-binding Hamiltonian 
+is organized as Figure \ref{F:workflow_Hamiltonian}. We start by finding atomic centered 
+clusters and the vector space formed by the choosen starting basis. After finding 
+site symmetry operations, we assign symmetry group and characters of each operations in the 
+irreducible representations. The character table, together with subduction relationship, 
+enable us to obtain the symmetry adopted molecular orbitals. The constrains 
+given by symmetry allow us to reduce the number of free atomic interactions to the minimum 
+number possible. Until this moment, there are no concrete values involved in the process.
+Then, provided the values for each free atomic interactions, we are able to solve 
+for all values of the interactions which we need for the formulation of tightbinding Hamiltonian.
+After Hamiltonian in reciprocal space is obtained, electronic structure and derived properties 
+can be extracted by solving the eigen values for the Hamiltonian. 
 
-The interaction matrix in MOs can then be separated into different diagonal blocks, each blocks are of the form $a\cdot \mathbf{I}$ if 
-the interacting MOs correspond to the same main irreducible representation, zero otherwise.
-For example, in the case of AH$_3$ molecular.
-\begin{equation}
-    H_{ij} = \begin{blockarray}{cccccccc}
-        & |s^{A_1'}\rangle & |p_z^{A_2''}\rangle & |p_x^{E'}\rangle & |p_y^{E'}\rangle 
-        & |S^{A_1'}\rangle & |S^{E'}_{p_x}\rangle & |S^{E'}_{p_y}\rangle \\
-        \begin{block}{c(ccccccc)}
-        \langle s^{A_1'}    |  & a & 0 & 0 & 0 & d & 0 & 0 \\
-        \langle p_z^{A_2''} |  & 0 & b & 0 & 0 & 0 & 0 & 0 \\
-        \langle p_x^{E'}    |  & 0 & 0 & c & 0 & 0 & e & 0 \\
-        \langle p_y^{E'}    |  & 0 & 0 & 0 & c & 0 & 0 & e \\
-        \end{block}
-        \end{blockarray}
-\end{equation}
-
-\subsection{Recovering Tight-binding Hamiltonian}
-
-
- 
+Our implementation is written in Python with numpy and are fully modulized. We provide solver 
+for bandstructure with interface to Seekpath library for high symmetry k-path. Density of states
+can be solved using tetrahedron summation method, provided with the code. We also offer 
+interface to BoltzTrap2 for the solution of transport properties through linearized Boltzmann 
+transport equations.
 
 \end{document}
