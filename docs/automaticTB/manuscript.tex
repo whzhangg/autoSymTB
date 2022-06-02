@@ -9,6 +9,7 @@
 \usepackage[style=chem-acs ,backend=bibtex, sorting=none]{biblatex}
 \usepackage{tikz}
 \usepackage{blkarray}
+\usepackage[title]{appendix}
 
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
@@ -24,22 +25,37 @@
 
 \begin{document}
 
+    
 \title{Automatic Construction of Symmetry Adopted, Nearest Neighbor Tight-binding Model for Machine Learning}
 \author{Wenhao Zhang}
 \date{\today}
 \maketitle
 
+% this technique is given in https://tex.stackexchange.com/questions/87414/per-chapter-bibliographies-in-biblatex
+\begin{refsection}
 \input{M_Introduction.tex}
+\input{M_Related_works.tex}
 \input{M_Method.tex}
 \input{M_Application.tex}
+\input{M_Conclusion.tex}
 
-\appendix
+\printbibliography[title={Reference}]
 
+\end{refsection}
+
+
+\begin{appendices}
+
+\begin{refsection}
 \include{A_energy_equivalence_AH3.tex}
 \include{A_SiteSymmetryGroup.tex}
 \include{A_GroupRepresentaiton.tex}
 \include{A_SymAdoptedBasis.tex}
 
-\printbibliography[title={Reference}]
+\printbibliography[heading=subbibliography]
+\end{refsection}
+
+\end{appendices}
+
 
 \end{document}

@@ -18,47 +18,50 @@
 \begin{document}
 
 \section{Application}
-\subsection{Tight-binding band structure in Pervoskite}
+\subsection{Tight-binding band structure cubic Halide Perovskite}
 
-We describe the parameters in the cubic Halide Perovskite described in 
-the work of Boyer et al.\cite{boyer-richard_symmetry-based_2016} as the 
-our reference model. The parameters are as follows:
-\begin{table}[h]
+In the work of Boyer et al.\cite{boyer-richard_symmetry-based_2016}, a symmetry adopted 
+tightbinding Hamiltonian for cubic Halide Perovskite is constructed. We show that using our 
+method, such tightbinding Hamiltonian can be constructed \emph{automatically}. We use the 
+crystal structure and atomic coordinates as reported in their work. 
+
+We have in total 16 atomic orbitals in the unit cell, including $s$ and $p$ on Pb and three Cl 
+atoms. Pb atoms are octahedral coordinated and three Cl atoms neighbor two Pb atoms along $x$, $y$ 
+and $z$ direction. We use the same neighbors as used in their work. Free parameter extraction 
+produce the results listed in Table \ref{T:free_perovskite}.
+
+\begin{table}[h!]
     \centering
-    \caption{Tight binding parameters, Halide Perovskite Semiconductors}
-    \label{T:TBP}
-    \begin{tabular}{|c|c|c|}
+    \caption{Free Interaction Parameters Extracted Using Our Methods for Cubic Halide Perovskite}
+    \begin{tabular}{|l|c|c|}
         \hline
-        Atom & Positions(crystal coord.) & Basis functions \\
+        sites & position & interactions \\
         \hline
-        B & $(0.0,0.0,0.0)$ & $|S_0\rangle$, $|X_0\rangle$, $|Y_0\rangle$, $|Z_0\rangle$ \\
-        X & $(0.5,0.0,0.0)$ & $|S_1\rangle$, $|X_1\rangle$, $|Y_1\rangle$, $|Z_1\rangle$ \\
-        X & $(0.0,0.5,0.0)$ & $|S_2\rangle$, $|X_2\rangle$, $|Y_2\rangle$, $|Z_2\rangle$ \\
-        X & $(0.0,0.0,0.5)$ & $|S_3\rangle$, $|X_3\rangle$, $|Y_3\rangle$, $|Z_3\rangle$ \\
+        Pb & $(0.0,0.0,0.0)$ & $\langle \chi_s^{Pb} | H | \chi_s^{Pb} \rangle$, $\langle \chi_{p_x}^{Pb} | H | \chi_{p_x}^{Pb} \rangle$ \\
+        \hline
+        Cl & $(0.5,0.0,0.0)$ & $\langle \chi_s^{Cl} | H | \chi_s^{Cl} \rangle$, $\langle \chi_{p_x}^{Cl} | H | \chi_{p_x}^{Cl} \rangle $, $\langle \chi_{p_z}^{Cl} | H | \chi_{p_z}^{Cl} \rangle$ \\
+        \hline
+        Interaction & & $\langle \chi_s^{Pb} | H | \chi_s^{Cl} \rangle$, $\langle \chi_{p_x}^{Pb} | H | \chi_s^{Cl} \rangle$, $\langle \chi_s^{Pb} | H | \chi_{p_x}^{Cl} \rangle$, 
+        $\langle \chi_{p_x}^{Pb} | H | \chi_{p_x}^{Cl} \rangle$, $\langle \chi_{p_z}^{Pb} | H | \chi_{p_z}^{Cl} \rangle$ \\
         \hline
     \end{tabular}
+    \label{T:free_perovskite}
 \end{table}
-We have in total 16 atomic orbitals in the unit cell. In a $3\times 3\times 3$ supercell
-which can include all the nearest neighbor interaction, We would have in total $N_s \times 16 \times 16$ parameters. 
-Restricting the interaction to first order, only 304 interactions left. 
-Now, we use the fact that orbitals belong to different symmetry cannot form bonding, 
-so that matrix elements like $\langle S_0 | H | P_0 \rangle$ is zero, we can reduce the 
-number of non-zero parameters. 
-Finally, we use symmetry relationship to obtain relationship in bonding parameters. 
-The interaction can be parameterized using only 9 parameters:
-\begin{align*}
-    E_{s0} &= \langle S_0 | H | S_0 \rangle \\
-    E_{s1} &= \langle S_1 | H | S_1 \rangle \\
-    E_{p0} &= \langle X_0 | H | X_0 \rangle \\
-    E_{p1} &= \langle X_1 | H | X_1 \rangle 
-\end{align*}
-and 
-\begin{align*}
-    V_{ss} &= \langle S_0 | H | S_1 \rangle  \\
-    V_{s0p1} &= \langle S_0 | H | X_1 \rangle \\
-    V_{p0s1} &= \langle X_0 | H | S_1 \rangle \\
-    V_{pp\sigma} &= \langle X_0 | H | X_1 \rangle \\
-    V_{pp\pi} &= \langle Y_0 | H | Y_1 \rangle \\
-\end{align*}
+
+All the free interactions are found by our method. Furthermore, it is interesting to note that one additional parameters are obtained,
+as compared to the original work. For Cl atom, two of its $p$ function are degenerate in energy while the third $p$ function along the 
+$Pb$ direction should have a different energy. This is missed by the work of Boyer et al. but is discovered 
+systematically by our methods.
+Assigning the reported values to these interactions and construct tightbinding model, we obtain the band structure, comparable to reported 
+by Boyer et al, as shown in Figure \ref{F:Application_Perovskite_band}. We note that in our implementation, SOC is not taken account. 
+The whole process, from analysize the structure to solving the band structure, took within a few seconds.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=3in]{../figures/HalidePerovskite_band.pdf}
+    \caption{Bandstructure obtained from constructed tight binding model for cubic Halide Perovskite}
+    \label{F:Application_Perovskite_band}
+\end{figure}
+
 
 \end{document}

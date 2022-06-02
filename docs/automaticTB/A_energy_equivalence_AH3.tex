@@ -16,9 +16,40 @@
 \begin{document}
 
 \section{Equivalent Interaction for AH3}
-In this section, we show that, for the case of AH3, 
-$\langle \psi^{E'\to A'}_{A,p} | H | \psi^{E'\to A'}_{H,s} \rangle = \langle \psi^{E'\to A''}_{A,p} | H | \psi^{E'\to A''}_{H,s} \rangle$
-have the same value.
-
+In this section, we show that, for the case of AH3, we have:
+\begin{equation}
+    \label{E:equivalent_AH3}
+    \langle \psi^{E'\to A'}_{A,p} | H | \psi^{E'\to A'}_{H,s} \rangle = \langle \psi^{E'\to A''}_{A,p} | H | \psi^{E'\to A''}_{H,s} \rangle
+\end{equation}
+The following three interactions are related by a three fold rotation:
+\begin{equation}
+    \langle p_x | H | s_1 \rangle = \langle -\frac{1}{2}p_x + \frac{\sqrt{3}}{2}p_y | H | s_2 \rangle 
+    = \langle -\frac{1}{2}p_x - \frac{\sqrt{3}}{2}p_y | H | s_3 \rangle
+\end{equation}
+where the three combinations of the $p$ orbitals on atom A points towards the three $s$ functions on the H atoms. We also have 
+\begin{equation}
+    \langle p_y | H | s_1 \rangle = \langle -\frac{\sqrt{3}}{2}p_x - \frac{1}{2}p_y | H | s_2 \rangle 
+    = \langle \frac{\sqrt{3}}{2}p_x - \frac{1}{2}p_y | H | s_3 \rangle = 0
+\end{equation}
+where in this case, the $p$ orbitals points 90 degree to the $s$ functions and the interactions cancels.
+Solving the above two equations, we have the following relationship:
+\begin{gather}
+    \label{E:AH3_relationship}
+    \langle p_y | H | s_1 \rangle = 0 \\
+    \langle p_x | H | s_1 \rangle = -2 \langle p_x | H | s_2 \rangle = -2 \langle p_x | H | s_3 \rangle = 
+    \frac{\sqrt{3}}{3} \langle p_y | H | s_2 \rangle = - \frac{\sqrt{3}}{3} \langle p_y | H | s_3 \rangle
+\end{gather}
+Using there relationships, we can find:
+\begin{align}
+   \frac{\sqrt{6}}{6} \langle p_x | H | 2 s_1 -  s_2 -  s_3 \rangle &= \frac{\sqrt{6}}{2} \langle p_x | H | s_1 \rangle \\
+   \frac{\sqrt{2}}{2} \langle p_y | H | s_2 -  s_3 \rangle &= \frac{\sqrt{6}}{2} \langle p_x | H | s_1 \rangle 
+\end{align}
+showing that the two interaction given in equation \eqref{E:equivalent_AH3} indeed have the same value. 
+We comment that the relationship given in equation \eqref{E:AH3_relationship} are the same as the relationship 
+recoveried using the symmetry restrains and solving the homogeneous equations, as mentioned in the 
+article. However, the method here is rather ad-hoc. For example, it is not clear why the values such as 
+$\langle \frac{\sqrt{3}}{2}p_x - \frac{1}{2}p_y | H | s_3 \rangle$ is zero without carrying out intergral (although 
+it is apparent by visual inspectations). The constrains solved from interactions between symmetrized molecular 
+functions, however, are systematic. 
 
 \end{document}
