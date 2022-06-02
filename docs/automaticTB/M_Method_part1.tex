@@ -193,7 +193,6 @@ coefficient and an linear equation system with unique solution.
 
 \subsection{Form of the interaction Hamiltonian in MOs}
 
-
 We mentioned previously that interactions are forbidden between MOs belonging to different 
 irreducible representations. Here, we describe in detail the form of interaction matrix. 
 We assume that all MOs are of the form that utilize symmetry, denoted in the form 
@@ -220,20 +219,9 @@ For example, in the case of AH$_3$ molecular.
         \end{blockarray}
 \end{equation}
 
-\subsection{Finding independent parameters}
-Given a linear equation system \eqref{E:HAO_HMO_transformation} where a large number of $H_{ij}$ are zeros,
-the number of free parameters are greatly reduced. The set of equations with $H_{ij} = 0$ constitute an 
-underdetermined equation system which constrain the solution of $H_{\mu\nu}$s. For example, the first 
-equation in \eqref{E:px_s_AO_MO} constrains the value of $\langle s | H | p_x^l \rangle$ to be negative of 
-that of $\langle s | H | p_x^r \rangle$, eventhough the value itself is given by the second equation. 
-Similarly, the constrains given by the equation with $H_{ij} = 0$ limits the number of free parameters 
-to be the same as the number of rows where $H_{ij} \neq 0$. 
+\subsection{Recovering Tight-binding Hamiltonian}
 
-Therefore, the problem of finding the free parameter $H_{\mu\nu}$ is thus a problem to find the homogeneous 
-equation system and then find the free parameters. This can be done by, for example, LU fractization of the 
-non-square matrix $A$.
 
-\subsection{Machine Learning of $H_{\mu\nu}$}
  
 
 \end{document}

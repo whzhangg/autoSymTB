@@ -1,4 +1,6 @@
 docs/**/*.pdf
+docs/**/*.pptx
+!docs/figures/*.pdf
 **/__pycache__
 **/.pytest_cache
 **/*.aux
@@ -12,5 +14,7 @@ automaticTB/config.py
 
 automaticTB/sitesymmetry/Bilbao/local
 automaticTB/examples/**/*.yml
+automaticTB/examples/**/*.cube
+automaticTB/examples/**/*.png
 
 **/.DS_Store
