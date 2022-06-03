@@ -24,7 +24,7 @@ def get_free_parameters(cif_filename: str, cutoff: float) -> None:
 
     print(f"> There are {len(structure.types)} atoms in the primitive cell")
     for i, nncluster in enumerate(structure.nnclusters):
-
+        print(f"> Site symmetry {nncluster.sitesymmetrygroup.groupname}")
         vectorspace = VectorSpace.from_NNCluster(nncluster)
         print(f"> Solve vectorspace for atom {i+1} ")
         named_lcs = decompose_vectorspace_to_namedLC(vectorspace, nncluster.sitesymmetrygroup)
