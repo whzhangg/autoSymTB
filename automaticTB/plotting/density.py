@@ -44,10 +44,18 @@ class DensityCubePlot:
         nx, ny, nz = density.shape
         result  = "CPMD CUBE FILE.\n"
         result += "OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z\n"
-        result += "{:>6d} {:>12.6f}{:>12.6f}{:>12.6f}\n".format(len(self._types), 0, 0, 0)
+
+        vectors = []
         for i, row in enumerate(self._cell):
             n = density.shape[i]
-            vector = row / n * Bohr
+            vectors.append( row / n * Bohr )
+        vectors = np.array(vectors)
+
+        shift = np.sum(vectors, axis = 0) / 2.0
+
+
+        result += "{:>6d} {:>12.6f}{:>12.6f}{:>12.6f}\n".format(len(self._types), *shift)
+        for vector in vectors:
             result += "{:>6d} {:>12.6f}{:>12.6f}{:>12.6f}\n".format(n, *vector)
         
         for type, position in zip(self._types, self._positions):
