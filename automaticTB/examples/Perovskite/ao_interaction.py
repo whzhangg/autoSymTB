@@ -28,6 +28,7 @@ p_direction = {
      # the direction of p orbital determines the p-p sigma or pi bond, as well as the interaction between s and p bond
 }
 
+
 def get_interaction_values_from_list_AOpairs(cell: np.ndarray, positions: np.ndarray, aopairs: typing.List[Pair]) \
 -> typing.List[float]:
     # this is an ad-hoc way to create the AO interaction
@@ -93,6 +94,22 @@ def get_interaction_values_from_list_AOpairs(cell: np.ndarray, positions: np.nda
                 else:
                     value = 0.0
             
+        values.append(value)
+    
+    return values
+
+
+def get_overlap_values_from_list_AOpairs(aopairs: typing.List[Pair]) -> typing.List[float]:
+    values = []
+    for pair in aopairs:
+        left: AO = pair.left
+        right: AO = pair.right
+        value = 0
+
+        if (left.cluster_index == right.cluster_index) \
+            and (left.l == right.l) and (left.m == right.m):
+            value = 1.0
+
         values.append(value)
     
     return values

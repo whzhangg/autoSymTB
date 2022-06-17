@@ -5,8 +5,8 @@ from automaticTB.interaction import get_free_interaction_AO, InteractionEquation
 from automaticTB.atomic_orbitals import AO
 from automaticTB.examples.Perovskite.structure import get_perovskite_structure
 from automaticTB.printing import print_ao_pairs, print_matrix, print_InteractionPairs
-from automaticTB.examples.Perovskite.ao_interaction import get_interaction_values_from_list_AOpairs
-from automaticTB.tightbinding import TightBindingModel, gather_InteractionPairs_into_HijRs
+from automaticTB.examples.Perovskite.ao_interaction import get_interaction_values_from_list_AOpairs, get_overlap_values_from_list_AOpairs
+from automaticTB.tightbinding import TightBindingModel, gather_InteractionPairs_into_HijRs, gather_InteractionPairs_into_SijRs
 from automaticTB.tools import find_RCL
 
 # seems to be a bit problematic
@@ -15,6 +15,7 @@ def get_tightbinding_model():
     print("Solving for the free nearest neighbor interaction in Perovskite")
     print("Starting ...")
     interaction_clusters = []
+    overlaps = []
 
     for i, nncluster in enumerate(structure.nnclusters):
         #if i == 0: continue
@@ -25,17 +26,26 @@ def get_tightbinding_model():
         print("Solve Interaction ...")
         equation_system = InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs)
         free_pairs = equation_system.free_AOpairs
+        
         values = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, free_pairs)
+        overlap_values = get_overlap_values_from_list_AOpairs(free_pairs)
         all_interactions = equation_system.solve_interactions_to_InteractionPairs(values)
+        all_overlap = equation_system.solve_interactions_to_InteractionPairs(overlap_values)
         interaction_clusters.append(all_interactions)
-        # self interaction
-        self_pairs = nncluster.centered_selfinteraction_pairs
-        values = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, self_pairs)
-        ipairs = InteractionPairs(self_pairs, values)
-        interaction_clusters.append(ipairs)
+        overlaps.append(all_overlap)
+        # self interaction is not necessary 
+        #self_pairs = nncluster.centered_selfinteraction_pairs
+        #values = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, self_pairs)
+        #overlap_values = get_overlap_values_from_list_AOpairs(self_pairs)
+        #ipairs = InteractionPairs(self_pairs, values)
+        #overlap = InteractionPairs(self_pairs, overlap_values)
+        #interaction_clusters.append(ipairs)
+        #overlaps.append(overlap)
+        
 
     hijRs = gather_InteractionPairs_into_HijRs(interaction_clusters)
-    return TightBindingModel(structure.cell, structure.positions, structure.types, hijRs)
+    SijRs = gather_InteractionPairs_into_SijRs(overlaps)
+    return TightBindingModel(structure.cell, structure.positions, structure.types, hijRs, SijRs)
 
 
 def obtain_and_plot_bandstructure(model: TightBindingModel, filename: str = "HalidePerovskite_band.pdf") -> None:

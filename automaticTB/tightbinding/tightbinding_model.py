@@ -2,6 +2,7 @@ import abc, typing, dataclasses
 import numpy as np
 from ..interaction import InteractionPairs
 from ..atomic_orbitals import AO
+from .secular_solver import solve_secular
 
 @dataclasses.dataclass
 class Pindex_lm:
@@ -23,6 +24,13 @@ class HijR:
     value: float
 
 
+@dataclasses.dataclass
+class SijR:
+    left: Pindex_lm
+    right: Pindex_lm
+    value: float
+
+
 def gather_InteractionPairs_into_HijRs(AOinteractions: typing.List[InteractionPairs]) -> typing.List[HijR]:
     HijR_list: typing.List[HijR] = []
     for interaction in AOinteractions:
@@ -37,6 +45,22 @@ def gather_InteractionPairs_into_HijRs(AOinteractions: typing.List[InteractionPa
                 )
             )
     return HijR_list
+
+
+def gather_InteractionPairs_into_SijRs(AOinteractions: typing.List[InteractionPairs]) -> typing.List[SijR]:
+    SijR_list: typing.List[HijR] = []
+    for interaction in AOinteractions:
+        for pair, value in zip(interaction.pairs, interaction.interactions):
+            left: AO = pair.left
+            right: AO = pair.right
+            SijR_list.append(
+                SijR(
+                    Pindex_lm(left.primitive_index, left.l, left.m, left.translation),
+                    Pindex_lm(right.primitive_index, right.l, right.m, right.translation),
+                    value
+                )
+            )
+    return SijR_list
 
 
 class TightBindingBase(abc.ABC):
@@ -60,10 +84,16 @@ class TightBindingBase(abc.ABC):
     def Hijk(self, frac_k: np.ndarray) -> np.ndarray:
         pass 
 
+    @abc.abstractmethod
+    def Sijk(self, frac_k: np.ndarray) -> np.ndarray:
+        pass
+
     def solveE_at_k(self, k: np.ndarray) -> np.ndarray:
         # solve at a single kpoints
-        ham = self.Hijk(k)
-        w, v = np.linalg.eig(ham)
+        h = self.Hijk(k)
+        #w, v = np.linalg.eig(h)
+        s = self.Sijk(k)
+        w, c = solve_secular(h, s)
         return np.sort(w.real)
 
     def solveE_at_ks(self, ks: np.ndarray) -> np.ndarray:
@@ -77,12 +107,14 @@ class TightBindingModel(TightBindingBase):
         cell: np.ndarray,
         positions: np.ndarray,
         types: typing.List[int],
-        HijR_list: typing.List[HijR]
+        HijR_list: typing.List[HijR],
+        SijR_list: typing.List[SijR]
     ) -> None:
         self._cell = cell
         self._positions = positions
         self._types = types
         self._HijR = HijR_list
+        self._SijR = SijR_list
 
         self._basis: typing.List[Pindex_lm] = []
         for hijR in self._HijR:
@@ -111,6 +143,23 @@ class TightBindingModel(TightBindingBase):
         nbasis = len(self._basis)
         ham = np.zeros((nbasis,nbasis), dtype=complex)
         for HijR in self._HijR:
+            assert np.allclose(HijR.left.translation, np.zeros(3))
+            r = HijR.right.translation
+            index_i = self._index_ref[
+                (HijR.left.pindex, HijR.left.l, HijR.left.m)
+            ]
+            index_j = self._index_ref[
+                (HijR.right.pindex, HijR.right.l, HijR.right.m)
+            ]
+            kR = np.dot(k, r + self._positions[HijR.right.pindex] - self._positions[HijR.left.pindex])
+            ham[index_i,index_j] += HijR.value * np.exp(2j * np.pi * kR)
+        return ham
+
+    def Sijk(self, k: typing.Tuple[float]):
+        k = np.array(k)
+        nbasis = len(self._basis)
+        ham = np.zeros((nbasis,nbasis), dtype=complex)
+        for HijR in self._SijR:
             assert np.allclose(HijR.left.translation, np.zeros(3))
             r = HijR.right.translation
             index_i = self._index_ref[
