@@ -19,4 +19,5 @@ automaticTB/examples/**/*.png
 **/.DS_Store
 
 plots/*/*.vesta
+plots/*/*.cif
 plots/*/*.cube

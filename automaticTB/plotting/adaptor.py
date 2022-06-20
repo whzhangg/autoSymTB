@@ -19,6 +19,14 @@ class WavefunctionsOnSite:
     wfs: typing.List[Wavefunction]
 
 
+def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) -> np.ndarray:
+    rmax = -1.0
+    for pos in positions:
+        rmax = max(rmax, np.linalg.norm(pos))
+    cell = 4.0 * rmax * np.eye(3)
+    return cell
+
+
 @dataclasses.dataclass
 class MolecularWavefunction:
     cell: np.ndarray
@@ -28,10 +36,7 @@ class MolecularWavefunction:
     @classmethod
     def from_linear_combination(cls, lc: LinearCombination) -> "MolecularWavefunction":
         # confining box
-        rmax = -1.0
-        for site in lc.sites:
-            rmax = max(rmax, np.linalg.norm(site.pos))
-        cell = 4.0 * rmax * np.eye(3)
+        cell = get_cell_from_origin_centered_positions([site.pos for site in lc.sites])
         shift = np.dot(cell.T, np.array([0.5,0.5,0.5]))
 
         atomic_wavefunctions = []
