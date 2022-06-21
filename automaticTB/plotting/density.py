@@ -3,6 +3,7 @@ import typing
 from .wavefunctions import wavefunction, xyz_to_r_theta_phi
 from .adaptor import MolecularWavefunction
 from ..SALCs import LinearCombination
+from ..parameters import zero_tolerance
 
 
 Bohr = 1.8897259886
@@ -88,11 +89,14 @@ class DensityCubePlot:
         result = np.zeros_like(x[...,0])
         for mo in self._mos:
             for aw in mo.atomic_wavefunctions:
+                #print(aw.cartesian_pos)
                 r_theta_phi = xyz_to_r_theta_phi(x - aw.cartesian_pos)
                 r = r_theta_phi[..., 0]
                 theta = r_theta_phi[..., 1]
                 phi = r_theta_phi[..., 2]
                 for wf in aw.wfs:
-                    result += wf.coeff.real * wavefunction(self.n, wf.l, wf.m, r, theta, phi)
+                    if np.abs(wf.coeff) > zero_tolerance:
+                        #print(wf)
+                        result += wf.coeff.real * wavefunction(self.n, wf.l, wf.m, r, theta, phi)
         return result
 

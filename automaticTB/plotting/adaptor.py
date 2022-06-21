@@ -1,6 +1,7 @@
 import typing, dataclasses
 import numpy as np
 from ..SALCs import LinearCombination
+from ..parameters import zero_tolerance
 
 
 @dataclasses.dataclass
@@ -17,6 +18,13 @@ class WavefunctionsOnSite:
     atomic_number: int
     chemical_symbol: str
     wfs: typing.List[Wavefunction]
+
+    def __str__(self) -> str:
+        main = "{:s} @ {:>6.2f}{:>6.2f}{:>6.2f}\n".format(self.chemical_symbol, *self.cartesian_pos)
+        for wf in self.wfs:
+            if np.abs(wf.coeff) > zero_tolerance:
+                main+="l={:d} m={:d} coeff = {:>6.2f}".format(wf.l,wf.m,wf.coeff.real)
+        return main
 
 
 def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) -> np.ndarray:
