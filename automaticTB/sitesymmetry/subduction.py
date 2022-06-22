@@ -355,7 +355,7 @@ _subduction_table = {
 
 def print_subduction():
     from automaticTB.sitesymmetry.group_list import GroupsList
-    from automaticTB.utilities import write_json
+    from automaticTB.tools import write_json
     table = { group: "" for group in GroupsList }
     write_json(table, "tmp.txt")
 

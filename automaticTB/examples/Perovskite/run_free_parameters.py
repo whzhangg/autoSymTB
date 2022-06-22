@@ -18,6 +18,9 @@ def run_perovskite_SALCs():
         print(nncluster.sitesymmetrygroup.groupname)
         vectorspace = VectorSpace.from_NNCluster(nncluster)
         named_lcs = decompose_vectorspace_to_namedLC(vectorspace, nncluster.sitesymmetrygroup)
+        for nlc in named_lcs:
+            print(nlc.name)
+            print(nlc.lc)
         print("Solve Interaction ...")
         free_pairs = InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs).free_AOpairs
         
