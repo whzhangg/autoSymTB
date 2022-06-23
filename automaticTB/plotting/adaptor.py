@@ -2,6 +2,7 @@ import typing, dataclasses
 import numpy as np
 from ..SALCs import LinearCombination
 from ..parameters import zero_tolerance
+from ..tools import get_cell_from_origin_centered_positions
 
 
 @dataclasses.dataclass
@@ -25,14 +26,6 @@ class WavefunctionsOnSite:
             if np.abs(wf.coeff) > zero_tolerance:
                 main+="l={:d} m={:d} coeff = {:>6.2f}".format(wf.l,wf.m,wf.coeff.real)
         return main
-
-
-def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) -> np.ndarray:
-    rmax = -1.0
-    for pos in positions:
-        rmax = max(rmax, np.linalg.norm(pos))
-    cell = 4.0 * rmax * np.eye(3)
-    return cell
 
 
 @dataclasses.dataclass

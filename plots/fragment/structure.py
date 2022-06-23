@@ -6,11 +6,13 @@ from automaticTB.sitesymmetry import get_point_group_as_SiteSymmetryGroup, SiteS
 from automaticTB.SALCs import VectorSpace, decompose_vectorspace_to_namedLC
 from automaticTB.interaction import InteractionEquation
 from automaticTB.printing import print_ao_pairs
+from automaticTB.plotting import DensityCubePlot
 
 sp = Orbitals([0,1])
 Ri = 1.4
-C = 14
-H = 8
+A = 14
+B = 8
+C = 9
 center = np.zeros(3)
 translation = np.zeros(3)
 w = np.sqrt(3) / 2
@@ -42,102 +44,24 @@ def get_NNC_from_SimpleSites(sites: typing.List[Site], groupname: str) -> Neares
 
 
 coordinations = {
-    "linear 2_m": (
+    "square bipyramidal": (
         [
-            Site(C, Ri * center),
-            Site(H, Ri * np.array([0.0,0.0,1.0])),
-            Site(H, Ri * np.array([0.0,0.0,-1.0]))
-        ], "2/m"
-    ), 
-    "linear 4_mmm": (
-        [
-            Site(C, Ri * center),
-            Site(H, Ri * np.array([0.0,0.0,1.0])),
-            Site(H, Ri * np.array([0.0,0.0,-1.0]))
-        ], "4/mmm"
-    ), 
-    "trigonal plane": (
-        [
-            Site(C, Ri * center), 
-            Site(H, Ri * np.array([0.0, 1.0, 0.0])), 
-            Site(H, Ri * np.array([w, -0.5, 0.0])), 
-            Site(H, Ri * np.array([-1 * w, -0.5, 0.0]))
-        ], "-6m2"
-    ),
-    "tetrahedral": (
-        [
-            Site(C, Ri * center), 
-            Site(H, Ri * np.array([1.0, 1.0, 1.0])),
-            Site(H, Ri * np.array([1.0,-1.0,-1.0])),
-            Site(H, Ri * np.array([-1.0, 1.0,-1.0])),
-            Site(H, Ri * np.array([-1.0, -1.0, 1.0]))
-        ], "-43m"
-    ),
-    "square plane": (
-        [
-            Site(C, Ri * center), 
-            Site(H, Ri * np.array([1.0, 1.0, 0.0])),
-            Site(H, Ri * np.array([-1.0, 1.0, 0.0])),
-            Site(H, Ri * np.array([1.0, -1.0, 0.0])),
-            Site(H, Ri * np.array([-1.0, -1.0, 0.0])),
+            Site(A, Ri * center), 
+            Site(B, Ri * np.array([0.0, 0.0, 1.7])),
+            Site(B, Ri * np.array([0.0, 0.0,-1.7])),
+            Site(C, Ri * np.array([1.0, 1.0, 0.0])),
+            Site(C, Ri * np.array([-1.0, 1.0, 0.0])),
+            Site(C, Ri * np.array([1.0, -1.0, 0.0])),
+            Site(C, Ri * np.array([-1.0, -1.0, 0.0])),
         ], "4/mmm"
     ),
-    "square rectangle": (
-        [
-            Site(C, Ri * center), 
-            Site(H, Ri * np.array([1.0, 0.8, 0.0])),
-            Site(H, Ri * np.array([-1.0, 0.8, 0.0])),
-            Site(H, Ri * np.array([1.0, -0.8, 0.0])),
-            Site(H, Ri * np.array([-1.0, -0.8, 0.0])),
-        ], "mmm"
-    ),
-    "square pyramidal": (
-        [
-            Site(C, Ri * center), 
-            Site(H, Ri * np.array([0.0, 0.0, 1.0])),
-            Site(H, Ri * np.array([1.0, 1.0, 0.0])),
-            Site(H, Ri * np.array([-1.0, 1.0, 0.0])),
-            Site(H, Ri * np.array([1.0, -1.0, 0.0])),
-            Site(H, Ri * np.array([-1.0, -1.0, 0.0])),
-        ], "4mm"
-    ),
-    "cubic": (
-        [
-            Site(C, Ri * center), 
-            Site(H, Ri * np.array([1.0, 1.0, 1.0])),
-            Site(H, Ri * np.array([1.0, -1.0, 1.0])),
-            Site(H, Ri * np.array([1.0, 1.0, -1.0])),
-            Site(H, Ri * np.array([1.0, -1.0, -1.0])),
-            Site(H, Ri * np.array([-1.0, 1.0, 1.0])),
-            Site(H, Ri * np.array([-1.0, -1.0, 1.0])),
-            Site(H, Ri * np.array([-1.0, 1.0, -1.0])),
-            Site(H, Ri * np.array([-1.0, -1.0, -1.0])),
-        ], "m-3m"
-    ),
-    "trigonal prism": (
-        [
-            Site(C, Ri * center), 
-            Site(H, Ri * np.array([0.0, 1.0, 0.9])), 
-            Site(H, Ri * np.array([w, -0.5, 0.9])), 
-            Site(H, Ri * np.array([-1 * w, -0.5, 0.9])), 
-            Site(H, Ri * np.array([0.0, 1.0, -0.9])), 
-            Site(H, Ri * np.array([w, -0.5, -0.9])), 
-            Site(H, Ri * np.array([-1 * w, -0.5, -0.9]))
-        ], "-6m2"
-    ),
-    "octahedral": (
-        [
-            Site(C, Ri * center),
-            Site(H, Ri * np.array([1.0, 0.0, 0.0])),
-            Site(H, Ri * np.array([-1.0, 0.0, 0.0])),
-            Site(H, Ri * np.array([0.0, 1.0, 0.0])),
-            Site(H, Ri * np.array([0.0, -1.0, 0.0])),
-            Site(H, Ri * np.array([0.0, 0.0, 1.0])),
-            Site(H, Ri * np.array([0.0, 0.0, -1.0]))
-        ], "m-3m"
-    )
 }
 
+lc_to_print = [
+    "B_1u @ 1^th B_1u",
+    "A_1g @ 3^th A_1g",
+    "E_u->B_1 @ 3^th E_u"
+]
 
 def get_cifs():
     for key, value in coordinations.items():
@@ -155,9 +79,15 @@ def print_free_parameters():
         vectorspace = VectorSpace.from_NNCluster(nncluster)
 
         named_lcs = decompose_vectorspace_to_namedLC(vectorspace, nncluster.sitesymmetrygroup)
-        free_pairs = InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs).free_AOpairs
-        print_ao_pairs(nncluster, free_pairs)
-        print(len(free_pairs))
+        for nlc in named_lcs:
+            print(nlc.name)
+            print(nlc.lc)
+            if str(nlc.name) in lc_to_print:
+                plot = DensityCubePlot.from_linearcombinations([nlc.lc], "high")
+                plot.plot_to_file(f"{str(nlc.name)}.cube")
+        #free_pairs = InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs).free_AOpairs
+        #print_ao_pairs(nncluster, free_pairs)
+        #print(len(free_pairs))
         break
 
 def print_total_number_parameters():
@@ -167,6 +97,8 @@ def print_total_number_parameters():
 
 if __name__ == "__main__":
     get_cifs()
+    print_free_parameters()
+    print_total_number_parameters()
 
 """
     Output

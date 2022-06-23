@@ -6,6 +6,8 @@ from ..parameters import zero_tolerance
 from ..atomic_orbitals import OrbitalsList
 from ..tools import Pair, tensor_dot
 from ..atomic_orbitals import AO
+from ..tools import get_cell_from_origin_centered_positions
+from .cif import write_cif_file, atom_from_cpt_cartesian
 
 
 class ClusterSubSpace(typing.NamedTuple):
@@ -187,3 +189,14 @@ class NearestNeighborCluster:
         left_aos = [ self.AOlist[i] for i in left.indices ]
         right_aos = [ self.AOlist[i] for i in right.indices ]
         return tensor_dot(left_aos, right_aos)
+
+    def write_to_cif(self, filename: str) -> None:
+        positions = np.array(
+            [s.pos for s in self.baresites]
+        )
+        cell = get_cell_from_origin_centered_positions(positions)
+        shift = np.dot(cell.T, np.array([0.5,0.5,0.5]))
+        positions += shift
+        types = [s.atomic_number for s in self.baresites]
+        atom = atom_from_cpt_cartesian(cell, positions, types)
+        write_cif_file(filename, atom)
