@@ -1,7 +1,7 @@
 import numpy as np
 import typing
 from .wavefunctions import wavefunction, xyz_to_r_theta_phi
-from .adaptor import MolecularWavefunction
+from .adaptor import MolecularWavefunction, Wavefunction, WavefunctionsOnSite
 from ..SALCs import LinearCombination
 from ..parameters import zero_tolerance
 
@@ -100,3 +100,19 @@ class DensityCubePlot:
                         result += wf.coeff.real * wavefunction(self.n, wf.l, wf.m, r, theta, phi)
         return result
 
+
+def test_plot_single_ws():
+    wf_sites = [
+        WavefunctionsOnSite(np.array([ 1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 1,  "H", [Wavefunction(1,-1,1.0)]), 
+        WavefunctionsOnSite(np.array([ 1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 2, "He", [Wavefunction(1, 0,1.0)]), 
+        WavefunctionsOnSite(np.array([ 1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 3, "Li", [Wavefunction(1, 1,1.0)]), 
+        WavefunctionsOnSite(np.array([ 1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 4, "Be", [Wavefunction(2,-2,1.0)]), 
+        WavefunctionsOnSite(np.array([-1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 5,  "B", [Wavefunction(2,-1,1.0)]), 
+        WavefunctionsOnSite(np.array([-1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 6,  "C", [Wavefunction(2, 0,1.0)]), 
+        WavefunctionsOnSite(np.array([-1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 7,  "N", [Wavefunction(2, 1,1.0)]), 
+        WavefunctionsOnSite(np.array([-1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 8,  "O", [Wavefunction(2, 2,1.0)]), 
+    ]
+    cell = np.eye(3) * 10
+    molecular = MolecularWavefunction(cell, wf_sites)
+    plot = DensityCubePlot([molecular], quality="high")
+    plot.plot_to_file("single_wavefunctions.cube")

@@ -7,11 +7,22 @@ from .structure import NearestNeighborCluster
 from .interaction import InteractionPairs
 
 _print_lm = {
-    (0,0): " s",
+    (0, 0): " s",
     (1,-1): "py",
-    (1,0): "pz",
-    (1,1): "px",
+    (1, 0): "pz",
+    (1, 1): "px",
+    (2,-2): "dxy",
+    (2,-1): "dyz",
+    (2, 0): "dz2",
+    (2, 1): "dxz",
+    (2, 2): "dx2-y2"
 }
+
+def get_orbital_symbol_from_lm(l: int, m: int) -> str:
+    if (l,m) not in _print_lm:
+        raise "l,m not supported"
+    return _print_lm[(l,m)]
+
 
 def _parse_orbital(l: int, m: int) -> str:
     if (l,m) not in _print_lm:

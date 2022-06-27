@@ -22,6 +22,12 @@ def solve_secular(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.n
 
     return w, c
 
+
+def solve_secular_sorted(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+    w, c = solve_secular(H, S)
+    sort_index = np.argsort(w.real)
+    return w[sort_index], c[:,sort_index]
+
 def test_secular_solver():
     H = np.array([
         [3, -5, 0],
@@ -31,11 +37,16 @@ def test_secular_solver():
 
     S = np.eye(3) + np.random.random((3,3))
 
-    w, c = solve_secular(H, S)
+    w, c = solve_secular_sorted(H, S)
 
     Hc = np.einsum("ij, jk -> ik", H, c)
     Sc = np.einsum("ij, jk -> ik", S, c)
     eSc = w * Sc
     assert np.allclose(np.zeros_like(Hc), np.abs(Hc - eSc))
 
-test_secular_solver()
+    for i in range(c.shape[1]):
+        eig = w[i]
+        ci = c[:,i]
+        Hci = np.dot(H, ci)
+        eSci = np.dot(S, ci) * eig
+        assert np.allclose(np.zeros_like(Hci), np.abs(Hci - eSci))

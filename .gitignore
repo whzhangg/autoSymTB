@@ -15,6 +15,7 @@ automaticTB/sitesymmetry/Bilbao/local
 automaticTB/examples/**/*.yml
 automaticTB/examples/**/*.cube
 automaticTB/examples/**/*.png
+automaticTB/plotting/**/*.cube
 
 **/.DS_Store
 

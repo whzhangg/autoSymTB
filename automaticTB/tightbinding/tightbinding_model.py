@@ -2,7 +2,7 @@ import abc, typing, dataclasses
 import numpy as np
 from ..interaction import InteractionPairs
 from ..atomic_orbitals import AO
-from .secular_solver import solve_secular
+from .secular_solver import solve_secular, solve_secular_sorted
 
 @dataclasses.dataclass
 class Pindex_lm:
@@ -80,6 +80,11 @@ class TightBindingBase(abc.ABC):
     def types(self) -> typing.List[int]:
         pass
 
+    @property
+    @abc.abstractmethod
+    def basis(self) -> typing.List[Pindex_lm]:
+        pass
+
     @abc.abstractmethod 
     def Hijk(self, frac_k: np.ndarray) -> np.ndarray:
         pass 
@@ -93,12 +98,25 @@ class TightBindingBase(abc.ABC):
         h = self.Hijk(k)
         #w, v = np.linalg.eig(h)
         s = self.Sijk(k)
-        w, c = solve_secular(h, s)
-        return np.sort(w.real)
+        w, c = solve_secular_sorted(h, s)
+        return w.real, c
+
+    def solveE_c2_at_ks(self, ks: np.ndarray) -> np.ndarray:
+        ek = []
+        coeff = []
+        for k in ks:
+            w, complex_c =self.solveE_at_k(k)
+            ek.append(w)
+            c_T = (np.abs(complex_c)**2).T # [ibnd, iorb]
+            coeff.append(c_T[np.newaxis,...])
+        ek = np.vstack(ek)
+        coeff = np.vstack(coeff)
+        assert coeff.shape[0] == ek.shape[0]
+        return ek, coeff
 
     def solveE_at_ks(self, ks: np.ndarray) -> np.ndarray:
         return np.vstack(
-            [ self.solveE_at_k(k) for k in ks ]
+            [ self.solveE_at_k(k)[0] for k in ks ]
         )
 
 
@@ -125,6 +143,9 @@ class TightBindingModel(TightBindingBase):
             (basis.pindex, basis.l, basis.m):i for i, basis in enumerate(self._basis)
         }
 
+    @property
+    def basis(self) -> typing.List[Pindex_lm]:
+        return self._basis
     
     @property
     def cell(self) -> np.ndarray:
