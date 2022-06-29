@@ -51,7 +51,7 @@ def plot_result():
     #for ix, iy in zip(x, y_total):
     #    axs.text(ix, iy + 2, str(iy), size = 12, ha = "center", va = "bottom", transform = axs.transData, color = "black")
     axs.legend(frameon = False)
-    fig.set
+    
     fig.savefig("free_parameter.png")
 
 plot_result()
