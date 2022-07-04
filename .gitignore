@@ -6,16 +6,17 @@ docs/**/*.pptx
 **/*.aux
 
 applications/
-automaticTB/SALCs/examples
-automaticTB/SALCs/SubductionTables.tar.gz
-automaticTB/tests/**/*.pdf
-automaticTB/tests/**/*.dat
+src/*.egg-info
+src/automaticTB/SALCs/examples
+src/automaticTB/SALCs/SubductionTables.tar.gz
+src/automaticTB/tests/**/*.pdf
+src/automaticTB/tests/**/*.dat
 
-automaticTB/sitesymmetry/Bilbao/local
-automaticTB/examples/**/*.yml
-automaticTB/examples/**/*.cube
-automaticTB/examples/**/*.png
-automaticTB/plotting/**/*.cube
+src/automaticTB/sitesymmetry/Bilbao/local
+src/automaticTB/examples/**/*.yml
+src/automaticTB/examples/**/*.cube
+src/automaticTB/examples/**/*.png
+src/automaticTB/plotting/**/*.cube
 
 **/.DS_Store
 
