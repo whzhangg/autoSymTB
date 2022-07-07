@@ -1,6 +1,16 @@
 import yaml, json
 from ase import io, Atoms
 
+
+def atom_from_cpt(lattice, positions, types) -> Atoms:
+    result = Atoms(cell = lattice, scaled_positions = positions)
+    if type(types[0]) == str:
+        result.set_chemical_symbols(types)
+    else:
+        result.set_atomic_numbers(types)
+    return result
+    
+
 def write_json(dictionary, filename):
     f=open(filename,'w')
     json.dump(dictionary,f,indent="    ")

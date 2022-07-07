@@ -7,7 +7,7 @@ from .structure import NearestNeighborCluster
 from .interaction import InteractionPairs
 
 _print_lm = {
-    (0, 0): " s",
+    (0, 0): "s",
     (1,-1): "py",
     (1, 0): "pz",
     (1, 1): "px",

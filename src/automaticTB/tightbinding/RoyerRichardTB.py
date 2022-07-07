@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from .tightbinding_model import TightBindingBase
+from .tightbinding_model import TightBindingBase, Pindex_lm
 
 parameters = {
         "V_ss"   :  -1.10,
@@ -145,6 +145,26 @@ class Royer_Richard_TB(TightBindingBase):
     def types(self) -> typing.List[int]:
         return [82, 17, 17, 17]
 
+    @property
+    def basis(self) -> typing.List[Pindex_lm]:
+        return [
+            Pindex_lm(0, 0, 0, np.array([0,0,0])),
+            Pindex_lm(0, 1,-1, np.array([0,0,0])),
+            Pindex_lm(0, 1, 0, np.array([0,0,0])),
+            Pindex_lm(0, 1, 1, np.array([0,0,0])),
+            Pindex_lm(1, 0, 0, np.array([0,0,0])),
+            Pindex_lm(1, 1,-1, np.array([0,0,0])),
+            Pindex_lm(1, 1, 0, np.array([0,0,0])),
+            Pindex_lm(1, 1, 1, np.array([0,0,0])),
+            Pindex_lm(2, 0, 0, np.array([0,0,0])),
+            Pindex_lm(2, 1,-1, np.array([0,0,0])),
+            Pindex_lm(2, 1, 0, np.array([0,0,0])),
+            Pindex_lm(2, 1, 1, np.array([0,0,0])),
+            Pindex_lm(3, 0, 0, np.array([0,0,0])),
+            Pindex_lm(3, 1,-1, np.array([0,0,0])),
+            Pindex_lm(3, 1, 0, np.array([0,0,0])),
+            Pindex_lm(3, 1, 1, np.array([0,0,0])),
+        ]
 
     def Hijk(self, k: typing.Tuple[float]):
         k = np.array(k)
@@ -161,4 +181,5 @@ class Royer_Richard_TB(TightBindingBase):
                 ham[i,j] += value * np.exp(2j * np.pi * kR)
         return ham
 
-
+    def Sijk(self, k: any):
+        return np.eye(self.size, self.size)

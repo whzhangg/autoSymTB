@@ -1,6 +1,6 @@
 import numpy as np
 import abc, typing, copy
-from ..utilities import find_RCL
+from ..tools import find_RCL
 from ..tightbinding import TightBindingBase
 
 class SpinDegenerateDOSBase(abc.ABC):

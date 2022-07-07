@@ -15,7 +15,7 @@ from .utilities import (
 from .io import (
     write_json, read_json,
     write_yaml, read_yaml,
-    read_cif_to_cpt
+    read_cif_to_cpt, atom_from_cpt
 )
 
 from .valence_orbitals import valence_dictionary
