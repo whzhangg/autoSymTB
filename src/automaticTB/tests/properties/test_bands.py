@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from automaticTB.tightbinding.RoyerRichardTB import Royer_Richard_TB
+from automaticTB.tightbinding import Royer_Richard_TB, SingleBand_TB
 from automaticTB.properties.bandstructure import Kpath, Kline, get_bandstructure_result, BandStructureResult
 
 
@@ -43,3 +43,13 @@ def test_plot_bandstructure():
     tb, kpath = prepare_tightbinding_kpath()
     band_result = get_bandstructure_result(tb, kpath)
     band_result.plot_data(testfilename)
+
+def test_plot_bandstructure_single_band():
+    testfilename = "Band_singleband.pdf"
+    tb, kpath = prepare_tightbinding_kpath()
+    tb = SingleBand_TB()
+    band_result = get_bandstructure_result(tb, kpath)
+    band_result.plot_data(testfilename)
+    
+if __name__ == "__main__":
+    test_plot_bandstructure_single_band()

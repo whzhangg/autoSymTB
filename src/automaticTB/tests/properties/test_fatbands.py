@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from automaticTB.tightbinding.RoyerRichardTB import Royer_Richard_TB
+from automaticTB.tightbinding import Royer_Richard_TB
 from automaticTB.properties.bandstructure import Kpath, Kline, get_bandstructure_result, BandStructureResult
 from automaticTB.properties.fatband import get_fatband_result
 

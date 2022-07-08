@@ -36,7 +36,7 @@ class BoltzTrapData(abc.ABC):
         raise NotImplementedError
 
     
-    def select_band(self, ebands: np.ndarray, efermi_eV: float) -> typing.list[int]:
+    def select_band(self, ebands: np.ndarray, efermi_eV: float) -> typing.List[int]:
         efermi = efermi_eV / eV2Hartree
         nbnd = len(ebands)
         up = efermi + self.WINDOW
@@ -79,9 +79,10 @@ class TBoltzTrapCalculation:
     nele: int
     dosweight: int
 
-    def get_approximate_fermi(self, nbnds: np.ndarray) -> float:
-        sorted_eigenvalue = np.sort(nbnds.flatten())
-        which = self.nele // self.dosweight
+    def get_approximate_fermi(self, ebnds: np.ndarray) -> float:
+        Nk = self.ngrid[0] * self.ngrid[1] * self.ngrid[2]
+        sorted_eigenvalue = np.sort(ebnds.flatten())
+        which = self.nele * Nk // self.dosweight
         return sorted_eigenvalue[which]
 
     @property
@@ -120,7 +121,7 @@ class TBoltzTrapCalculation:
         # rather, it is passed to dosweight (default to 2.0)
         # see examples/Bi2Te3_Kappa.py 
 
-        mu0 = self.approximate_fermi_eV
+        mu0 = self.get_approximate_fermi(data.ebands)
 
         nkp_nscf = len(data.kpoints)
 

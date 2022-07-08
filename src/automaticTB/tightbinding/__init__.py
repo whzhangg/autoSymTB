@@ -1,2 +1,3 @@
 from .tightbinding_model import TightBindingBase, TightBindingModel, HijR, gather_InteractionPairs_into_HijRs, gather_InteractionPairs_into_SijRs
-from .RoyerRichardTB import Royer_Richard_TB
+from .models.RoyerRichardTB import Royer_Richard_TB
+from .models.singlebandTB import SingleBand_TB

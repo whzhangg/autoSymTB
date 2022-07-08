@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from .tightbinding_model import TightBindingBase, Pindex_lm
+from ..tightbinding_model import TightBindingBase, Pindex_lm
 
 parameters = {
         "V_ss"   :  -1.10,

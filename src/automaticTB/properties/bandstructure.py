@@ -122,7 +122,7 @@ class BandStructureResult:
         axes = fig.subplots()
 
         axes.set_ylabel("Energy (eV)")
-        axes.set_xlabel("High Symmetry Point")
+        #axes.set_xlabel("High Symmetry Point")
         ymin = np.min(self.E)
         ymax = np.max(self.E)
         ymin = ymin - (ymax - ymin) * 0.05
