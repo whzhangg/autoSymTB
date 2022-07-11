@@ -1,67 +1,9 @@
 import typing, dataclasses
 import numpy as np
+from .kpath import Kpath, BandPathTick
 from ..tightbinding import TightBindingBase
-
-@dataclasses.dataclass
-class Kline:
-    # kpoints will include the first and the last k point
-    start_symbol: str
-    start_k: np.ndarray 
-    end_symbol: str
-    end_k : np.ndarray
-    nk: int
-
-    @property
-    def kpoints(self) -> np.ndarray:
-        return np.linspace(self.start_k, self.end_k, self.nk+1)
-
-
-@dataclasses.dataclass
-class BandPathTick:
-    symbol: int
-    xpos: float
-
-    def __eq__(self, other) -> bool:
-        return self.symbol == other.symbol and np.isclose(self.xpos, other.xpos, atol=1e-4)
-
-
-class Kpath:
-    def __init__(self, reciprocal_lattice: np.ndarray, klines : typing.List[Kline]) -> None:
-        self._klines = klines
-        self._latticeT = reciprocal_lattice.T
-        self._kpoints = []
-        self._xpos = []
-        self._tics: typing.List[typing.Tuple[str, float]] = []
-
-        start = 0
-        for kl in klines:
-            cartesian_delta = self._latticeT.dot(kl.end_k - kl.start_k)
-            cartesian_distance = np.linalg.norm(cartesian_delta)
-            end = start + cartesian_distance
-            dxs = np.linspace(start, end, kl.nk + 1)
-
-            self._xpos.append(dxs)
-            start_tick = BandPathTick(kl.start_symbol, start)
-            if start_tick not in self._tics: self._tics.append(start_tick)
-            self._tics.append(BandPathTick(kl.end_symbol, end))
-            self._kpoints.append(kl.kpoints)
-
-            start = end
-        self._kpoints = np.vstack(self._kpoints)
-        self._xpos = np.hstack(self._xpos)
-        
-    @property
-    def ticks(self) -> typing.List[BandPathTick]:
-        return self._tics
-
-    @property
-    def kpoints(self) -> np.ndarray:
-        return self._kpoints
-
-    @property
-    def xpos(self) -> np.ndarray:
-        return self._xpos
-
+from ..printing import get_orbital_symbol_from_lm
+from ase.data import chemical_symbols
 
 @dataclasses.dataclass
 class BandStructureResult:
@@ -90,6 +32,16 @@ class BandStructureResult:
         return np.allclose(self.x, o.x) and \
                np.allclose(self.E, o.E) and \
                    self.ticks == o.ticks
+
+
+    @classmethod
+    def from_tightbinding_and_kpath(
+        cls, tb: TightBindingBase, kpath: Kpath
+    ) -> "BandStructureResult":
+        energies = tb.solveE_at_ks(kpath.kpoints)
+        return cls(
+            kpath.xpos, energies, kpath.ticks
+        )
 
 
     @classmethod
@@ -145,10 +97,144 @@ class BandStructureResult:
         fig.savefig(filename)
 
 
-def get_bandstructure_result(
-    tb: TightBindingBase, kpath: Kpath
-) -> BandStructureResult:
-    energies = tb.solveE_at_ks(kpath.kpoints)
-    return BandStructureResult(
-        kpath.xpos, energies, kpath.ticks
-    )
+@dataclasses.dataclass
+class OrbitName:
+    chemical_symbol: str
+    primitive_index: int
+    l: int
+    m: int
+
+    @property
+    def orbital_symbol(self) -> str:
+        return get_orbital_symbol_from_lm(self.l, self.m)
+
+    # eg: "Cl(2) px", "Fe(1) dxy", index (i) start from 1, giving the primitive cell index
+    def __repr__(self) -> str:
+        return f"{self.chemical_symbol}({self.primitive_index + 1}) {self.orbital_symbol}"
+    
+
+@dataclasses.dataclass
+class FlatBandResult:
+    x: np.ndarray 
+    E: np.ndarray  # [nx, nbnd]
+    c2: np.ndarray # [nx, nbnd, norb], squared coefficients, 
+    orbnames: typing.List[str]
+    ticks: typing.List[BandPathTick]
+
+    def plot_fatband(self, filename: str, orbitalgroups: typing.Dict[str, typing.List[str]]) -> None:
+        """
+        orbitalgroups are dictionaries like, 
+        where Symbol(primitive index) orbital_symbol give the orbital name
+        {
+            "Pb s": ["Pb(1) s"],
+            "Cl p": ["Cl(2) px","Cl(2) py","Cl(2) pz"]
+        }
+        """
+        # the following 4 lines check if the names are correct
+        orbitals = []
+        for orbitalgroup in orbitalgroups.values():
+            orbitals += orbitalgroup
+        assert set(orbitals) <= set(self.orbnames), self.orbnames
+
+        n_orbgroup = len(orbitalgroups.keys())
+        orbitalgroup_indices = {}
+        for key, value in orbitalgroups.items():
+            orbitalgroup_indices[key] = [
+                [ self.orbnames.index(o) for o in value ]
+            ]
+
+        nx, nbnd = self.E.shape
+        nstate = int(nx * nbnd)
+        state_x = np.zeros(nstate, dtype = float)
+        state_y = np.zeros(nstate, dtype = float)
+        #state_cs = np.zeros((n_orbgroup, nstate), dtype = float)
+        state_c_dict = { key:np.zeros(nstate) for key in orbitalgroups.keys() }
+
+        count = 0
+        for ix in range(nx):
+            for ibnd in range(nbnd):
+                state_x[count] = self.x[ix]
+                state_y[count] = self.E[ix, ibnd]
+                for key, group_indices in orbitalgroup_indices.items():
+                    state_c_dict[key][count] = np.sum(self.c2[ix, ibnd, group_indices])
+                count += 1
+
+        # plot simple band structure
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        axes = fig.subplots()
+
+        axes.set_ylabel("Energy (eV)")
+        #axes.set_xlabel("High Symmetry Point")
+        ymin = np.min(self.E)
+        ymax = np.max(self.E)
+        ymin = ymin - (ymax - ymin) * 0.05
+        ymax = ymax + (ymax - ymin) * 0.05
+
+        axes.set_xlim(min(self.x), max(self.x))
+        axes.set_ylim(ymin, ymax)
+
+        for key, state_c in state_c_dict.items():
+            axes.scatter(state_x, state_y, s = state_c * 5, marker = 'o', label = f"{key}")
+        
+        for tick in self.ticks:
+            x = tick.xpos
+            axes.plot([x,x], [ymin,ymax], color='gray')
+
+        tick_x = [ tick.xpos for tick in self.ticks ]
+        tick_s = [ tick.symbol for tick in self.ticks ]
+        axes.xaxis.set_major_locator(plt.FixedLocator(tick_x))
+        axes.xaxis.set_major_formatter(plt.FixedFormatter(tick_s))
+        axes.legend()
+        fig.savefig(filename)
+
+
+    def plot_data(self, filename: str):
+        # plot simple band structure
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        axes = fig.subplots()
+
+        axes.set_ylabel("Energy (eV)")
+        #axes.set_xlabel("High Symmetry Point")
+        ymin = np.min(self.E)
+        ymax = np.max(self.E)
+        ymin = ymin - (ymax - ymin) * 0.05
+        ymax = ymax + (ymax - ymin) * 0.05
+
+        axes.set_xlim(min(self.x), max(self.x))
+        axes.set_ylim(ymin, ymax)
+
+        for ibnd in range(self.E.shape[1]):
+            axes.plot(self.x, self.E[:, ibnd])
+        for tick in self.ticks:
+            x = tick.xpos
+            axes.plot([x,x], [ymin,ymax], color='gray')
+
+        tick_x = [ tick.xpos for tick in self.ticks ]
+        tick_s = [ tick.symbol for tick in self.ticks ]
+        axes.xaxis.set_major_locator(plt.FixedLocator(tick_x))
+        axes.xaxis.set_major_formatter(plt.FixedFormatter(tick_s))
+
+        fig.savefig(filename)
+
+
+    @classmethod
+    def from_tightbinding_and_kpath(cls,
+        tb: TightBindingBase, kpath: Kpath
+    ) -> "FlatBandResult":
+        energies, coefficients = tb.solveE_c2_at_ks(kpath.kpoints)
+        orbnames = []
+        for basis in tb.basis:
+            l = basis.l
+            m = basis.m
+            primitive_index = basis.pindex
+            sym = chemical_symbols[tb.types[primitive_index]]
+            orbnames.append(
+                str(OrbitName(sym, primitive_index, l, m))
+            )
+
+        return cls(
+            kpath.xpos, energies, coefficients, orbnames, kpath.ticks
+        )
+

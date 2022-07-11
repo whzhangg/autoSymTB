@@ -7,11 +7,26 @@ import BoltzTraP2.bandlib
 from BoltzTraP2.units import Angstrom, Meter, eV
 
 eV2Hartree = eV # eV is from BoltzTrap
-from .dos import Kmesh
+from .kmesh import Kmesh
 from ..tightbinding import TightBindingBase
-from ..tools import find_RCL, atom_from_cpt, write_json
+from ..tools import find_RCL, atom_from_cpt,  write_yaml
 
 # TODO: write test for BoltzTrap Data
+
+@dataclasses.dataclass
+class SingleBoltzTrapResult:
+    """
+    single condition transport property, 
+    Important thing to note here is that sigma is provided as per second quantity if using 
+    single relaxation time approximation 
+    """
+    temperature: float
+    mu: float
+    seebeck: np.ndarray # 3*3
+    sigma: np.ndarray # 3*3
+    ncarrier: float
+    units: typing.Dict[str, str]
+
 
 class BoltzTrapData(abc.ABC):
     WINDOW = 0.26 # Hartree ~ 7 eV
@@ -51,7 +66,8 @@ class BoltzTrapData(abc.ABC):
         return indices
 
 
-class TBoltzTrapData(BoltzTrapData):
+class TBoltzTrapData():
+    WINDOW = 0.26 # Hartree ~ 7 eV
     def __init__(self, kpoints: np.ndarray, ebnds: np.ndarray, cell: np.ndarray, approximate_fermi_eV: float) -> None:
         assert len(kpoints) == ebnds.shape[1]
         self._kpoints = kpoints
@@ -67,9 +83,118 @@ class TBoltzTrapData(BoltzTrapData):
     def ebands(self) -> np.ndarray:
         return self._ebnds * eV2Hartree
 
+    @property
+    def mommat(self) -> typing.Optional[np.ndarray]:
+        return None
+
     def get_lattvec(self) -> np.ndarray:
         # see line 63, BoltzTrap2/examples/parabolic.py
         return self._cell.T * Angstrom
+
+    def select_band(self, ebands: np.ndarray, efermi_eV: float) -> typing.List[int]:
+        efermi = efermi_eV / eV2Hartree
+        nbnd = len(ebands)
+        up = efermi + self.WINDOW
+        down = efermi - self.WINDOW
+        indices = []
+        for ibnd in range(nbnd):
+            if (ebands[ibnd] < down).all() or (ebands[ibnd] > up).all():
+                continue
+
+            indices.append(ibnd)
+
+        return indices
+
+# the code feels a bit ad-hoc, since I did not dig into the internals of BoltzTrap
+
+class TBoltzTrapCalculation:
+    def __init__(self, 
+        tightbinding: TightBindingBase,
+        ngrid: typing.Tuple[int, int, int],
+        nele: int,
+        dosweight: int
+    ) -> None:
+        self._tightbinding = tightbinding
+        self._nele = nele
+        self._dosweight = dosweight
+
+        self._kmesh = Kmesh(
+            find_RCL(self._tightbinding.cell), ngrid
+        )
+        self._energies = self._tightbinding.solveE_at_k(self._kmesh.kpoints).T  # so that we have [nbnd, nk]
+
+        _sorted_eigenvalue = np.sort(self._energies.flatten())
+        which = self._nele * self._kmesh.numk // self.dosweight
+        self._approximate_ef = _sorted_eigenvalue[which] # in eV
+
+        self._boltztrapData = TBoltzTrapData(
+            self._kmesh.kpoints, self._energies, self._tightbinding.cell, self._approximate_ef
+        )
+
+        self._lastresults: typing.List[SingleBoltzTrapResult] = []
+
+
+    def calculate(
+        self, temps: typing.List[float], mu: typing.List[float], factor: int
+    ) -> typing.List[SingleBoltzTrapResult]:
+        temps = np.array(temps)
+        murange = np.array(mu) * eV2Hartree
+
+        structure = atom_from_cpt(
+            self._tightbinding.cell, self._tightbinding.positions, self._tightbinding.types
+        )
+
+
+        equivalences = BoltzTraP2.sphere.get_equivalences(structure, None,
+                                                        factor * self._kmesh.numk)
+
+        coeffs = BoltzTraP2.fite.fitde3D(self._boltztrapData, equivalences)
+
+        eband, vvband, cband = BoltzTraP2.fite.getBTPbands(equivalences, coeffs,
+                                                        self._boltztrapData.get_lattvec())
+        
+        dose, dos, vvdos, cdos = BoltzTraP2.bandlib.BTPDOS(eband, vvband, 
+                                    erange=(self._approximate_ef - 1.0, self._approximate_ef + 1.0), npts=2000)
+
+        
+        N, L0, L1, L2, Lm11 = BoltzTraP2.bandlib.fermiintegrals(
+                            dose, dos, vvdos, mur=murange, Tr = temps, dosweight= self._dosweight)
+
+        volume = np.linalg.det(self._boltztrapData.get_lattvec())
+        sigma, seebeck, kappa, Hall = BoltzTraP2.bandlib.calc_Onsager_coefficients(L0, L1, L2, murange, temps, volume)
+        # sigma is calculated with tau = 1.0
+        
+        # N gives the tot number of electrons
+        dN = (-N) * self._dosweight  - self._nele   # positive for more electrons, n type
+        dN = dN / (volume / (Meter / 100.)**3)  
+
+        results: typing.List[SingleBoltzTrapResult] = []
+        for itemp, temp in enumerate(temps):
+            for imu, mu in enumerate(murange):
+                results.append(
+                    SingleBoltzTrapResult(
+                        temperature = temp,
+                        mu = mu,
+                        seebeck = seebeck[itemp, imu],
+                        sigma = sigma[itemp, imu],
+                        ncarrier = dN[itemp, imu],
+                        units = {
+                            "temperature": "K",
+                            "mu": "eV",
+                            "seebeck": "V/K",
+                            "sigma": "S/(ms)",
+                            "ncarrier": "cm^{-3}"
+                        }
+                    )
+                )
+        
+        self._lastresults = results
+        return results
+
+
+    def write_last_results_to_yaml(self, filename: str) -> None:
+        dicted_result = [ dataclasses.asdict(r) for r in self._lastresults ]
+        write_yaml(dicted_result, filename)
 
 
 @dataclasses.dataclass
@@ -79,7 +204,10 @@ class TBoltzTrapCalculation:
     nele: int
     dosweight: int
 
-    def get_approximate_fermi(self, ebnds: np.ndarray) -> float:
+    def _get_approximate_fermi(self, ebnds: np.ndarray) -> float:
+        """
+        using 
+        """
         Nk = self.ngrid[0] * self.ngrid[1] * self.ngrid[2]
         sorted_eigenvalue = np.sort(ebnds.flatten())
         which = self.nele * Nk // self.dosweight
@@ -100,13 +228,12 @@ class TBoltzTrapCalculation:
         )
     
     def calculate(self, 
-        temp: typing.List[float], 
+        temps: typing.List[float], 
         mu: typing.List[float],
-        tau_sec: float, 
-        factor: int
+        factor: int 
     ) -> dict:
 
-        temp = np.array(temp)
+        temps = np.array(temps)
         murange = np.array(mu) * eV2Hartree
         degeneracy = self.dosweight
 
@@ -138,40 +265,40 @@ class TBoltzTrapCalculation:
 
         
         N, L0, L1, L2, Lm11 = BoltzTraP2.bandlib.fermiintegrals(
-                            dose, dos, vvdos, mur=murange, Tr = temp, dosweight= degeneracy)
+                            dose, dos, vvdos, mur=murange, Tr = temps, dosweight= degeneracy)
 
         volume = np.linalg.det(data.get_lattvec())
-        sigma, seebeck, kappa, Hall = BoltzTraP2.bandlib.calc_Onsager_coefficients(L0, L1, L2, murange, temp, volume)
-
-        sigma *= tau_sec
+        sigma, seebeck, kappa, Hall = BoltzTraP2.bandlib.calc_Onsager_coefficients(L0, L1, L2, murange, temps, volume)
+        # sigma is calculated with tau = 1.0
+        
         # N gives the tot number of electrons
         dN = (-N) * degeneracy  - self.nele   # positive for more electrons, n type
         dN = dN / (volume / (Meter / 100.)**3)  
 
-        final = {}
-        
-        final["units"] = {"temperature" : "K",
-                        "chemical_potential" : "eV",
-                        "relaxation_time" : "second",
-                        "seebeck" : "V/K",
-                        "sigma" : "S/m",
-                        "carrier_concentration" : "cm^{-3}"
+        results: typing.List[SingleBoltzTrapResult] = []
+        for itemp, temp in enumerate(temps):
+            for imu, mu in enumerate(murange):
+                results.append(
+                    SingleBoltzTrapResult(
+                        temperature = temp,
+                        mu = mu,
+                        seebeck = seebeck[itemp, imu],
+                        sigma = sigma[itemp, imu],
+                        ncarrier = dN[itemp, imu],
+                        units = {
+                            "temperature": "K",
+                            "mu": "eV",
+                            "seebeck": "V/K",
+                            "sigma": "S/(ms)",
+                            "ncarrier": "cm^{-3}"
                         }
+                    )
+                )
+        
 
-        final["temperature"] = temp
-        final["chemical_potential"] = murange / eV2Hartree
-        final["relaxation_time"] = tau_sec
-        final["seebeck"] = seebeck
-        final["sigma"] = sigma
-        final["carrier_concentration"] = dN
-
-        return final
+        return results
 
 
-def write_boltztrap_result2file(filename, result):
-    result["temperature"] = result["temperature"].tolist()
-    result["chemical_potential"] = result["chemical_potential"].tolist()
-    result["seebeck"] = result["seebeck"].tolist()
-    result["sigma"] = result["sigma"].tolist()
-    result["carrier_concentration"] = result["carrier_concentration"].tolist()
-    write_json(result, filename)
+def write_results_yaml(results: typing.List[SingleBoltzTrapResult]) -> None:
+    dicted_result = [ dataclasses.asdict(r) for r in results ]
+    write_yaml(dicted_result, "boltztrap2.yaml")

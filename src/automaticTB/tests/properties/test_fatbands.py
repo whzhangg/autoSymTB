@@ -1,8 +1,8 @@
 import numpy as np
 import typing
 from automaticTB.tightbinding import Royer_Richard_TB
-from automaticTB.properties.bandstructure import Kpath, Kline, get_bandstructure_result, BandStructureResult
-from automaticTB.properties.fatband import get_fatband_result
+from automaticTB.properties.kpath import Kpath, Kline
+from automaticTB.properties.bandstructure import FlatBandResult
 
 
 def prepare_tightbinding_kpath() -> typing.Tuple[Royer_Richard_TB, Kpath]:
@@ -16,11 +16,11 @@ def prepare_tightbinding_kpath() -> typing.Tuple[Royer_Richard_TB, Kpath]:
     }
 
     lines = [
-        Kline("M", kpos["M"], "R", kpos["R"], 10),
-        Kline("R", kpos["R"], "G", kpos["G"], 18),
-        Kline("G", kpos["G"], "X", kpos["X"], 10),
-        Kline("X", kpos["X"], "M", kpos["M"], 10),
-        Kline("M", kpos["M"], "G", kpos["G"], 15),
+        Kline("M", kpos["M"], "R", kpos["R"]),
+        Kline("R", kpos["R"], "G", kpos["G"]),
+        Kline("G", kpos["G"], "X", kpos["X"]),
+        Kline("X", kpos["X"], "M", kpos["M"]),
+        Kline("M", kpos["M"], "G", kpos["G"]),
     ]
 
     kpath = Kpath(np.eye(3), lines)
@@ -30,6 +30,10 @@ def prepare_tightbinding_kpath() -> typing.Tuple[Royer_Richard_TB, Kpath]:
 
 def test_plot_bandstructure():
     testfilename = "FatBand_RoyerRichardPerovskite.pdf"
+    fatband_dict = {
+        "Pb s": ["Pb(1) s"],
+        "Cl p": ["Cl(2) px","Cl(2) py","Cl(2) pz"]
+    }
     tb, kpath = prepare_tightbinding_kpath()
-    band_result = get_fatband_result(tb, kpath)
-    band_result.plot_data(testfilename, [["Pb(1) s"],["Cl(2) px","Cl(2) py","Cl(2) pz"]])
+    band_result = FlatBandResult.from_tightbinding_and_kpath(tb, kpath)
+    band_result.plot_fatband(testfilename, fatband_dict)

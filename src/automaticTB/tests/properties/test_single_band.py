@@ -1,7 +1,8 @@
 import numpy as np
 import typing
 from automaticTB.tightbinding import Royer_Richard_TB, SingleBand_TB
-from automaticTB.properties.bandstructure import Kpath, Kline, get_bandstructure_result, BandStructureResult
+from automaticTB.properties.kpath import Kline, Kpath
+from automaticTB.properties.bandstructure import get_bandstructure_result, BandStructureResult
 import matplotlib.pyplot as plt
 
 def prepare_cubic_kpath() -> Kpath:
@@ -13,11 +14,11 @@ def prepare_cubic_kpath() -> Kpath:
     }
 
     lines = [
-        Kline("M", kpos["M"], "R", kpos["R"], 20),
-        Kline("R", kpos["R"], "G", kpos["G"], 36),
-        Kline("G", kpos["G"], "X", kpos["X"], 20),
-        Kline("X", kpos["X"], "M", kpos["M"], 20),
-        Kline("M", kpos["M"], "G", kpos["G"], 30),
+        Kline("M", kpos["M"], "R", kpos["R"]),
+        Kline("R", kpos["R"], "G", kpos["G"]),
+        Kline("G", kpos["G"], "X", kpos["X"]),
+        Kline("X", kpos["X"], "M", kpos["M"]),
+        Kline("M", kpos["M"], "G", kpos["G"]),
     ]
 
     kpath = Kpath(np.eye(3), lines)
