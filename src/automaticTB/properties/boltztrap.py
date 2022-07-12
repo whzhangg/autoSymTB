@@ -198,7 +198,7 @@ class TBoltzTrapCalculation:
 
 
 @dataclasses.dataclass
-class TBoltzTrapCalculation:
+class TBoltzTrapCalculation_previous:
     tightbinding: TightBindingBase
     ngrid: typing.Tuple[int, int, int]
     nele: int

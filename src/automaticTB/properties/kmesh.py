@@ -32,7 +32,8 @@ class Kmesh:
     def numk(self) -> int:
         return self._nks[0] * self._nks[1] * self._nks[2]
 
-class TetraKmesh:
+
+class TetraKmesh(Kmesh):
     # kmesh designed for tetrahedron methods, which generate a set of kpoints as well as tetrahedrons
     MESH_SHIFT = ( (0, 0, 0),   # 1 0
                (1, 0, 0),   # 2 1

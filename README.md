@@ -14,5 +14,4 @@ There are four core functionalities of this python module:
 4. Solution of electronic properties based on solving the Hamiltonian
 
 ### Usage
-The codebase serve mainly as a library, but core functionalities can be called using prepared 
-scripts 
+The codebase serve mainly as a library, but core functionalities can be called using prepared scripts 

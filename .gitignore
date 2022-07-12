@@ -23,3 +23,8 @@ src/automaticTB/plotting/**/*.cube
 plots/**/*.vesta
 plots/**/*.cif
 plots/**/*.cube
+
+tests/properties/*.pdf
+
+bin/*.cube
+bin/*.pdf

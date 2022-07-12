@@ -51,6 +51,7 @@ class SiteSymmetryGroup:
     subgroups: typing.List[str]
     dressed_op: typing.Dict[str, np.ndarray]
 
+
     @classmethod
     def from_cartesian_matrices(cls, cartesian_matrices: typing.List[np.ndarray], groupname: str = ""):
         main_groupname = get_pointgroupname_from_rotation_matrices(cartesian_matrices)
@@ -85,6 +86,7 @@ class SiteSymmetryGroup:
             dressed_subgroup_operation
         )
 
+
     def get_subgroup(self, subgroup: str):
         if subgroup not in self.subgroups:
             raise ValueError(f"{subgroup} is not a subgroup of the current group {self.groupname}")
@@ -115,6 +117,7 @@ class SiteSymmetryGroup:
             list(symmetry_reduction[subgroup].keys()),
             dressed_subgroup_operation
         )
+
 
     def get_subgroup_from_subgroup_and_seitz_map(self, subgroup: str, seitz_mapper: typing.Dict[str, str]):
         if subgroup not in self.subgroups:

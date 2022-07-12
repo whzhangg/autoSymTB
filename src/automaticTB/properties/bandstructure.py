@@ -114,7 +114,7 @@ class OrbitName:
     
 
 @dataclasses.dataclass
-class FlatBandResult:
+class FatBandResult:
     x: np.ndarray 
     E: np.ndarray  # [nx, nbnd]
     c2: np.ndarray # [nx, nbnd, norb], squared coefficients, 
@@ -222,7 +222,7 @@ class FlatBandResult:
     @classmethod
     def from_tightbinding_and_kpath(cls,
         tb: TightBindingBase, kpath: Kpath
-    ) -> "FlatBandResult":
+    ) -> "FatBandResult":
         energies, coefficients = tb.solveE_c2_at_ks(kpath.kpoints)
         orbnames = []
         for basis in tb.basis:

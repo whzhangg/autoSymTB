@@ -53,8 +53,7 @@ class Kpath:
         _distances = [ kl.get_distance_given_cell(reciprocal_lattice) for kl in klines ]
         _total_distance = sum(_distances)
         nks = [ round(_ktotal * (d / _total_distance)) for d in _distances ]
-        print(nks)
-
+        
         start = 0
         for kl, nk in zip(klines, nks):
             cartesian_delta = self._latticeT.dot(kl.end_k - kl.start_k)

@@ -1,16 +1,6 @@
 import numpy as np
-import typing
-from automaticTB.properties.dos import TetraDOS
-from automaticTB.properties.kmesh import Kmesh
 from automaticTB.properties.boltztrap import TBoltzTrapCalculation, write_results_yaml
 from automaticTB.tightbinding import SingleBand_TB
-
-
-def prepare_tightbinding_kmesh() -> Kmesh:
-    reciprocal_cell = np.eye(3)
-    ngrid = [15,15,15]
-
-    return Kmesh(reciprocal_cell, ngrid)
 
 
 def test_single_band_dos():
