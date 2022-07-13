@@ -76,12 +76,12 @@ class LinearCombination:
             if np.abs(coeff) < zero_tolerance: continue
             if np.isreal(coeff):
                 coeff_to_print = coeff.real
-                formatter = "{:>+6.3f}({:>1d}{:> 2d})"
+                formatter = "{:>+6.3f}({:>1d}{:>2d}{:>2d})"
             else:
                 coeff_to_print = coeff
-                formatter = "{:>+12.2f}({:>1d}{:> 2d})"
+                formatter = "{:>+12.2f}({:>1d}{:>2d}{:>2d})"
             aline += formatter.format(
-                coeff_to_print, orbitals.sh_list[i].l, orbitals.sh_list[i].m)
+                coeff_to_print, orbitals.sh_list[i].n, orbitals.sh_list[i].l, orbitals.sh_list[i].m)
         return aline
 
     def general_rotate(self, cartesian_matrix: np.ndarray): # -> LinearCombination

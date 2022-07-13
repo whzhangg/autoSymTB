@@ -138,10 +138,11 @@ class NearestNeighborCluster:
 
         center_index = self.origin_index
         orbital_slices = self.orbitalslist.subspace_slice_dict
+        print(orbital_slices)
         center_subspace = []
         other_subspaces = []
         for eq_type, each_atom_set in self.equivalent_atoms_dict.items():
-            for orb in self.orbitalslist.orbital_list[eq_type].l_list:
+            for orb in self.orbitalslist.orbital_list[eq_type].nl_list:
                 indices = []
                 for iatom in each_atom_set:
                     indices += list(range(orbital_slices[iatom][orb].start, orbital_slices[iatom][orb].stop))
@@ -175,6 +176,7 @@ class NearestNeighborCluster:
                         primitive_index = csite.index_pcell, 
                         translation = csite.translation, 
                         chemical_symbol = csite.site.chemical_symbol,
+                        n = ao.n,
                         l = ao.l,
                         m = ao.m
                     )

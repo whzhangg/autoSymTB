@@ -24,11 +24,12 @@ def get_orbital_symbol_from_lm(l: int, m: int) -> str:
     return _print_lm[(l,m)]
 
 
-def _parse_orbital(l: int, m: int) -> str:
+def _parse_orbital(n: int, l: int, m: int) -> str:
     if (l,m) not in _print_lm:
-        return f"l={l};m={m}"
+        return f"n={n};l={l};m={m}"
     else:
-        return _print_lm[(l,m)]
+        formatted = _print_lm[(l,m)]
+        return f"{n}{formatted}"
 
 def print_namedLCs(namedLcs: typing.List[NamedLC]):
     for nlc in namedLcs:
@@ -42,8 +43,8 @@ def print_ao_pairs(nncluster: NearestNeighborCluster, pairs: typing.List[Pair]):
         right: AO = pair.right
         result = "{:>3d}".format(i+1) + " > Free AO interaction: "
         rij = nncluster.baresites[right.cluster_index].pos - nncluster.baresites[left.cluster_index].pos
-        result += f"{left.chemical_symbol} {_parse_orbital(left.l, left.m)} -> "
-        result += f"{right.chemical_symbol} {_parse_orbital(right.l, right.m)} @ "
+        result += f"{left.chemical_symbol} {_parse_orbital(left.n, left.l, left.m)} -> "
+        result += f"{right.chemical_symbol} {_parse_orbital(right.n, right.l, right.m)} @ "
         result += "({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
         print(result)
 

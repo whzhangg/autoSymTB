@@ -6,7 +6,8 @@
  - [x] Improve the flat band solution and unify band structure plot
  - [x] debug the boltztrap solution, *now boltztrap class should be clean to work with*
  - [x] write test outside of `src`
- - [ ] Branching, add support for n orbital number
+ - [x] Branching, add support for n orbital number
+ - [ ] fully support the orbital n-number
  - [ ] Si, tight-binding model
  - [ ] 
 
