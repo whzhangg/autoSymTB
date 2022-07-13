@@ -6,7 +6,7 @@ from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
 from ..SALCs import NamedLC, IrrepSymbol
 
-class BlockTransformer:
+class CoefficientMatrix:
     def __init__(
         self,
         left_ao_indices: typing.List[int],
@@ -29,20 +29,17 @@ class BlockTransformer:
                 )
             rows.append(row)
         self.matrix = np.array(rows)
-    
-    @property
-    def is_selfinteraction(self) -> bool:
-        return set(self._ao_indices_pairs.left) == set(self._ao_indices_pairs.right)
-
+  
+  
     @property
     def inv_matrix(self):
         return np.linalg.inv(self.matrix)
         
 
-def get_block_transformer(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC]) \
--> typing.List[BlockTransformer]:
+def get_coefficient_matrix(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC]) \
+-> typing.List[CoefficientMatrix]:
     stacked_coefficients = np.vstack([nlc.lc.coefficients for nlc in named_lcs])
-    conversion_matrices: typing.List[BlockTransformer] = []
+    conversion_matrices: typing.List[CoefficientMatrix] = []
     for pair in nncluster.interaction_subspace_pairs:
         left: ClusterSubSpace = pair.left
         right: ClusterSubSpace = pair.right
@@ -56,7 +53,7 @@ def get_block_transformer(nncluster: NearestNeighborCluster, named_lcs: typing.L
             if np.linalg.norm(namedlc.lc.coefficients[right.indices]) > zero_tolerance:
                 moindex_right.append(i)
         conversion_matrices.append(
-            BlockTransformer(
+            CoefficientMatrix(
                 left.indices, moindex_left, right.indices, moindex_right, stacked_coefficients
             )
         )
@@ -84,7 +81,7 @@ class HomogeneousEquationFinder:
 
 def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC], debug = False) \
 -> typing.List[Pair]:
-    transformer = get_block_transformer(nncluster, named_lcs)
+    transformer = get_coefficient_matrix(nncluster, named_lcs)
     ao_pairs = []
 
     for conversion in transformer:

@@ -37,17 +37,6 @@ def _get_SiteSymmetryGroup_from_crystalsites_and_rotations(
     return SiteSymmetryGroup.from_cartesian_matrices(symmetries)
 
 
-def get_standardized_cpt_cartesian_rotation(cell, positions, types):
-    pcell = spglib.find_primitive((cell, positions, types))
-    c, p, t = pcell
-
-    rotations = spglib.get_symmetry(pcell, symprec = symprec)["rotations"]
-    cartesian_rotations = rotation_fraction_to_cartesian(rotations, c)
-    p, _ = _get_home_position_and_cell_translation(p)  # so that p between [0,1)
-
-    return c, p, t, cartesian_rotations
-
-
 @dataclasses.dataclass
 class Structure:
     cell: np.ndarray
@@ -113,7 +102,8 @@ class Structure:
     def from_cpt_voronoi(
         cls, cell: np.ndarray, positions: typing.List[np.ndarray], types: typing.List[int], 
         orbital_dict: typing.Dict[str, typing.List[int]], 
-        weight_cutoff: float, rcut: float
+        rcut: float = 4.0, 
+        weight_cutoff: float = 1e-1
     ) -> "Structure":
         """
         Paramters:

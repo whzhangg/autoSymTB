@@ -12,3 +12,4 @@
 
 ### Rule for writting tests
 - use single folders to collect tests into independent sections
+

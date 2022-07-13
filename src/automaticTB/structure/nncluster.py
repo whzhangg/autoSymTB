@@ -182,13 +182,6 @@ class NearestNeighborCluster:
         self._meta["AOlist"] = result
         return result
 
-    def get_subspace_AO_Pairs(self, subspace_pair: Pair) -> typing.List[Pair]:
-        left: ClusterSubSpace = subspace_pair.left
-        right: ClusterSubSpace = subspace_pair.right
-
-        left_aos = [ self.AOlist[i] for i in left.indices ]
-        right_aos = [ self.AOlist[i] for i in right.indices ]
-        return tensor_dot(left_aos, right_aos)
 
     def write_to_cif(self, filename: str) -> None:
         positions = np.array(

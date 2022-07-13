@@ -5,27 +5,9 @@ from ..tools import find_free_variable_indices, tensor_dot, Pair
 from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
 from ..SALCs import NamedLC, IrrepSymbol
-from ..printing import print_matrix, print_ao_pairs
 from .interaction_pairs import InteractionPairs
 from .MOInteraction import HomogeneousEquationFinder
 
-
-class HomogeneousEquationFinder:
-    def __init__(self) -> None:
-        self.memory = {}
-
-    def get_equation(self, rep1: IrrepSymbol, rep2: IrrepSymbol, tp: np.ndarray) -> typing.Optional[np.ndarray]:
-        if rep1.symmetry_symbol != rep2.symmetry_symbol:
-            return tp
-
-        main1 = f"{rep1.main_irrep}^{rep1.main_index}"
-        main2 = f"{rep2.main_irrep}^{rep2.main_index}"
-        pair = " ".join([main1, main2])
-        if pair not in self.memory:
-            self.memory[pair] = tp
-            return None
-        else:
-            return tp - self.memory[pair]
 
 @dataclasses.dataclass
 class InteractionEquation:

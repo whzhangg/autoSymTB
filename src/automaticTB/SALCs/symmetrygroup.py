@@ -1,4 +1,3 @@
-# basically, this script will dress the site symmetry group so that we do not need to calculate wigner matrix again and again.
 import dataclasses, typing
 from ..sitesymmetry import SiteSymmetryGroup, subduction_data
 from ..rotation import orbital_rotation_from_symmetry_matrix
@@ -20,6 +19,9 @@ class IrreducibleRep:
 
 @dataclasses.dataclass
 class SiteSymmetryGroupwithOrbital:
+    """
+    This class define a wrapper that store the rotation matrix in the orbital space  so we don't need to calculate it again
+    """
     groupname: str
     irreps: typing.List[IrreducibleRep]
     operations: typing.List[CartesianOrbitalRotation]

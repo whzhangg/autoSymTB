@@ -5,6 +5,9 @@ class SpHar(typing.NamedTuple):
     l: int
     m: int
 
+class nSpHar(typing.NamedTuple):
+    n: int
+    sp: SpHar
 
 class Orbitals:
     _aoirrep_ref = {0 : "1x0e",  1 : "1x1o", 2 : "1x2e"}
