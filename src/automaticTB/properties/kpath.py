@@ -34,7 +34,7 @@ class Kpath:
     """
     this class provide the set of kpoints in a typical bandstructure plot.
     It needs: 
-    - reciprocal_lattice: used to determine the 
+    - reciprocal_lattice: only used to determine the distance between k points in the plot
     - klines: specify the high symmetry points
     - quality: int in [-1, 0, 1], total number of kpoints = 120 + quality * 30
     It supplies:

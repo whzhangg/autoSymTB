@@ -18,7 +18,7 @@ fcc_si = {
     "types": [14, 14, 14, 14, 14, 14, 14, 14]
 }
 
-def get_si_structure() -> Structure:
+def get_Si_structure() -> Structure:
     fcc_si = {
         "cell": np.eye(3) * 5.43053,
         "positions": np.array(
@@ -34,4 +34,4 @@ def get_si_structure() -> Structure:
         "types": [14, 14, 14, 14, 14, 14, 14, 14]
     }
     c, p, t = fcc_si["cell"], fcc_si["positions"], fcc_si["types"]
-    return Structure.from_cpt_rcut(c,p,t, {"Si": [0,1]}, 3.0)
+    return Structure.from_cpt_rcut(c,p,t, {"Si": [[0,0],[0,1]]}, 3.0)

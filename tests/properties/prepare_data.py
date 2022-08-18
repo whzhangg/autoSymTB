@@ -1,7 +1,6 @@
 import numpy as np
 from automaticTB.properties.kpath import Kline, Kpath
 
-
 kpos = {
     "M": np.array([0.5,0.5,0.0]),
     "X": np.array([0.5,0.0,0.0]),

@@ -138,7 +138,6 @@ class NearestNeighborCluster:
 
         center_index = self.origin_index
         orbital_slices = self.orbitalslist.subspace_slice_dict
-        print(orbital_slices)
         center_subspace = []
         other_subspaces = []
         for eq_type, each_atom_set in self.equivalent_atoms_dict.items():
