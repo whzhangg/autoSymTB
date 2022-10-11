@@ -16,6 +16,9 @@ def _get_home_position_and_cell_translation(fractional_positions: np.ndarray):
 
 
 def _position_string(pos: np.ndarray):
+    """
+    convert position to string to compare positions
+    """
     return "{:>+12.6f}{:>+12.6f}{:>+12.6f}".format(pos[0], pos[1], pos[2])
 
 
@@ -61,6 +64,7 @@ class Structure:
         """
         c, p, t = cls.get_standarized_cpt(cell, positions, types)
         cartesian_p = np.einsum("ji, kj -> ki", c, p) # note we use ji, so no transpose necessary
+
         fractional_position_index_reference = {
             _position_string(pos):i for i, pos in enumerate(p)
         }
@@ -70,14 +74,15 @@ class Structure:
 
         pymatgen_structure = matgenStructure.Structure(lattice = c, species = t, coords = p)
         nnsites: typing.List[NearestNeighborCluster] = []
-        for i, cpos in enumerate(cartesian_p):
-            crystalsites = []
-            orbitals = []
+        for _, cpos in enumerate(cartesian_p):
             sites = pymatgen_structure.get_sites_in_sphere(cpos, rcut)
             fraction_pos = np.vstack([
                 np.array([site.a, site.b, site.c]) for site in sites
             ])
             home_pos, translation = _get_home_position_and_cell_translation(fraction_pos)
+
+            crystalsites: typing.List[CrystalSite] = []
+            orbitals: typing.List[Orbitals] = []
             for hp, tr, site in zip(home_pos, translation, sites):
                 index = fractional_position_index_reference[_position_string(hp)]
                 relative_cartesian = np.array([site.x, site.y, site.z]) - cpos
@@ -88,7 +93,7 @@ class Structure:
                     Orbitals(orbital_dict[crystal_site.site.chemical_symbol])
                 )
             
-            group = _get_SiteSymmetryGroup_from_crystalsites_and_rotations(
+            group: SiteSymmetryGroup = _get_SiteSymmetryGroup_from_crystalsites_and_rotations(
                 crystalsites, cartesian_rotations
             )
             nnsites.append(
@@ -154,6 +159,9 @@ class Structure:
 
     @staticmethod
     def get_standarized_cpt(cell: np.ndarray, positions: typing.List[np.ndarray], types: typing.List[int]) -> tuple:
+        """
+        to find and use the primitive cell only
+        """
         pcell = spglib.find_primitive((cell, positions, types))
         c, p, t = pcell
         p, _ = _get_home_position_and_cell_translation(p)  # so that p between [0,1)

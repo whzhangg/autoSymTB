@@ -1,6 +1,6 @@
 import dataclasses, typing
 import numpy as np
-from automaticTB.sitesymmetry import SiteSymmetryGroup
+from ..sitesymmetry import SiteSymmetryGroup
 from .sites import Site, CrystalSite
 from ..parameters import zero_tolerance
 from ..atomic_orbitals import OrbitalsList
@@ -14,7 +14,6 @@ class ClusterSubSpace(typing.NamedTuple):
     equivalence_type: int
     l: int
     indices: typing.List[int]
-
 
 
 class NearestNeighborCluster:
