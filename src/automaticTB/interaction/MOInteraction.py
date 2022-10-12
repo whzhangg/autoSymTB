@@ -36,8 +36,9 @@ class CoefficientMatrix:
         return np.linalg.inv(self.matrix)
         
 
-def get_coefficient_matrix(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC]) \
--> typing.List[CoefficientMatrix]:
+def get_coefficient_matrix(
+    nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC]
+) -> typing.List[CoefficientMatrix]:
     stacked_coefficients = np.vstack([nlc.lc.coefficients for nlc in named_lcs])
     conversion_matrices: typing.List[CoefficientMatrix] = []
     for pair in nncluster.interaction_subspace_pairs:
@@ -79,7 +80,9 @@ class HomogeneousEquationFinder:
             return tp - self.memory[pair]
 
 
-def get_free_interaction_AO(nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC], debug = False) \
+def get_free_interaction_AO(
+    nncluster: NearestNeighborCluster, 
+    named_lcs: typing.List[NamedLC], debug = False) \
 -> typing.List[Pair]:
     transformer = get_coefficient_matrix(nncluster, named_lcs)
     ao_pairs = []

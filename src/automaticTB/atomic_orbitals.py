@@ -1,8 +1,10 @@
 import typing, dataclasses
 import numpy as np
 
+__all__ = ["nSpHar", "NL", "Orbitals", "OrbitalsList", "AO"]
 
-class SpHar(typing.NamedTuple):
+
+class _SpHar(typing.NamedTuple):
     l: int
     m: int
 
@@ -29,9 +31,9 @@ class Orbitals:
     _ao_symbol = {0: "s", 1: "p", 2: "d", 3: "f"}
     _aolists = {
         # this is used to generate a list of nSpHars from a list of NLs
-        0 : [SpHar(0, 0)], 
-        1 : [SpHar(1,-1), SpHar(1, 0), SpHar(1, 1)],
-        2 : [SpHar(2,-2), SpHar(2,-1), SpHar(2, 0), SpHar(2, 1), SpHar(2, 2)]
+        0 : [_SpHar(0, 0)], 
+        1 : [_SpHar(1,-1), _SpHar(1, 0), _SpHar(1, 1)],
+        2 : [_SpHar(2,-2), _SpHar(2,-1), _SpHar(2, 0), _SpHar(2, 1), _SpHar(2, 2)]
     }
 
     def __init__(self, nl_list: typing.List[typing.Tuple[int,int]]) -> None:

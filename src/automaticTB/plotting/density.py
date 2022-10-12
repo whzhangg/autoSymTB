@@ -4,12 +4,21 @@ from .wavefunctions import wavefunction, xyz_to_r_theta_phi
 from .adaptor import MolecularWavefunction, Wavefunction, WavefunctionsOnSite
 from ..SALCs import LinearCombination
 from ..parameters import zero_tolerance
+from scipy.constants import physical_constants
 
 
-Bohr = 1.8897259886
+__all__ = ["DensityCubePlot"]
+
+
+bohrSI = physical_constants["Bohr radius"]
+Ang2Bohr = 1e-10 / bohrSI[0]  # take its value
 
 
 class DensityCubePlot:
+    """
+    This class provide functionality to plot a given list of molecular wavefunction to a cubic 
+    file which can be read using VESTA program
+    """
     n = 1
     gridsize = {
         "low":      [25,25,25],
@@ -17,8 +26,9 @@ class DensityCubePlot:
         "high":     [75,75,75],
     }
 
-
-    def __init__(self, mos: typing.List[MolecularWavefunction], quality: str = "standard") -> None:
+    def __init__(
+        self, mos: typing.List[MolecularWavefunction], quality: str = "standard"
+    ) -> None:
         # check MOs are good
         first = mos[0]
         for mo in mos:
@@ -33,7 +43,9 @@ class DensityCubePlot:
 
 
     @classmethod
-    def from_linearcombinations(cls, lcs: typing.List[LinearCombination], quality: str = "standard") -> "DensityCubePlot":
+    def from_linearcombinations(
+        cls, lcs: typing.List[LinearCombination], quality: str = "standard"
+    ) -> "DensityCubePlot":
         mos = [
             MolecularWavefunction.from_linear_combination(lc) for lc in lcs
         ]
@@ -49,7 +61,7 @@ class DensityCubePlot:
         vectors = []
         for i, row in enumerate(self._cell):
             n = density.shape[i]
-            vectors.append( row / n * Bohr )
+            vectors.append( row / n * Ang2Bohr )
         vectors = np.array(vectors)
 
         shift = np.sum(vectors, axis = 0) / 2.0
@@ -60,7 +72,7 @@ class DensityCubePlot:
             result += "{:>6d} {:>12.6f}{:>12.6f}{:>12.6f}\n".format(n, *vector)
         
         for type, position in zip(self._types, self._positions):
-            p = position * Bohr
+            p = position * Ang2Bohr
             result += "{:>6d} {:>12.6f}{:>12.6f}{:>12.6f}{:>12.6f}\n".format(type, 0.0, *p)
 
         for ix in range(nx):
@@ -81,7 +93,9 @@ class DensityCubePlot:
         nz = np.linspace(0, 1, grid[2]+1) # to include 1.0 as the end point
         
         x,y,z = np.meshgrid(nx, ny, nz, indexing="ij")
-        positions = np.concatenate((x[...,np.newaxis],y[...,np.newaxis],z[...,np.newaxis]),axis=3)
+        positions = np.concatenate(
+            (x[...,np.newaxis],y[...,np.newaxis],z[...,np.newaxis]),axis=3
+        )
         return np.einsum("ij,abcj -> abci", self._cell.T, positions)
 
 
@@ -97,21 +111,31 @@ class DensityCubePlot:
                 for wf in aw.wfs:
                     if np.abs(wf.coeff) > zero_tolerance:
                         #print(wf)
-                        result += wf.coeff.real * wavefunction(self.n, wf.l, wf.m, r, theta, phi)
+                        result += \
+                            wf.coeff.real * wavefunction(self.n, wf.l, wf.m, r, theta, phi)
         return result
 
 
 def test_plot_single_ws():
     wf_sites = [
-        WavefunctionsOnSite(np.array([ 1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 1,  "H", [Wavefunction(1,-1,1.0)]), 
-        WavefunctionsOnSite(np.array([ 1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 2, "He", [Wavefunction(1, 0,1.0)]), 
-        WavefunctionsOnSite(np.array([ 1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 3, "Li", [Wavefunction(1, 1,1.0)]), 
-        WavefunctionsOnSite(np.array([ 1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 4, "Be", [Wavefunction(2,-2,1.0)]), 
-        WavefunctionsOnSite(np.array([-1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 5,  "B", [Wavefunction(2,-1,1.0)]), 
-        WavefunctionsOnSite(np.array([-1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 6,  "C", [Wavefunction(2, 0,1.0)]), 
-        WavefunctionsOnSite(np.array([-1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 7,  "N", [Wavefunction(2, 1,1.0)]), 
-        WavefunctionsOnSite(np.array([-1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 8,  "O", [Wavefunction(2, 2,1.0)]), 
+        WavefunctionsOnSite(
+            np.array([ 1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 1,  "H", [Wavefunction(1,-1,1.0)] ), 
+        WavefunctionsOnSite(
+            np.array([ 1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 2, "He", [Wavefunction(1, 0,1.0)] ), 
+        WavefunctionsOnSite(
+            np.array([ 1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 3, "Li", [Wavefunction(1, 1,1.0)] ), 
+        WavefunctionsOnSite(
+            np.array([ 1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 4, "Be", [Wavefunction(2,-2,1.0)] ), 
+        WavefunctionsOnSite(
+            np.array([-1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 5,  "B", [Wavefunction(2,-1,1.0)] ), 
+        WavefunctionsOnSite(
+            np.array([-1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 6,  "C", [Wavefunction(2, 0,1.0)] ), 
+        WavefunctionsOnSite(
+            np.array([-1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 7,  "N", [Wavefunction(2, 1,1.0)] ), 
+        WavefunctionsOnSite(
+            np.array([-1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 8,  "O", [Wavefunction(2, 2,1.0)] ), 
     ]
+    
     cell = np.eye(3) * 10
     molecular = MolecularWavefunction(cell, wf_sites)
     plot = DensityCubePlot([molecular], quality="high")

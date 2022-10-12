@@ -9,6 +9,9 @@ from .interaction_pairs import InteractionPairs
 from .MOInteraction import HomogeneousEquationFinder
 
 
+__all__ = ["InteractionEquation"]
+
+
 @dataclasses.dataclass
 class InteractionEquation:
     def __init__(self,
@@ -17,11 +20,16 @@ class InteractionEquation:
     ) -> None:
         self.ao_pairs = ao_pairs
         self.homogeneous_equation = homogeneous_equation
-        self.free_variables_indices: typing.List[int] = list(find_free_variable_indices(homogeneous_equation))
-        assert len(self.ao_pairs) == len(self.homogeneous_equation) + len(self.free_variables_indices)
+        self.free_variables_indices: typing.List[int] \
+            = list(find_free_variable_indices(homogeneous_equation))
+        
+        assert len(self.ao_pairs) == \
+            len(self.homogeneous_equation) + len(self.free_variables_indices)
 
     @classmethod
-    def from_nncluster_namedLC(cls, nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC]) -> "InteractionEquation":
+    def from_nncluster_namedLC(
+        cls, nncluster: NearestNeighborCluster, named_lcs: typing.List[NamedLC]
+    ) -> "InteractionEquation":
         aos = nncluster.AOlist
         ao_indices = list(range(len(aos)))
         mo_indices = list(range(len(named_lcs)))
@@ -46,7 +54,7 @@ class InteractionEquation:
             moindex_right = []
             for i, namedlc in enumerate(named_lcs):
                 if np.linalg.norm(namedlc.lc.coefficients[left.indices]) > zero_tolerance:
-                    # if this subspace is non-zero, then other coefficients would be necessary zero
+                    # if this subspace is non-zero, other coefficients would be necessary zero
                     moindex_left.append(i)
                 if np.linalg.norm(namedlc.lc.coefficients[right.indices]) > zero_tolerance:
                     moindex_right.append(i)
@@ -86,15 +94,23 @@ class InteractionEquation:
         return [ self.ao_pairs[i] for i in self.free_variables_indices ]
 
 
-    def solve_interactions_to_InteractionPairs(self, values: typing.List[float]) -> InteractionPairs:
+    def solve_interactions_to_InteractionPairs(
+        self, values: typing.List[float]
+    ) -> InteractionPairs:
         # we assume that the sequence is correct.
         assert len(values) == len(self.free_variables_indices)
 
-        additional_A = np.zeros((self.num_free_variables, self.num_AOpairs), dtype=self.homogeneous_equation.dtype)
+        additional_A = np.zeros(
+            (self.num_free_variables, self.num_AOpairs), 
+            dtype=self.homogeneous_equation.dtype
+        )
+
         for i, which in enumerate(self.free_variables_indices):
             additional_A[i, which] = 1.0
         additional_b = np.array(values)
-        original_b = np.zeros(self.num_AOpairs - self.num_free_variables, dtype=additional_b.dtype)
+        original_b = np.zeros(
+            self.num_AOpairs - self.num_free_variables, dtype=additional_b.dtype
+        )
 
         b = np.hstack([original_b, additional_b])
         A = np.vstack([self.homogeneous_equation, additional_A])

@@ -1,7 +1,8 @@
 import typing, dataclasses
 import numpy as np
-from ..tools import Pair, PairwithValue, tensor_dot
+from ..tools import Pair, PairwithValue
 
+__all__ = ["InteractionPairs"]
 
 @dataclasses.dataclass
 class InteractionPairs:
