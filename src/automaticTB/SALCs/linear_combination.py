@@ -52,7 +52,9 @@ class LinearCombination:
        
     def __str__(self):
         to_display: typing.List[str] = []
-        for site, orbital, coeff_slice in zip(self.sites, self.orbital_list.orbital_list, self.atomic_slice):
+        for site, orbital, coeff_slice in zip(
+            self.sites, self.orbital_list.orbital_list, self.atomic_slice
+        ):
             sliced_coefficient = self.coefficients[coeff_slice]
             if np.linalg.norm(sliced_coefficient) < zero_tolerance: continue
 
@@ -70,18 +72,33 @@ class LinearCombination:
                 result += f"{prefix_last} {aline}"
         return result
     
+
     def _site_string(self, site: Site, orbitals: Orbitals, coefficient: np.ndarray) -> str: 
+        lm_name = {
+            (0,  0):  "s",
+            (1, -1): "py",
+            (1,  0): "pz",
+            (1,  1): "px",
+            (2, -2): "dxy",
+            (2, -1): "dyz",
+            (2,  0): "dz2",
+            (2,  1): "dxz",
+            (2,  2): "dx2-y2"
+        }
         aline = str(site) + " :: "
         for i, coeff in enumerate(coefficient):
             if np.abs(coeff) < zero_tolerance: continue
             if np.isreal(coeff):
-                coeff_to_print = coeff.real
-                formatter = "{:>+6.3f}({:>1d}{:>2d}{:>2d})"
+                aline += "{:>+6.3f}".format(coeff.real)
             else:
-                coeff_to_print = coeff
-                formatter = "{:>+12.2f}({:>1d}{:>2d}{:>2d})"
-            aline += formatter.format(
-                coeff_to_print, orbitals.sh_list[i].n, orbitals.sh_list[i].l, orbitals.sh_list[i].m)
+                aline += "{:>+12.2f}".format(coeff)
+            lm = (orbitals.sh_list[i].l, orbitals.sh_list[i].m)
+            if lm in lm_name:
+                aline += "({:>1d}-{:s})".format(orbitals.sh_list[i].n, lm_name[lm])
+            else:
+                aline += "({:>1d}{:>2d}{:>2d})".format(
+                    orbitals.sh_list[i].n, orbitals.sh_list[i].l, orbitals.sh_list[i].m
+                )
         return aline
 
     def general_rotate(self, cartesian_matrix: np.ndarray): # -> LinearCombination

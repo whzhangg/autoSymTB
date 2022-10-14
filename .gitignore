@@ -25,6 +25,6 @@ plots/**/*.cif
 plots/**/*.cube
 
 tests/properties/*.pdf
-
+tests/plot/*.cube
 bin/*.cube
 bin/*.pdf

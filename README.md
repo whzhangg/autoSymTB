@@ -15,3 +15,13 @@ There are four core functionalities of this python module:
 
 ### Usage
 The codebase serve mainly as a library, but core functionalities can be called using prepared scripts 
+
+### Install
+To install, without any dependency, use command: 
+```bash
+pip install --no-deps -e .
+```
+Tp uninstall, issue command:
+```bash
+pip uninstall automaticTB
+```

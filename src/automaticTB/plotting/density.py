@@ -1,8 +1,8 @@
 import numpy as np
 import typing
-from .wavefunctions import wavefunction, xyz_to_r_theta_phi
-from .adaptor import MolecularWavefunction, Wavefunction, WavefunctionsOnSite
-from ..SALCs import LinearCombination
+from .wavefunctions import wavefunction, xyz_to_r_theta_phi, radial_function, sh_functions
+from .molecular_wavefunction import \
+    (MolecularWavefunction, Wavefunction, WavefunctionsOnSite)
 from ..parameters import zero_tolerance
 from scipy.constants import physical_constants
 
@@ -19,7 +19,7 @@ class DensityCubePlot:
     This class provide functionality to plot a given list of molecular wavefunction to a cubic 
     file which can be read using VESTA program
     """
-    n = 1
+    # n = 1   this is no longer used because we added support for more n number
     gridsize = {
         "low":      [25,25,25],
         "standard": [50,50,50],
@@ -40,16 +40,6 @@ class DensityCubePlot:
 
         self._mos = mos
         self._xyz = self._make_grid(self.gridsize[quality])
-
-
-    @classmethod
-    def from_linearcombinations(
-        cls, lcs: typing.List[LinearCombination], quality: str = "standard"
-    ) -> "DensityCubePlot":
-        mos = [
-            MolecularWavefunction.from_linear_combination(lc) for lc in lcs
-        ]
-        return cls(mos, quality)
 
 
     def plot_to_file(self, filename: str) -> None:
@@ -108,11 +98,25 @@ class DensityCubePlot:
                 r = r_theta_phi[..., 0]
                 theta = r_theta_phi[..., 1]
                 phi = r_theta_phi[..., 2]
-                for wf in aw.wfs:
-                    if np.abs(wf.coeff) > zero_tolerance:
-                        #print(wf)
-                        result += \
-                            wf.coeff.real * wavefunction(self.n, wf.l, wf.m, r, theta, phi)
+
+                """
+                For a single site, we first calculate the combination of the spherical harmonic 
+                part of the wavefunction, for the same n and l, and then multiply the radial part. 
+                This seems to give better shape of the output wavefunction
+                """
+                all_nl_components = set([(wf.n, wf.l) for wf in aw.wfs])
+
+                for nl_components in list(all_nl_components):
+                    n_comp = nl_components[0]
+                    l_comp = nl_components[1]
+                    radial_part = radial_function(n_comp, r)
+                    sph_part = np.zeros_like(theta)
+                    for wf in aw.wfs:
+                        if ( wf.n != n_comp or wf.l != l_comp ) or \
+                           ( np.abs(wf.coeff) <= zero_tolerance) : continue
+                        sph_part += wf.coeff.real * sh_functions(wf.l, wf.m, theta, phi)
+
+                    result += radial_part * sph_part
         return result
 
 

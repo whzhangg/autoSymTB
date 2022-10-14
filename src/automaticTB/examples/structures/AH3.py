@@ -12,6 +12,11 @@ def get_AH3_nncluster():
         CrystalSite.from_data(1, np.array([  w,-0.5, 0.0]) * 2.0, 2, np.array([0,0,0])),
         CrystalSite.from_data(1, np.array([-1 * w,-0.5, 0.0]) * 2.0, 3, np.array([0,0,0])),
     ]
-    orbitals = OrbitalsList([Orbitals([[0,0],[0,1]]), Orbitals([[0,0]]), Orbitals([[0,0]]), Orbitals([[0,0]])])
+    orbitals = OrbitalsList([ 
+            Orbitals([[2,0],[2,1]]), 
+            Orbitals([[1, 0]]), 
+            Orbitals([[1, 0]]), 
+            Orbitals([[1, 0]])
+        ])
 
     return NearestNeighborCluster(crystalsites, orbitals, group)
