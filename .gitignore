@@ -5,6 +5,7 @@ docs/**/*.pptx
 **/.pytest_cache
 **/*.aux
 
+examples/*.cube
 applications/
 src/*.egg-info
 src/automaticTB/SALCs/examples

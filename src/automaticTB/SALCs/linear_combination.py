@@ -19,7 +19,7 @@ class LinearCombination:
 
     @property
     def is_normalized(self) -> bool:
-        return np.isclose(self.norm, 1.0)
+        return np.isclose(self.norm, 1.0, atol = zero_tolerance)
 
     @property
     def nonzero(self) -> bool:

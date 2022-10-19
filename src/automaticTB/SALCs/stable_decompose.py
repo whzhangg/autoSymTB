@@ -18,11 +18,17 @@ def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: SiteSymmet
     how to rotate themselves given a cartesian rotation
     """
     results = []
-    maingroup = SiteSymmetryGroupwithOrbital.from_sitesymmetrygroup_irreps(group, vectorspace.orbital_list.irreps_str)
+    maingroup = SiteSymmetryGroupwithOrbital.from_sitesymmetrygroup_irreps(
+        group, vectorspace.orbital_list.irreps_str
+    )
     subgroup = maingroup.get_subduction()
 
     for irrep in maingroup.irreps:
-        linearly_independ_lcs = _decompose_onelevel_for_irrep(vectorspace.get_nonzero_linear_combinations(), maingroup.operations, irrep)
+        linearly_independ_lcs = _decompose_onelevel_for_irrep(
+            vectorspace.get_nonzero_linear_combinations(), 
+            maingroup.operations, 
+            irrep
+        )
 
         if len(linearly_independ_lcs) == 0:
             continue # we don't do anything
@@ -68,14 +74,21 @@ def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: SiteSymmet
 
             for i, obss in enumerate(orthogonal_basis_same_symmetry):
                 full_basis = _get_orbital(obss, maingroup.operations, irrep.dimension)
+                founded_count = 0
                 for irrep_sub in subgroup.irreps:
-                    further_decomposed = _decompose_onelevel_for_irrep(full_basis, subgroup.operations, irrep_sub)
+                    further_decomposed = _decompose_onelevel_for_irrep(
+                        full_basis, subgroup.operations, irrep_sub
+                    )
+                    founded_count += len(further_decomposed)
                     assert len(further_decomposed) <= 1
                     if len(further_decomposed) > 0:
                         symbol = IrrepSymbol.from_str(f"{irrep.name}^{i+1}->{irrep_sub.name}")
                         results.append(
                             NamedLC(symbol, further_decomposed[0].get_normalized())
                         )
+                if founded_count != irrep.dimension:
+                    print(f"For {irrep.name} ({irrep.dimension}), \
+                        subduction only found {founded_count} irreps")
         
     return results
 
@@ -97,12 +110,13 @@ def _decompose_onelevel_for_irrep(lcs: typing.List[LinearCombination], operation
         transformed_LCs.append(lc.create_new_with_coefficients(sum_coefficients))
         
     linearly_independ = get_nonzero_independent_linear_combinations(transformed_LCs)
-    assert len(linearly_independ) % irrep.dimension == 0  # contain complete irreducible representations
-    
+    assert len(linearly_independ) % irrep.dimension == 0  
+    # contain complete irreducible representations
     return linearly_independ
 
 
 def _get_stacked_coefficients(lcs: typing.List[LinearCombination]) -> np.ndarray:
+    """simply stack the coefficients together"""
     return np.vstack([lc.coefficients for lc in lcs])
 
 
@@ -114,7 +128,7 @@ def _get_orbital(lc: LinearCombination, rotations: typing.List[CartesianOrbitalR
     for rot in rotations:
         rotated = lc.symmetry_rotate_CartesianOrbital(rot)
         matrix.append(rotated.coefficients)
-        new_rank = np.linalg.matrix_rank(np.vstack(matrix))
+        new_rank = np.linalg.matrix_rank(np.vstack(matrix), tol = zero_tolerance)
         if new_rank > rank:
             result.append(rotated)
             rank = new_rank

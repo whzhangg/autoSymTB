@@ -7,7 +7,7 @@ from automaticTB.SALCs import VectorSpace, decompose_vectorspace_to_namedLC
 from automaticTB.interaction import InteractionEquation
 from automaticTB.printing import print_ao_pairs
 
-sp = Orbitals([0,1])
+sp = Orbitals([(2,0),(2,1)])
 Ri = 1.4
 C = 14
 H = 8
@@ -166,7 +166,7 @@ def print_total_number_parameters():
         print(f"{key}, , {4 * 4 * (len(s)-1)}")
 
 if __name__ == "__main__":
-    get_cifs()
+    print_free_parameters()
 
 """
     Output

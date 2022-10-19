@@ -2,14 +2,14 @@
 import numpy as np
 import dataclasses, typing
 from ..utilities import operation_type_from_rotation_matrix
-
+from ...parameters import zero_tolerance
 
 class SymDirection:
     # a normalized vector presenting a direction
     def __init__(self, vector: np.ndarray, label: str = "") -> None:
         self.label = label
         self._is_zero:bool = False
-        close_to_zero = np.isclose(vector, np.zeros(3))
+        close_to_zero = np.isclose(vector, np.zeros(3), atol = zero_tolerance)
         if all(close_to_zero):
             self._is_zero:bool = True
             self._vector: np.ndarray = vector
@@ -42,7 +42,7 @@ class SymDirection:
                 return False
             
         cos_theta = np.dot(self.vector, other.vector) / np.linalg.norm(self.vector) / np.linalg.norm(other.vector)
-        return np.isclose(np.abs(cos_theta), 1.0)
+        return np.isclose(np.abs(cos_theta), 1.0, atol = zero_tolerance)
 
     def __repr__(self) -> str:
         return "({:>7.3f}{:>7.3f}{:>7.3f})".format(*self._vector)
@@ -56,7 +56,7 @@ class SymDirection:
                 return False
 
         cos_theta = np.dot(self.vector, input_d) / np.linalg.norm(self.vector) / np.linalg.norm(input_d)
-        return np.isclose(np.abs(cos_theta), 1.0)
+        return np.isclose(np.abs(cos_theta), 1.0, atol = zero_tolerance)
 
 
 class SymDirection_Set:
@@ -119,11 +119,11 @@ class SymOp_on_Direction:
         operation_name = operation_type_from_rotation_matrix(matrix)
         rotation = matrix
         det = round(np.linalg.det(matrix))
-        if np.isclose(det, -1.0):
+        if np.isclose(det, -1.0, atol = zero_tolerance):
             rotation = np.matmul(rotation, np.eye(3) * -1.0)
         
         w, v = np.linalg.eig(rotation)
-        vector_index = np.argwhere(np.isclose(w.real, 1.0))[0]
+        vector_index = np.argwhere(np.isclose(w.real, 1.0, atol = zero_tolerance))[0]
         selected_eigenvector = v[:,vector_index].real.reshape((3,))
         direction = SymDirection(selected_eigenvector)
 

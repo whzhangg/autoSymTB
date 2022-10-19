@@ -4,7 +4,7 @@ from ..parameters import zero_tolerance
 
 
 def remove_zero_vector_from_coefficients(coeff_matrix: np.ndarray) -> np.ndarray:
-    is_zero = np.isclose(np.linalg.norm(coeff_matrix, axis = 1), 0.0)
+    is_zero = np.isclose(np.linalg.norm(coeff_matrix, axis = 1), 0.0, atol = zero_tolerance)
     not_zero = np.invert(is_zero)
     return coeff_matrix[not_zero, :]
 
@@ -15,7 +15,7 @@ def remove_same_direction(vectors: np.ndarray) -> np.ndarray:
         is_close = False
         for compare in distinct_direction:
             cos = np.dot(vector, compare) / np.linalg.norm(vector) / np.linalg.norm(compare)
-            if np.isclose(np.abs(cos), 1.0):
+            if np.isclose(np.abs(cos), 1.0, atol=zero_tolerance):
                 is_close = True
                 break
         if not is_close:
