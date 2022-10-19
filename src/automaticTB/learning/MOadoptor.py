@@ -2,7 +2,7 @@ import torch
 from torch_geometric.data import Data
 from ..SALCs import LinearCombination
 from ..atomic_orbitals import Orbitals, OrbitalsList
-from ..utilities import Pair
+from ..tools import Pair
 from ..parameters import real_coefficient_type, torch_float, torch_int
 import numpy as np
 # in this script, we make a pair of MO into a Data 

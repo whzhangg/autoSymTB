@@ -16,8 +16,26 @@ There are four core functionalities of this python module:
 ### Usage
 The codebase serve mainly as a library, but core functionalities can be called using prepared scripts 
 
-### Install
-To install, without any dependency, use command: 
+# Installation
+1. Create an conda environment:
+```
+conda create --name autoTB python=3.8
+conda activate autoTB
+```
+2. We need to add necessary channels
+```
+conda config --add channels pyg pytorch conda-forge
+```
+3. Install necessary package by conda
+```
+conda install ase matplotlib numpy pymatgen requests scipy beautifulsoup4 spglib prettytable jupyter
+conda install pytorch pyg
+```
+4. Install e3nn package via [pip](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment)
+```
+pip install --upgrade-strategy only-if-needed e3nn
+```
+Finally, to install, without any dependency, use command: 
 ```bash
 pip install --no-deps -e .
 ```
@@ -25,3 +43,4 @@ Tp uninstall, issue command:
 ```bash
 pip uninstall automaticTB
 ```
+

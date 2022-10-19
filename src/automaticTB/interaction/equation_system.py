@@ -33,6 +33,8 @@ class InteractionEquation:
         aos = nncluster.AOlist
         ao_indices = list(range(len(aos)))
         mo_indices = list(range(len(named_lcs)))
+        print(ao_indices)
+        print(mo_indices)
         assert len(ao_indices) == len(mo_indices)
 
         left_ao_indices = set()
