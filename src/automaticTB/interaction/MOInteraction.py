@@ -1,7 +1,7 @@
 import typing
 import numpy as np
-from ..tools import Pair, tensor_dot, find_free_variable_indices
-from ..tools.mathLA import row_echelon
+from ..tools import Pair, tensor_dot, find_free_variable_indices_by_row_echelon
+from ..tools.mathLA import _row_echelon
 from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
 from ..SALCs import NamedLC, IrrepSymbol
@@ -107,12 +107,12 @@ def get_free_interaction_AO(
             continue
 
         homogeneous_equations = np.array(equations)
-        free_indices = find_free_variable_indices(homogeneous_equations.real)
+        free_indices = find_free_variable_indices_by_row_echelon(homogeneous_equations.real)
         ao_pairs += [conversion.ao_pairs[i] for i in free_indices]
 
         if debug:
             #print(homogeneous_equations.real)
-            #print_matrix(row_echelon(homogeneous_equations.real))
+            #print_matrix(_row_echelon(homogeneous_equations.real))
             print(free_indices)
             #for pair in [conversion.ao_pairs[i] for i in free_indices]:
                 #print_ao_pairs(nncluster, [pair])

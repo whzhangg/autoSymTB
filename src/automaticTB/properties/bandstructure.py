@@ -3,7 +3,7 @@ import numpy as np
 from .kpath import Kpath, BandPathTick
 from ..tightbinding import TightBindingBase
 from ..printing import get_orbital_symbol_from_lm
-from ase.data import chemical_symbols
+from ..tools import chemical_symbols
 
 @dataclasses.dataclass
 class BandStructureResult:

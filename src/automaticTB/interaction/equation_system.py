@@ -1,7 +1,7 @@
 import typing, dataclasses
 from ..atomic_orbitals import AO    
 import numpy as np
-from ..tools import find_free_variable_indices, tensor_dot, Pair
+from ..tools import find_free_variable_indices_by_row_echelon, tensor_dot, Pair
 from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
 from ..SALCs import NamedLC, IrrepSymbol
@@ -21,7 +21,7 @@ class InteractionEquation:
         self.ao_pairs = ao_pairs
         self.homogeneous_equation = homogeneous_equation
         self.free_variables_indices: typing.List[int] \
-            = list(find_free_variable_indices(homogeneous_equation))
+            = list(find_free_variable_indices_by_row_echelon(homogeneous_equation))
         
         assert len(self.ao_pairs) == \
             len(self.homogeneous_equation) + len(self.free_variables_indices)

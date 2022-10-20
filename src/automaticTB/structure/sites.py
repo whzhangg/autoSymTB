@@ -1,7 +1,6 @@
 import dataclasses
 import numpy as np
-from ase.data import chemical_symbols
-
+from ..tools import chemical_symbols
 
 @dataclasses.dataclass
 class Site:

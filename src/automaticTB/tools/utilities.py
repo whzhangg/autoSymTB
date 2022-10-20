@@ -1,12 +1,19 @@
 import numpy as np
-import yaml, collections, typing, json
+import typing
+from .pair import Pair
 
+__all__ = [
+    "tensor_dot", "find_RCL", 
+    "random_rotation_matrix",
+    "get_cell_from_origin_centered_positions"
+]
 
-Pair = collections.namedtuple("Pair", "left right")
-
-
-PairwithValue = collections.namedtuple("PairwithValue", "left right value")
-
+def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) -> np.ndarray:
+    rmax = -1.0
+    for pos in positions:
+        rmax = max(rmax, np.linalg.norm(pos))
+    cell = 4.0 * rmax * np.eye(3)
+    return cell
 
 def tensor_dot(list_left, list_right) -> typing.List[Pair]:
     r = []
@@ -14,7 +21,6 @@ def tensor_dot(list_left, list_right) -> typing.List[Pair]:
         for item2 in list_right:
             r.append(Pair(item1, item2))
     return r
-
 
 
 def find_RCL(cell: np.ndarray) -> np.ndarray:
@@ -46,3 +52,5 @@ def random_rotation_matrix() -> np.ndarray:
                     [sin[2], cos[2], 0],
                     [0,           0, 1]])
     return yaw.dot(pitch).dot(roll)
+
+

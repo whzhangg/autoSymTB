@@ -4,7 +4,7 @@ from ..sitesymmetry import SiteSymmetryGroup
 from .sites import Site, CrystalSite
 from ..parameters import zero_tolerance
 from ..atomic_orbitals import OrbitalsList
-from ..tools import Pair, tensor_dot
+from ..tools import Pair
 from ..atomic_orbitals import AO
 from ..tools import get_cell_from_origin_centered_positions
 from .cif import write_cif_file, atom_from_cpt_cartesian

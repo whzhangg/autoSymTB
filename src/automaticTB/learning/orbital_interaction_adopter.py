@@ -8,10 +8,12 @@ import torch
 import numpy as np
 from torch_geometric.data import Data
 from e3nn.o3 import Irreps
-
+from ..structure import Structure, NearestNeighborCluster
 from ..parameters import torch_float, torch_device
+from ..tools import Pair
+from ..atomic_orbitals import AO
 
-def get_onehot_element_encoding(
+def _get_onehot_element_encoding(
     atomic_number_in: int, atomic_number_set: typing.Set[int]
 ) -> np.ndarray:
     """the sequence in one hot encoding is simply given by atomic number"""
@@ -19,6 +21,19 @@ def get_onehot_element_encoding(
     encoding = np.zeros(len(sorted_atomic_number))
     encoding[sorted_atomic_number.index(atomic_number_in)] = 1
     return encoding
+
+
+@dataclasses.dataclass
+class ElementOneHotEncoder:
+    atomic_number_set: typing.Set[int]
+
+    def get_onehot_element_encoding(self, atomic_number_in: int) -> np.ndarray:
+        """the sequence in one hot encoding is simply given by atomic number"""
+        sorted_atomic_number = sorted(list(self.atomic_number_set))
+        encoding = np.zeros(len(sorted_atomic_number))
+        encoding[sorted_atomic_number.index(atomic_number_in)] = 1
+        return encoding
+
 
 
 class OrbitalIrrepsEncoder:
@@ -74,7 +89,8 @@ class Orbital:
         shuffle = np.array([1,2,0]) # y z x
         return self.pos[shuffle]
 
-    
+
+
 @dataclasses.dataclass
 class InteractingOrbitals:
     orb1: Orbital
@@ -119,3 +135,49 @@ class InteractingOrbitals:
             pos = rotated_pos,
             y = gdata.y
         )
+
+
+def get_elementEncoder_orbitalEncoder_from_structure(structure: Structure) \
+-> typing.Tuple[ElementOneHotEncoder, OrbitalIrrepsEncoder]:
+    all_elements = set(structure.types)
+    nl_list = []
+    for nncluster in structure.nnclusters:
+        for orb in nncluster.orbitalslist.orbital_list:
+            nl_list += orb.nl_list
+    return ElementOneHotEncoder(all_elements), OrbitalIrrepsEncoder(set(nl_list))
+    
+
+def get_interaction_orbitals_from_structure_and_AOpair_with_value(
+    structure: Structure,
+    AOpair: Pair,
+    value: float
+) -> InteractingOrbitals:
+    interaction = get_interaction_orbitals_from_structure_and_AOpair(structure, AOpair)
+    interaction.value = value
+    return interaction
+
+def get_interaction_orbitals_from_structure_and_AOpair(
+    structure: Structure,
+    AOpair: Pair
+) -> InteractingOrbitals:
+    ele_encoder, orb_encoder = \
+        get_elementEncoder_orbitalEncoder_from_structure(structure)
+
+    c = structure.cell
+    cpos = np.einsum("ji,kj -> ki", c, structure.positions)
+    
+    left: AO = AOpair.left
+    l_pos = cpos[left.primitive_index] + c.T.dot(left.translation)
+    l_onehot = ele_encoder.get_onehot_element_encoding(left.atomic_number)
+    l_feature = orb_encoder.get_nlm_feature((left.n, left.l, left.m))
+    
+    right: AO = AOpair.right
+    r_pos = cpos[right.primitive_index] + c.T.dot(right.translation)
+    r_onehot = ele_encoder.get_onehot_element_encoding(right.atomic_number)
+    r_feature = orb_encoder.get_nlm_feature((right.n, right.l, right.m))
+
+    return InteractingOrbitals(
+        Orbital(l_pos, l_onehot, l_feature, orb_encoder.irreps_str),
+        Orbital(r_pos, r_onehot, r_feature, orb_encoder.irreps_str),
+        None
+    )

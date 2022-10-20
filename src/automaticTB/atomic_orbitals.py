@@ -1,5 +1,6 @@
 import typing, dataclasses
 import numpy as np
+from .tools import atomic_numbers
 
 __all__ = ["nSpHar", "NL", "Orbitals", "OrbitalsList", "AO"]
 
@@ -152,10 +153,14 @@ class AO:
     cluster_index: int
     primitive_index: int
     translation: np.ndarray
-    chemical_symbol: int
+    chemical_symbol: str
     n: int
     l: int
     m: int
+
+    @property
+    def atomic_number(self) -> int:
+        return atomic_numbers[self.chemical_symbol]
 
     def __eq__(self, o) -> bool:
         return self.primitive_index == o.primitive_index \

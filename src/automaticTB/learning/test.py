@@ -1,5 +1,5 @@
 from automaticTB.learning.orbital_interaction_adopter import (
-    get_onehot_element_encoding, 
+    ElementOneHotEncoder, 
     OrbitalIrrepsEncoder,
     Orbital,
     InteractingOrbitals
@@ -12,37 +12,31 @@ def test_orbital_encoder():
     assert orb_encoder.irreps_str == "1x0e + 1x0e + 1x1o"
     assert np.allclose(orb_encoder.get_nlm_feature((2,0,0)), np.array([0, 1, 0, 0, 0]))
 
-def test_element_encode():
-    elements = {14, 32, 26}
-    assert np.allclose(get_onehot_element_encoding(14, elements), np.array([1,0,0]))
-    assert np.allclose(get_onehot_element_encoding(26, elements), np.array([0,1,0]))
-    assert np.allclose(get_onehot_element_encoding(32, elements), np.array([0,0,1]))
 
-
-elements = {14, 32, 26}
+elements_encoder = ElementOneHotEncoder({14, 32, 26})
 orb_encoder = OrbitalIrrepsEncoder([(1,0),(2,0),(2,1)])
 
 node1 = {
     "ele": 14,
-    "nlm": (1, 0, 0), # 1s
+    "nlm": (2, 0, 0), # 1s
     "pos": np.array([-1, 0, 0])
 }
 node2 = {
     "ele": 32,
-    "nlm": (2, 1, 1), # 1s
-    "pos": np.array([2, -1, 1])
+    "nlm": (2, 0, 0), # 1s
+    "pos": np.array([-1, 0, 0])
 }
 
 interaction = InteractingOrbitals(
     Orbital(
         node1["pos"], 
-        get_onehot_element_encoding(node1["ele"], elements),
+        elements_encoder.get_onehot_element_encoding(node1["ele"]),
         orb_encoder.get_nlm_feature(node1["nlm"]),
         orb_encoder.irreps_str
     ),
     Orbital(
         node2["pos"], 
-        get_onehot_element_encoding(node2["ele"], elements),
+        elements_encoder.get_onehot_element_encoding(node2["ele"]),
         orb_encoder.get_nlm_feature(node2["nlm"]),
         orb_encoder.irreps_str
     ),
@@ -52,13 +46,13 @@ interaction = InteractingOrbitals(
 interaction2 = InteractingOrbitals(
     Orbital(
         node1["pos"], 
-        get_onehot_element_encoding(node2["ele"], elements),
+        elements_encoder.get_onehot_element_encoding(node2["ele"]),
         orb_encoder.get_nlm_feature(node2["nlm"]),
         orb_encoder.irreps_str
     ),
     Orbital(
         node2["pos"], 
-        get_onehot_element_encoding(node1["ele"], elements),
+        elements_encoder.get_onehot_element_encoding(node1["ele"]),
         orb_encoder.get_nlm_feature(node1["nlm"]),
         orb_encoder.irreps_str
     ),
@@ -69,7 +63,7 @@ from automaticTB.learning.interaction_mapper import (
     get_nearest_neighbor_orbital_mapper, train_model
 )
 
-f = get_nearest_neighbor_orbital_mapper(len(elements), orb_encoder.irreps_str)
+f = get_nearest_neighbor_orbital_mapper(3, orb_encoder.irreps_str)
 
 original_data = interaction.geometry_data
 rotated_data = interaction.get_randomlyrotated_pyg_data()

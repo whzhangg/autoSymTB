@@ -4,26 +4,29 @@ from ..structure.sites import Site
 from ..structure.nncluster import NearestNeighborCluster
 from .linear_combination import LinearCombination, OrbitalsList
 from ..parameters import zero_tolerance, LC_coefficients_dtype
-from ..tools import remove_zero_vector_from_coefficients, find_linearly_independent_rows, remove_same_direction
+from ..tools import get_distinct_nonzero_vector_from_coefficients
 
-def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearCombination]) -> typing.List[LinearCombination]:
+
+def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearCombination]) \
+-> typing.List[LinearCombination]:
+    """
+    this function removes the linearly dependent vector in a list of input linear combinations 
+    """
     coefficient_matrix = np.vstack([
         lc.coefficients for lc in inputLCs
     ])
-    result = []
     sites = inputLCs[0].sites
     orbital_list = inputLCs[0].orbital_list
-    non_zero = remove_zero_vector_from_coefficients(coefficient_matrix)
-    if len(non_zero) > 0:
-        non_zero = remove_same_direction(non_zero)
-        distinct = find_linearly_independent_rows(non_zero)
-            
-        for row in distinct:
-            result.append(
-                LinearCombination(sites, orbital_list, row)
-            )
-            
+
+    result = []
+    distinct = get_distinct_nonzero_vector_from_coefficients(coefficient_matrix)
+    for row in distinct:
+        result.append(
+            LinearCombination(sites, orbital_list, row)
+        )
+    
     return result
+
 
 @dataclasses.dataclass
 class VectorSpace:
@@ -56,27 +59,20 @@ class VectorSpace:
     def rank(self):
         return np.linalg.matrix_rank(self.coefficients_matrix, tol = zero_tolerance)
 
+
     def __repr__(self) -> str:
         return f"VectorSpace with rank {self.rank} and {len(self.sites)} sites"
 
-    def _remove_linear_dependent(self):
-        # remove the redundent linear combination (same direction) or zero 
-        non_zero = remove_zero_vector_from_coefficients(self.coefficients_matrix)
-        if len(non_zero) > 0:
-            distinct = find_linearly_independent_rows(non_zero)
-            self.coefficients_matrix = distinct
 
     def get_nonzero_linear_combinations(self) -> typing.List[LinearCombination]:
-        # we do not change the coefficient itself
+        """
+        return a list on non-zero linear combinations in this vector space
+        """
         result = []
-        non_zero = remove_zero_vector_from_coefficients(self.coefficients_matrix)
-        if len(non_zero) > 0:
-            distinct = find_linearly_independent_rows(non_zero)
-            
-            for row in distinct:
-                result.append(
-                    LinearCombination(self.sites, self.orbital_list, row)
-                )
-            
+        distinct = get_distinct_nonzero_vector_from_coefficients(self.coefficients_matrix)
+        for row in distinct:
+            result.append(
+                LinearCombination(self.sites, self.orbital_list, row)
+            )
         return result
 

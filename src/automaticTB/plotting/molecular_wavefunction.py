@@ -1,7 +1,7 @@
 import typing, dataclasses
 import numpy as np
 from ..parameters import zero_tolerance
-from ase.data import chemical_symbols
+from ..tools import chemical_symbols
 
 __all__ = ["Wavefunction", "WavefunctionsOnSite", "MolecularWavefunction"]
 
