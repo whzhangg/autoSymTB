@@ -6,3 +6,4 @@ the purpose of this module is two fold:
 
 from .interaction_pairs import *
 from .equation_system import *
+from .combine_equations import *

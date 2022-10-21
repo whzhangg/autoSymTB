@@ -82,52 +82,37 @@ class NearestNeighborCluster:
                 result[i] = equivalent_to_which
         return result
 
-
     @property
-    def subspace_pairs(self) -> typing.List[Pair]:
-        """
-        it return all pairs of subspace, where the left part is always 
-        subspace on the center atoms
-        """
-        if "subspace_pairs" in self._meta:
-            return self._meta["subspace_pairs"]
+    def centered_subspace_pairs(self) -> typing.List[Pair]:
+        # similar to subspace pair, but does not include self-interaction
+        if "centered_subspace_pairs" in self._meta:
+            return self._meta["centered_subspace_pairs"]
 
         center_index = self.origin_index
         orbital_slices = self.orbitalslist.subspace_slice_dict
-        center_subspace = []
-        all_subspaces = []
         for eq_type, each_atom_set in self.equivalent_atoms_dict.items():
-            for orb in self.orbitalslist.orbital_list[eq_type].l_list:
+            for orb in self.orbitalslist.orbital_list[eq_type].nl_list:
                 indices = []
                 for iatom in each_atom_set:
                     indices += list(range(orbital_slices[iatom][orb].start, orbital_slices[iatom][orb].stop))
-                all_subspaces.append(ClusterSubSpace(eq_type, orb, indices))
+                
                 if eq_type == center_index:
-                    center_subspace.append(ClusterSubSpace(eq_type, orb, indices))
-
-        result = []
-        for center in center_subspace:
-            for other in all_subspaces:
-                result.append(
-                    Pair(center, other)
-                )
-        self._meta["subspace_pairs"] = result
-        return result
-
+                    result = [Pair(
+                            ClusterSubSpace(eq_type, orb, indices),
+                            ClusterSubSpace(eq_type, orb, indices)
+                        )]
+                    self._meta["centered_subspace_pairs"] = result
+                    
+                    return result
+        
 
     @property
     def center_AOs(self) -> typing.List[AO]:
+        """return the atomic orbitals at the cluster center"""
         aos = self.AOlist
         return [
             ao for ao in aos if ao.cluster_index == self.origin_index
         ]
-
-
-    @property
-    def centered_selfinteraction_pairs(self) -> typing.List[Pair]:
-        centered_aos = self.center_AOs
-        return [Pair(cao, cao) for cao in centered_aos]
-
 
     @property
     def interaction_subspace_pairs(self) -> typing.List[Pair]:
@@ -147,9 +132,9 @@ class NearestNeighborCluster:
                 
                 if eq_type == center_index:
                     center_subspace.append(ClusterSubSpace(eq_type, orb, indices))
-                #else:  
-                # self interaction are treated just as other interactions
-                other_subspaces.append(ClusterSubSpace(eq_type, orb, indices))
+                else:  
+                    # self interaction are treated just as other interactions
+                    other_subspaces.append(ClusterSubSpace(eq_type, orb, indices))
 
         result = []
         for center in center_subspace:

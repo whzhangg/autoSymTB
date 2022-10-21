@@ -21,4 +21,4 @@ def test_AH3_decomposition():
     free = get_free_AOpairs_from_nncluster_and_namedLCs(
         ah3, named_lcs
     )
-    assert len(free) == 5
+    assert len(free) == 4

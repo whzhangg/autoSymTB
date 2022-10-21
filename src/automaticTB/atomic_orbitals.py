@@ -162,12 +162,12 @@ class AO:
     def atomic_number(self) -> int:
         return atomic_numbers[self.chemical_symbol]
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o: "AO") -> bool:
         return self.primitive_index == o.primitive_index \
             and self.l == o.l and self.m == o.m and self.n == o.n\
             and np.allclose(self.translation, o.translation)
 
     def __repr__(self) -> str:
-        result = f"n={self.primitive_index}({self.chemical_symbol}) n={self.n} l={self.l} m={self.m}"
+        result = f"i={self.primitive_index}({self.chemical_symbol}) n={self.n} l={self.l} m={self.m}"
         trans = " @{:>5.2f}{:>5.2f}{:>5.2f}".format(*self.translation)
         return result + trans

@@ -7,7 +7,8 @@ __all__ = [
     "remove_zero_vector_from_coefficients", 
     "find_linearly_independent_rows",
     "remove_parallel_vectors",
-    "find_free_variable_indices_by_row_echelon"
+    "find_free_variable_indices_by_row_echelon",
+    "_row_echelon"
 ]
 
 
@@ -68,7 +69,6 @@ def find_linearly_independent_rows(coeff_matrix: np.ndarray) -> np.ndarray:
     return coeff_matrix[indices.flatten(), :]
 
 
-
 def find_free_variable_indices_by_row_echelon(A:np.ndarray) -> typing.Set[int]:
     """
     When a matrix is in echelon form: 
@@ -81,10 +81,14 @@ def find_free_variable_indices_by_row_echelon(A:np.ndarray) -> typing.Set[int]:
     the free variable index is therefore {1}
     The leading variables are the ones that can be solved given the free variables. 
     See Page 13. Nicholson, 2020, Linear Algebra with Applications
+    Note that we also removed the rows with all zeros
     """
     echelon = _row_echelon(A)
-    leading_variables = {_first_non_zero(row) for row in echelon}
-    free_variables = set(range(echelon.shape[1])) - leading_variables
+    reduced_echelon = remove_zero_vector_from_coefficients(echelon)
+
+    leading_variables = {_first_non_zero(row) for row in reduced_echelon}
+    free_variables = set(range(reduced_echelon.shape[1])) - leading_variables
+    
     return free_variables
 
 

@@ -5,21 +5,41 @@ from ..tools import find_free_variable_indices_by_row_echelon, tensor_dot, Pair
 from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
 from ..SALCs import NamedLC, IrrepSymbol
-from .interaction_pairs import InteractionPairs
+from .interaction_pairs import InteractionPairs, AOPair
 from .MOInteraction import HomogeneousEquationFinder
 
 
 __all__ = ["InteractionEquation"]
 
 
-@dataclasses.dataclass
 class InteractionEquation:
+    """
+    This class keep track of the interactions, given a nncluster
+    It treat AO interactions separately:
+    1. one set is the energy of the isolated atomic energy, 
+    2. the other is the interaction energy
+    The main interface is just:
+    - from_nncluster_namedLC()
+    - free_AOpairs
+    - solve_interactions_to_InteractionPairs
+    Other internal variables are not going to be accessed in the usual case
+    """
     def __init__(self,
-        ao_pairs: typing.List[AO],
+        center_aos: typing.List[AO],
+        interaction_ao_pairs: typing.List[Pair],
         homogeneous_equation: np.ndarray
     ) -> None:
-        self.ao_pairs = ao_pairs
+        self._center_aos = center_aos
+        self._centered_free_AOpairs: typing.List[AOPair] = []
+        for (n,l) in list(set([ (ao.n, ao.l) for ao in self._center_aos ])):
+            for ao in self._center_aos:
+                if ao.n == n and ao.l == l:
+                    self._centered_free_AOpairs.append(AOPair(ao, ao))
+                    break
+        
+        self.ao_pairs = [AOPair.from_pair(ao_pair) for ao_pair in interaction_ao_pairs] 
         self.homogeneous_equation = homogeneous_equation
+
         self.free_variables_indices: typing.List[int] \
             = list(find_free_variable_indices_by_row_echelon(homogeneous_equation))
         
@@ -79,37 +99,51 @@ class InteractionEquation:
             [aos[i] for i in left_ao_indices],
             [aos[i] for i in right_ao_indices]
         )
-        return cls(aopairs, np.array(homogeneous))
+        return cls(nncluster.center_AOs, aopairs, np.array(homogeneous))
 
-    @property
-    def num_AOpairs(self) -> int:
-        return len(self.ao_pairs)
-
-    @property
-    def num_free_variables(self) -> int:
-        return len(self.free_variables_indices)
 
     @property
     def free_AOpairs(self) -> typing.List[Pair]:
-        return [ self.ao_pairs[i] for i in self.free_variables_indices ]
+        """
+        return the free AO pairs, it's a combination of free atomic orbital energy 
+        as well as the free interactions. Atomic orbital energys are treated separated from the 
+        interactions
+        """
+        return self._centered_free_AOpairs + \
+            [ self.ao_pairs[i] for i in self.free_variables_indices ]
 
 
     def solve_interactions_to_InteractionPairs(
         self, values: typing.List[float]
     ) -> InteractionPairs:
         # we assume that the sequence is correct.
-        assert len(values) == len(self.free_variables_indices)
+        assert len(values) == len(self.free_AOpairs)
+
+        all_ao_pairs: typing.List[AOPair] = []
+        values = []
+        nl_value = {}
+        for i, c_free_aop in enumerate(self._centered_free_AOpairs):
+            n, l = c_free_aop.l_AO.n, c_free_aop.l_AO.l
+            nl_value[(n, l)] = values[i]
+
+        for l_ao in self._center_aos:
+            for r_ao in self._center_aos:
+                all_ao_pairs.append(AOPair(l_ao, r_ao))
+                if l_ao.n == r_ao.n and l_ao.l == r_ao.l:
+                    values.append(nl_value[(l_ao.n, l_ao.l)])
+                else:
+                    values.append(0.0)
 
         additional_A = np.zeros(
-            (self.num_free_variables, self.num_AOpairs), 
+            (len(self.free_variables_indices), len(self.ao_pairs)), 
             dtype=self.homogeneous_equation.dtype
         )
 
         for i, which in enumerate(self.free_variables_indices):
             additional_A[i, which] = 1.0
-        additional_b = np.array(values)
+        additional_b = np.array(values[len(self._centered_free_AOpairs):])
         original_b = np.zeros(
-            self.num_AOpairs - self.num_free_variables, dtype=additional_b.dtype
+            len(self.ao_pairs) - len(self.free_variables_indices), dtype=additional_b.dtype
         )
 
         b = np.hstack([original_b, additional_b])
@@ -118,5 +152,8 @@ class InteractionEquation:
         assert A.shape[0] == A.shape[1]
         inv_A = np.linalg.inv(A)
 
-        return InteractionPairs(self.ao_pairs, np.dot(inv_A, b))
+        all_ao_pairs += self.ao_pairs
+        values += list(np.dos(inv_A, b))
+
+        return InteractionPairs(all_ao_pairs, np.array(values))
         

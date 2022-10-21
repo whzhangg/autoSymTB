@@ -43,4 +43,4 @@ def test_Si_decomposition():
         
     free_pairs = get_free_AOpairs_from_nncluster_and_namedLCs(si_environment, named_lcs)
 
-    assert len(free_pairs) == 15
+    assert len(free_pairs) == 13

@@ -28,7 +28,7 @@ answers = [
         }
     ),
     Answer(
-        8, "4/mmm",
+        7, "4/mmm",
         irreps = {
             "A_1g @ 1^th A_1g","A_1g @ 2^th A_1g","A_1g @ 3^th A_1g","A_2u @ 1^th A_2u",
             "A_2u @ 2^th A_2u","A_2u @ 3^th A_2u","E_g->B_1 @ 1^th E_g","E_g->B_2 @ 1^th E_g",
@@ -37,7 +37,7 @@ answers = [
         }
     ),
     Answer(
-        8, "4/mmm",
+        7, "4/mmm",
         irreps = {
             "A_1g @ 1^th A_1g","A_1g @ 2^th A_1g","A_1g @ 3^th A_1g","A_2u @ 1^th A_2u",
             "A_2u @ 2^th A_2u","A_2u @ 3^th A_2u","E_g->B_1 @ 1^th E_g","E_g->B_2 @ 1^th E_g",
@@ -46,7 +46,7 @@ answers = [
         }
     ),
     Answer(
-        8, "4/mmm",
+        7, "4/mmm",
         irreps = {
             "A_1g @ 1^th A_1g","A_1g @ 2^th A_1g","A_1g @ 3^th A_1g","A_2u @ 1^th A_2u",
             "A_2u @ 2^th A_2u","A_2u @ 3^th A_2u","E_g->B_1 @ 1^th E_g","E_g->B_2 @ 1^th E_g",
