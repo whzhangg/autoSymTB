@@ -1,10 +1,10 @@
 import numpy as np
 from automaticTB.properties.boltztrap import TBoltzTrapCalculation, write_results_yaml
-from automaticTB.tightbinding import SingleBand_TB
+from automaticTB.tightbinding.models import get_singleband_tightbinding_with_overlap
 
 
 def test_single_band_dos():
-    tb = SingleBand_TB()
+    tb = get_singleband_tightbinding_with_overlap(0.04)
     boltztrap = TBoltzTrapCalculation(
         tb, 
         [10, 10, 10],

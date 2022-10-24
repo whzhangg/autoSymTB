@@ -1,7 +1,7 @@
 from automaticTB.properties import TetraDOS, get_tetrados_result
-from automaticTB.tightbinding.models import SingleBand_TB
+from automaticTB.tightbinding.models import get_singleband_tightbinding_with_overlap
 
-tb = SingleBand_TB() # default overlap
+tb = get_singleband_tightbinding_with_overlap(0.04) # default overlap
 ngrid = [20, 20, 20]
 
 def test_singleband_dos():

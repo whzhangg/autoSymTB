@@ -8,7 +8,9 @@ __all__ = [
     "find_linearly_independent_rows",
     "remove_parallel_vectors",
     "find_free_variable_indices_by_row_echelon",
-    "_row_echelon"
+    "_row_echelon",
+    "_first_non_zero", 
+    "LinearEquation"
 ]
 
 
@@ -139,18 +141,38 @@ def _row_echelon(A):
     return np.vstack([A[:1], np.hstack([A[1:,:1], B]) ])
 
 
-'''
-this should be removed in due time
+class LinearEquation:
+    def __init__(self, homogeneous_equation: np.array) -> None:
+        self.homogeneous_equation = homogeneous_equation
 
-def _wrong_find_free_variable_indices(A:np.ndarray) -> typing.Set[int]:
-    """
-    I followed this method, which worked for some case but it is not correct
-    the problem is that U is an upper triangluar matrix, but not necessarily
-    a row echelon form, so that free variable idenfitication is not correct.
-    """
-    # https://stackoverflow.com/questions/52303550/find-which-variables-are-free-in-underdetermined-linear-system
-    P, L, U = scipy.linalg.lu(A)
-    basis_columns = {_first_non_zero(row) for row in U}
-    free_variables = set(range(U.shape[1])) - basis_columns
-    return free_variables
-'''
+        self.row_echelon_form = remove_zero_vector_from_coefficients(
+            _row_echelon(homogeneous_equation)
+        )
+        self.leading_variables_index: typing.Set[int] \
+            = {_first_non_zero(row) for row in self.row_echelon_form}
+        self.free_variables_index: typing.Set[int] \
+            = set(range(self.row_echelon_form.shape[1])) - self.leading_variables_index
+
+    def solve_providing_values(
+        self, free_interaction_values: typing.List[float]
+    ) -> np.ndarray:
+        """this functionality solve the all the interactions from the free ones"""
+
+        nrow, ncol = self.row_echelon_form.shape
+        nfree = ncol - nrow
+        assert nfree == len(free_interaction_values)
+        data_type = self.row_echelon_form.dtype
+        new_rows = np.zeros((nfree, ncol), dtype=data_type)
+        for i, fi in enumerate(self.free_variables_index):
+            new_rows[i, fi] = 1.0
+
+        stacked_left = np.vstack([self.row_echelon_form, new_rows])
+        stacked_right= np.hstack(
+            [ np.zeros(nrow, dtype=data_type),
+              np.array(free_interaction_values, dtype=data_type) ]
+        )
+
+        assert stacked_left.shape[0] == stacked_left.shape[1]
+        assert len(stacked_left) == len(stacked_right)
+        return np.dot(np.linalg.inv(stacked_left), stacked_right)
+

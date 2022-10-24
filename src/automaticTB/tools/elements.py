@@ -1,5 +1,8 @@
 import typing
 
+__all__ = [
+    "atomic_numbers", "chemical_symbols", "valence_dictionary"
+]
 
 atomic_numbers: typing.Dict[str, int] = {
     'X': 0, 'H': 1, 'He': 2, 

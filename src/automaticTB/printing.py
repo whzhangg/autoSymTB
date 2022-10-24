@@ -3,8 +3,16 @@ import typing
 from .tools import Pair
 from .atomic_orbitals import AO
 from .SALCs import NamedLC
-from .structure import NearestNeighborCluster
-from .interaction import InteractionPairs
+from .structure import Structure
+from .interaction import AOPairWithValue
+
+__all__ = [
+    "get_orbital_symbol_from_lm", # used in bandstructure plots
+    "print_namedLCs", 
+    "print_matrix",
+    "print_ao_pairs",
+    "print_InteractionPairs"
+]
 
 _print_lm = {
     (0, 0): "s",
@@ -36,30 +44,47 @@ def print_namedLCs(namedLcs: typing.List[NamedLC]):
         print(nlc.name)
         print(nlc.lc)
 
-def print_ao_pairs(nncluster: NearestNeighborCluster, pairs: typing.List[Pair]):
-    print("Free interaction parameters: ")
+def print_ao_pairs(structure: Structure, pairs: typing.List[Pair]):
     for i, pair in enumerate(pairs):
         left: AO = pair.left
         right: AO = pair.right
         result = "{:>3d}".format(i+1) + " > Free AO interaction: "
-        rij = nncluster.baresites[right.cluster_index].pos - nncluster.baresites[left.cluster_index].pos
+        lpos = structure.cell.T.dot(
+            left.translation + structure.positions[left.primitive_index]
+        )
+        rpos = structure.cell.T.dot(
+            right.translation + structure.positions[right.primitive_index]
+        )
+        rij = rpos - lpos
         result += f"{left.chemical_symbol} {_parse_orbital(left.n, left.l, left.m)} -> "
         result += f"{right.chemical_symbol} {_parse_orbital(right.n, right.l, right.m)} @ "
         result += "({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
         print(result)
 
     
-def print_InteractionPairs(nncluster: NearestNeighborCluster, interactionpairs: InteractionPairs):
+def print_InteractionPairs(
+    structure: Structure, interactionpairs: typing.List[AOPairWithValue]
+):
     print("Solved Interactions: ")
-    for i, pair_value in enumerate(interactionpairs.AO_energies):
+    for i, pair_value in enumerate(interactionpairs):
         left: AO = pair_value.left
         right: AO = pair_value.right
         result = "{:>3d}".format(i+1) + " > AO interaction: "
-        rij = nncluster.baresites[right.cluster_index].pos - nncluster.baresites[left.cluster_index].pos
-        result += f"{left.chemical_symbol} {_parse_orbital(left.l, left.m)} -> "
-        result += f"{right.chemical_symbol} {_parse_orbital(right.l, right.m)} @ "
+
+        lpos = structure.cell.T.dot(
+            left.translation + structure.positions[left.primitive_index]
+        )
+        rpos = structure.cell.T.dot(
+            right.translation + structure.positions[right.primitive_index]
+        )
+        rij = rpos - lpos
+        
+        result += f"{left.primitive_index:>2d}{left.chemical_symbol}"
+        result += f"{_parse_orbital(left.n, left.l, left.m)} -> "
+        result += f"{right.primitive_index:>2d}{right.chemical_symbol}"
+        result += f"{_parse_orbital(right.n, right.l, right.m)} @ "
         result += "({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
-        result += "H: {:>6.2f}".format(pair_value.value)
+        result += "H: {:>6.2f}".format(pair_value.value.real)
         print(result)
 
 

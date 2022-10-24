@@ -1,8 +1,9 @@
 import numpy as np
 import typing
 import scipy.linalg as scipylinalg
-# given a secular equation $H_{\mu\nu}(k)$ and $S_{\mu\nu}(k)$, we attempt to solve for the coefficients C
+
 r"""
+given a secular equation $H_{\mu\nu}(k)$ and $S_{\mu\nu}(k)$, we attempt to solve for the coefficients C
 we require that the result to be similar to this form w, v = np.linalg.eig(ham)
 Method: Ideas of Quantum Chemistry Appendix L.
 (H - eS) c = 0
@@ -11,6 +12,8 @@ Method: Ideas of Quantum Chemistry Appendix L.
 (S^{-1/2} H S^{-1/2} - e) S^{1/2} c = 0
 (\tilde{H} - e) (S^{1/2} c) = 0
 """
+
+__all__ = ["solve_secular_sorted"]
 
 def solve_secular(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
     if H.shape != S.shape: raise "Shape must the same"
@@ -27,6 +30,7 @@ def solve_secular_sorted(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarra
     w, c = solve_secular(H, S)
     sort_index = np.argsort(w.real)
     return w[sort_index], c[:,sort_index]
+
 
 def test_secular_solver():
     H = np.array([

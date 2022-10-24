@@ -1,25 +1,25 @@
-docs/**/*.pdf
-docs/**/*.pptx
-!docs/figures/*.pdf
 **/__pycache__
 **/.pytest_cache
 **/*.aux
+**/.DS_Store
+
+docs/**/*.pdf
+docs/**/*.pptx
+!docs/figures/*.pdf
 
 examples/*.cube
 applications/
+
 src/*.egg-info
 src/automaticTB/SALCs/examples
 src/automaticTB/SALCs/SubductionTables.tar.gz
 src/automaticTB/tests/**/*.pdf
 src/automaticTB/tests/**/*.dat
-
 src/automaticTB/sitesymmetry/Bilbao/local
 src/automaticTB/examples/**/*.yml
 src/automaticTB/examples/**/*.cube
 src/automaticTB/examples/**/*.png
 src/automaticTB/plotting/**/*.cube
-
-**/.DS_Store
 
 plots/**/*.vesta
 plots/**/*.cif
@@ -27,5 +27,6 @@ plots/**/*.cube
 
 tests/properties/*.pdf
 tests/plot/*.cube
+
 bin/*.cube
 bin/*.pdf

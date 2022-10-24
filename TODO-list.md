@@ -10,12 +10,14 @@
  - [x] Branching, add support for n orbital number
  - [x] fully support the orbital n-number
  - [x] Added combined equation solver
- - [ ] Undate acceptance tests
- - [ ] add value unfolding and interface to tightbinding for the combined equation solver
+ - [x] Undate acceptance tests
+ - [x] add value unfolding and interface to tightbinding for the combined equation solver
         (this means change the interface between tightbinding and equation system)
- - [ ] change printAO to use structure, instead of cluster
+       2, 6, 12 
+ - [x] change printAO to use structure, instead of cluster
  - [ ] add cluster Hamiltonian and solver
  - [ ] Si, tight-binding model
+ - [ ] rename the test framework
 
 ### Rule for writting tests
 - use single folders to collect tests into independent sections

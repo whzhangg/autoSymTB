@@ -4,5 +4,5 @@
 from .kmesh import Kmesh
 from .kpath import Kline, Kpath
 from .dos import TetraDOS, get_tetrados_result
-from .boltztrap import SingleBoltzTrapResult, TBoltzTrapCalculation
+#from .boltztrap import SingleBoltzTrapResult, TBoltzTrapCalculation
 from .bandstructure import BandStructureResult, FatBandResult

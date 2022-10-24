@@ -1,67 +1,14 @@
-import abc, typing, dataclasses
+import abc, typing
 import numpy as np
-from ..interaction import InteractionPairs
-from ..atomic_orbitals import AO
-from .secular_solver import solve_secular, solve_secular_sorted
+from .secular_solver import solve_secular_sorted
+from .hij import Pindex_lm, HijR, SijR
 
-@dataclasses.dataclass
-class Pindex_lm:
-    pindex: int  # index in primitive cell
-    l: int
-    m: int
-    translation: np.ndarray
+"""
+this module defines tight-binding model, the only thing we need is the HijR and SijR, 
+which contain the energy and overlap of atomic orbitals.
+"""
 
-    def __eq__(self, other) -> bool:
-        return self.pindex == other.pindex and \
-               self.l == other.l and self.m == other.m and \
-               np.allclose(self.translation, other.translation)
-
-
-@dataclasses.dataclass
-class HijR:
-    left: Pindex_lm
-    right: Pindex_lm
-    value: float
-
-
-@dataclasses.dataclass
-class SijR:
-    left: Pindex_lm
-    right: Pindex_lm
-    value: float
-
-
-def gather_InteractionPairs_into_HijRs(AOinteractions: typing.List[InteractionPairs]) -> typing.List[HijR]:
-    HijR_list: typing.List[HijR] = []
-    for interaction in AOinteractions:
-        for pair, value in zip(interaction.pairs, interaction.interactions):
-            left: AO = pair.left
-            right: AO = pair.right
-            HijR_list.append(
-                HijR(
-                    Pindex_lm(left.primitive_index, left.l, left.m, left.translation),
-                    Pindex_lm(right.primitive_index, right.l, right.m, right.translation),
-                    value
-                )
-            )
-    return HijR_list
-
-
-def gather_InteractionPairs_into_SijRs(AOinteractions: typing.List[InteractionPairs]) -> typing.List[SijR]:
-    SijR_list: typing.List[HijR] = []
-    for interaction in AOinteractions:
-        for pair, value in zip(interaction.pairs, interaction.interactions):
-            left: AO = pair.left
-            right: AO = pair.right
-            SijR_list.append(
-                SijR(
-                    Pindex_lm(left.primitive_index, left.l, left.m, left.translation),
-                    Pindex_lm(right.primitive_index, right.l, right.m, right.translation),
-                    value
-                )
-            )
-    return SijR_list
-
+__all__ = ["TightBindingBase", "TightBindingModel"]
 
 class TightBindingBase(abc.ABC):
 
@@ -126,21 +73,33 @@ class TightBindingModel(TightBindingBase):
         positions: np.ndarray,
         types: typing.List[int],
         HijR_list: typing.List[HijR],
-        SijR_list: typing.List[SijR]
+        SijR_list: typing.Optional[typing.List[SijR]] = None
     ) -> None:
         self._cell = cell
         self._positions = positions
         self._types = types
-        self._HijR = HijR_list
-        self._SijR = SijR_list
+        self._HijRs = HijR_list
+
+        """
+        if SijR_list is None:
+            # create SijR list
+            self._SijRs = []
+            for hijr in self._HijRs:
+                if hijr.left == hijr.right:
+                    self._SijRs.append(
+                        SijR(hijr.left, hijr.right, 1.0)
+                    )
+        else:
+        """
+        self._SijRs = SijR_list
 
         self._basis: typing.List[Pindex_lm] = []
-        for hijR in self._HijR:
+        for hijR in self._HijRs:
             if hijR.left not in self._basis:
                 self._basis.append(hijR.left)
                 
         self._index_ref: typing.Dict[tuple, int] = {
-            (basis.pindex, basis.l, basis.m):i for i, basis in enumerate(self._basis)
+            (basis.pindex, basis.n, basis.l, basis.m):i for i, basis in enumerate(self._basis)
         }
 
     @property
@@ -158,36 +117,42 @@ class TightBindingModel(TightBindingBase):
     @property
     def types(self) -> typing.List[int]:
         return self._types
-        
+
+
     def Hijk(self, k: typing.Tuple[float]):
         k = np.array(k)
         nbasis = len(self._basis)
         ham = np.zeros((nbasis,nbasis), dtype=complex)
-        for HijR in self._HijR:
+        for HijR in self._HijRs:
             assert np.allclose(HijR.left.translation, np.zeros(3))
             r = HijR.right.translation
             index_i = self._index_ref[
-                (HijR.left.pindex, HijR.left.l, HijR.left.m)
+                (HijR.left.pindex, HijR.left.n, HijR.left.l, HijR.left.m)
             ]
             index_j = self._index_ref[
-                (HijR.right.pindex, HijR.right.l, HijR.right.m)
+                (HijR.right.pindex, HijR.right.n, HijR.right.l, HijR.right.m)
             ]
             kR = np.dot(k, r + self._positions[HijR.right.pindex] - self._positions[HijR.left.pindex])
             ham[index_i,index_j] += HijR.value * np.exp(2j * np.pi * kR)
         return ham
 
+
     def Sijk(self, k: typing.Tuple[float]):
         k = np.array(k)
         nbasis = len(self._basis)
+
+        if self._SijRs is None:
+            return np.eye(nbasis, dtype=complex)
+        
         ham = np.zeros((nbasis,nbasis), dtype=complex)
-        for HijR in self._SijR:
+        for HijR in self._SijRs:
             assert np.allclose(HijR.left.translation, np.zeros(3))
             r = HijR.right.translation
             index_i = self._index_ref[
-                (HijR.left.pindex, HijR.left.l, HijR.left.m)
+                (HijR.left.pindex, HijR.left.n, HijR.left.l, HijR.left.m)
             ]
             index_j = self._index_ref[
-                (HijR.right.pindex, HijR.right.l, HijR.right.m)
+                (HijR.right.pindex, HijR.right.n, HijR.right.l, HijR.right.m)
             ]
             kR = np.dot(k, r + self._positions[HijR.right.pindex] - self._positions[HijR.left.pindex])
             ham[index_i,index_j] += HijR.value * np.exp(2j * np.pi * kR)

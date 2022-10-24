@@ -2,10 +2,11 @@ import typing, dataclasses
 from ..atomic_orbitals import AO    
 import numpy as np
 from ..tools import find_free_variable_indices_by_row_echelon, tensor_dot, Pair
+from ..tools import LinearEquation
 from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
-from ..SALCs import NamedLC, IrrepSymbol
-from .interaction_pairs import InteractionPairs, AOPair
+from ..SALCs import NamedLC
+from .interaction_pairs import AOPair, AOPairWithValue
 from .MOInteraction import HomogeneousEquationFinder
 
 
@@ -103,7 +104,7 @@ class InteractionEquation:
 
 
     @property
-    def free_AOpairs(self) -> typing.List[Pair]:
+    def free_AOpairs(self) -> typing.List[AOPair]:
         """
         return the free AO pairs, it's a combination of free atomic orbital energy 
         as well as the free interactions. Atomic orbital energys are treated separated from the 
@@ -112,27 +113,35 @@ class InteractionEquation:
         return self._centered_free_AOpairs + \
             [ self.ao_pairs[i] for i in self.free_variables_indices ]
 
+    @property
+    def all_AOpairs(self) -> typing.List[AOPair]:
+        centered_ao_pairs = []
+        for l_ao in self._center_aos:
+            centered_ao_pairs.append(AOPair(l_ao, l_ao))
+        return centered_ao_pairs + self.ao_pairs
 
     def solve_interactions_to_InteractionPairs(
         self, values: typing.List[float]
-    ) -> InteractionPairs:
+    ) -> typing.List[AOPairWithValue]:
         # we assume that the sequence is correct.
         assert len(values) == len(self.free_AOpairs)
 
         all_ao_pairs: typing.List[AOPair] = []
-        values = []
+        all_values = []
         nl_value = {}
         for i, c_free_aop in enumerate(self._centered_free_AOpairs):
             n, l = c_free_aop.l_AO.n, c_free_aop.l_AO.l
             nl_value[(n, l)] = values[i]
 
         for l_ao in self._center_aos:
-            for r_ao in self._center_aos:
-                all_ao_pairs.append(AOPair(l_ao, r_ao))
-                if l_ao.n == r_ao.n and l_ao.l == r_ao.l:
-                    values.append(nl_value[(l_ao.n, l_ao.l)])
-                else:
-                    values.append(0.0)
+            all_ao_pairs.append(AOPair(l_ao, l_ao))
+            all_values.append(nl_value[(l_ao.n, l_ao.l)])
+            #for r_ao in self._center_aos:
+            #    all_ao_pairs.append(AOPair(l_ao, r_ao))
+            #    if l_ao.n == r_ao.n and l_ao.l == r_ao.l and l_ao.m == r_ao.m:
+            #        all_values.append(nl_value[(l_ao.n, l_ao.l)])
+            #    else:
+            #        all_values.append(0.0)
 
         additional_A = np.zeros(
             (len(self.free_variables_indices), len(self.ao_pairs)), 
@@ -153,7 +162,12 @@ class InteractionEquation:
         inv_A = np.linalg.inv(A)
 
         all_ao_pairs += self.ao_pairs
-        values += list(np.dos(inv_A, b))
+        all_values += list(np.dot(inv_A, b))
 
-        return InteractionPairs(all_ao_pairs, np.array(values))
+        aopairs_withvalue = []
+        for aopair, v in zip(all_ao_pairs, all_values):
+            aopairs_withvalue.append(
+                AOPairWithValue(aopair.l_AO, aopair.r_AO, v)
+            )
+        return aopairs_withvalue
         

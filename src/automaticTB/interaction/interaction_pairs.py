@@ -2,9 +2,9 @@ import typing, dataclasses
 import numpy as np
 from ..tools import Pair, PairwithValue
 from ..atomic_orbitals import AO 
+from ..parameters import zero_tolerance
 
-
-__all__ = ["InteractionPairs", "AOPair"]
+__all__ = ["AOPair", "AOPairWithValue"]
 
 
 @dataclasses.dataclass
@@ -36,6 +36,18 @@ class AOPair:
 
 
 @dataclasses.dataclass
+class AOPairWithValue(AOPair):
+    value: typing.Union[float, complex]
+
+    def __eq__(self, o: "AOPairWithValue") -> bool:
+        valueOK = np.isclose(self.value, o.value, atol = zero_tolerance)
+        pair_OK = (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
+                  (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
+        
+        return  valueOK and pair_OK
+
+
+@dataclasses.dataclass
 class InteractionPairs:
     pairs: typing.List[AOPair]
     interactions: np.ndarray
@@ -49,6 +61,9 @@ class InteractionPairs:
 
     @property
     def AO_energies(self) -> typing.List[PairwithValue]:
+        """
+        return a list of (AO1, AO2, interaction value)
+        """
         result = []
         for pair, value in zip(self.pairs, self.interactions):
             result.append(

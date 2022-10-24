@@ -11,14 +11,14 @@ are stored here.
 
 parameters = {
         "V_ss"   :  -1.10,
-        "V_s0p1" :   1.10,
-        "V_p0s1" :   0.70,
-        "V_pps"  :  -3.65,
-        "V_ppp"  :   0.55,
-        "E_s0"   :  -9.01,
-        "E_s1"   : -13.01,
-        "E_p0"   :   2.34,
-        "E_p1"   :  -1.96
+        "V_s0p1" :   1.25,
+        "V_p0s1" :   0.60,
+        "V_pps"  :  -3.50,
+        "V_ppp"  :   0.80,
+        "E_s0"   :  -9.21,
+        "E_s1"   : -13.21,
+        "E_p0"   :   2.39,
+        "E_p1"   :  -2.16
     }
 
 p_direction = {
@@ -61,22 +61,26 @@ def get_interaction_values_from_list_AOpairs(cell: np.ndarray, positions: np.nda
                 value = parameters["V_ss"]
             elif left.l != right.l:
                 # s and p
-                if left.l == 1:
-                    m = left.m
-                else:
+                if right.l == 1:
                     m = right.m
-                    d_r = -1 * d_r # direction from l=1 to l=0
+                    d_r = -1 * d_r # direction always from p to s 
+                else:
+                    m = left.m
                 p1_direction = p_direction[m]
                 if abs(np.dot(p1_direction, d_r)) < 1e-6:
+                    """when p is perpendicular to dr"""
                     value = 0.0
 
                 else:
                     sign = np.sign(np.dot(p1_direction, d_r))
-                    if (left.l == 0 and left.chemical_symbol == "Pb") \
-                    or (right.l == 0 and right.chemical_symbol == "Pb"):
+
+                    if (left.l == 0 and left.chemical_symbol == "Pb") or \
+                       (right.l == 0 and right.chemical_symbol == "Pb"):
                         symbol = "V_s0p1"
-                    else:
+                    elif (left.l == 1 and left.chemical_symbol == "Pb") or \
+                        (right.l == 1 and right.chemical_symbol == "Pb"):
                         symbol = "V_p0s1"
+                        
                     value = sign * parameters[symbol]
             
             else: # left.1 
