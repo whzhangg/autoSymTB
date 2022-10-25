@@ -1,8 +1,9 @@
 import typing, dataclasses
 import numpy as np
-from ..tools import Pair, PairwithValue
+from ..tools import Pair
 from ..atomic_orbitals import AO 
 from ..parameters import zero_tolerance
+
 
 __all__ = ["AOPair", "AOPairWithValue"]
 
@@ -37,6 +38,7 @@ class AOPair:
 
 @dataclasses.dataclass
 class AOPairWithValue(AOPair):
+    """AOPair with value additionally associated with it, overwrite the __eq__ method"""
     value: typing.Union[float, complex]
 
     def __eq__(self, o: "AOPairWithValue") -> bool:
@@ -46,27 +48,3 @@ class AOPairWithValue(AOPair):
         
         return  valueOK and pair_OK
 
-
-@dataclasses.dataclass
-class InteractionPairs:
-    pairs: typing.List[AOPair]
-    interactions: np.ndarray
-    """
-    this class help to find value in an interaction matrix, we store the data as a list of items
-    and we should return the index by giving a pair item1, item2
-    the item must have the __equal__ method so that we can use .index()
-    """
-    def get_index(self, pair: Pair) -> typing.Tuple[int,int]:
-        return self.pairs.index(pair)
-
-    @property
-    def AO_energies(self) -> typing.List[PairwithValue]:
-        """
-        return a list of (AO1, AO2, interaction value)
-        """
-        result = []
-        for pair, value in zip(self.pairs, self.interactions):
-            result.append(
-                PairwithValue(pair.left, pair.right, value)
-            )
-        return result

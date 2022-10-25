@@ -1,15 +1,19 @@
-from .equation_system import InteractionEquation
-from ..atomic_orbitals import AO
-from .interaction_pairs import AOPair, AOPairWithValue
-import dataclasses, typing
+import typing
 import numpy as np
+from ..atomic_orbitals import AO
 from ..tools import LinearEquation
+from .interaction_equation import InteractionEquation
+from ._abstract_equation import AOEquationBase
+from .interaction_pairs import AOPair, AOPairWithValue
+
 
 __all__ = ["CombinedInteractionEquation"]
 
-class CombinedInteractionEquation:
+
+class CombinedInteractionEquation(AOEquationBase):
     """
-    
+    this class provide functionality that combine atomic orbital interaction on 
+    different cluster and combine them into a single solver
     """
     def __init__(self, cluster_equations: typing.List[InteractionEquation]) -> None:
         # the interaction ao pairs

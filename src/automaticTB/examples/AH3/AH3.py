@@ -3,7 +3,12 @@ from ...structure import CrystalSite, NearestNeighborCluster
 from ...atomic_orbitals import Orbitals, OrbitalsList
 from ...sitesymmetry import get_point_group_as_SiteSymmetryGroup
 
-def get_AH3_nncluster():
+__all__ = ["get_AH3_nncluster"]
+
+def get_AH3_nncluster() -> NearestNeighborCluster:
+    """
+    return a molecular cluster centered on A atom
+    """
     group = get_point_group_as_SiteSymmetryGroup("-6m2")
     w = np.sqrt(3) / 2
     crystalsites = [

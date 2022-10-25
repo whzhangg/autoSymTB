@@ -7,9 +7,8 @@ from automaticTB.examples.Perovskite.ao_interaction import (
     get_interaction_values_from_list_AOpairs
 )
 import numpy as np
-from automaticTB.examples.structures import get_perovskite_structure
+from automaticTB.examples import get_perovskite_structure
 import dataclasses, typing
-from automaticTB.printing import print_ao_pairs
 from automaticTB.tightbinding import gather_InteractionPairs_into_HijRs, TightBindingModel
 
 @dataclasses.dataclass

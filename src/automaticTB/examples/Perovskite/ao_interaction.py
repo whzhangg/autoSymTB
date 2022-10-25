@@ -9,6 +9,11 @@ In the parameters, index 0 indicate the Pb atom and index 1-3 indicate Cl atoms,
 are stored here.
 """
 
+__all__ = [
+    "get_interaction_values_from_list_AOpairs",
+    "get_overlap_values_from_list_AOpairs"    
+]
+
 parameters = {
         "V_ss"   :  -1.10,
         "V_s0p1" :   1.25,
@@ -28,9 +33,9 @@ p_direction = {
      # the direction of p orbital determines the p-p sigma or pi bond, as well as the interaction between s and p bond
 }
 
-
-def get_interaction_values_from_list_AOpairs(cell: np.ndarray, positions: np.ndarray, aopairs: typing.List[Pair]) \
--> typing.List[float]:
+def get_interaction_values_from_list_AOpairs(
+    cell: np.ndarray, positions: np.ndarray, aopairs: typing.List[Pair]
+) -> typing.List[float]:
     # this is an ad-hoc way to create the AO interaction
     cpos = np.einsum("ji, kj -> ki", cell, positions)
 
@@ -63,9 +68,10 @@ def get_interaction_values_from_list_AOpairs(cell: np.ndarray, positions: np.nda
                 # s and p
                 if right.l == 1:
                     m = right.m
-                    d_r = -1 * d_r # direction always from p to s 
                 else:
                     m = left.m
+                if right.chemical_symbol == "Pb":
+                    d_r = -1 * d_r  # dr always start from Pb
                 p1_direction = p_direction[m]
                 if abs(np.dot(p1_direction, d_r)) < 1e-6:
                     """when p is perpendicular to dr"""

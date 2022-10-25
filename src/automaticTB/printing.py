@@ -56,8 +56,8 @@ def print_ao_pairs(structure: Structure, pairs: typing.List[Pair]):
             right.translation + structure.positions[right.primitive_index]
         )
         rij = rpos - lpos
-        result += f"{left.chemical_symbol} {_parse_orbital(left.n, left.l, left.m)} -> "
-        result += f"{right.chemical_symbol} {_parse_orbital(right.n, right.l, right.m)} @ "
+        result += f"{left.chemical_symbol:>2s} {_parse_orbital(left.n, left.l, left.m):>7s} -> "
+        result += f"{right.chemical_symbol:>2s} {_parse_orbital(right.n, right.l, right.m):>7s} @ "
         result += "({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
         print(result)
 
@@ -79,10 +79,10 @@ def print_InteractionPairs(
         )
         rij = rpos - lpos
         
-        result += f"{left.primitive_index:>2d}{left.chemical_symbol}"
-        result += f"{_parse_orbital(left.n, left.l, left.m)} -> "
-        result += f"{right.primitive_index:>2d}{right.chemical_symbol}"
-        result += f"{_parse_orbital(right.n, right.l, right.m)} @ "
+        result += f"{left.primitive_index:>2d}{left.chemical_symbol:>2s}"
+        result += f"{_parse_orbital(left.n, left.l, left.m):>7s} -> "
+        result += f"{right.primitive_index:>2d}{right.chemical_symbol:>2s}"
+        result += f"{_parse_orbital(right.n, right.l, right.m):>7s} @ "
         result += "({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
         result += "H: {:>6.2f}".format(pair_value.value.real)
         print(result)

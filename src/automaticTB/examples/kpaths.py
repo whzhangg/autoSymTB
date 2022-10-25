@@ -21,5 +21,3 @@ cubic_lines = [
 ]
 
 cubic_kpath = Kpath(np.eye(3), cubic_lines)
-
-

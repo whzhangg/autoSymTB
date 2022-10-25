@@ -1,7 +1,7 @@
 """This script provide necessary inputs to initialize a tight-binding model"""
 import numpy as np
 import typing
-from ...interaction import AOPairWithValue, AOPair
+from ...interaction import AOPairWithValue
 from ...atomic_orbitals import AO
 from ...tools import chemical_symbols
 from ..tightbinding_model import TightBindingModel

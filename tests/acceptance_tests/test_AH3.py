@@ -1,5 +1,5 @@
 from automaticTB.functions import get_namedLCs_from_nncluster
-from automaticTB.examples.structures import get_AH3_nncluster
+from automaticTB.examples import get_AH3_nncluster
 from automaticTB.functions import get_free_AOpairs_from_nncluster_and_namedLCs
 
 def test_AH3_decomposition():

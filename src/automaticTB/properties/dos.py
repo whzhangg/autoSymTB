@@ -2,7 +2,7 @@ import numpy as np
 import abc, typing, copy
 from .kmesh import TetraKmesh
 from ..tools import find_RCL
-from ..tightbinding import TightBindingBase
+from ..tightbinding import TightBindingModel
 
 class SpinDegenerateDOSBase(abc.ABC):
     """for all the three public methods, should return dict containing dos of each spin"""
@@ -210,7 +210,7 @@ class TetraDOS(SpinDegenerateDOSBase):
 
 
 def get_tetrados_result(
-    tb: TightBindingBase, ngrid: typing.Tuple[int, int, int], x_density: int = 50, 
+    tb: TightBindingModel, ngrid: typing.Tuple[int, int, int], x_density: int = 50, 
 ) -> TetraDOS:
     reciprocal_cell = find_RCL(tb.cell)
 

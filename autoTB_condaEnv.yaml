@@ -1,0 +1,23 @@
+name: autoTB
+channels:
+  - pyg
+  - pytorch
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.8
+  - prettytable
+  - spglib
+  - matplotlib
+  - beautifulsoup4
+  - numpy
+  - scipy
+  - requests
+  - ase
+  - pymatgen
+  - pyg
+  - pytorch
+  - jupyter
+  - pytest
+prefix: /Users/wenhao/Applications/miniconda3/envs/autoTB

@@ -15,9 +15,9 @@
         (this means change the interface between tightbinding and equation system)
        2, 6, 12 
  - [x] change printAO to use structure, instead of cluster
- - [ ] add cluster Hamiltonian and solver
- - [ ] Si, tight-binding model
+ - [x] Si, tight-binding model
  - [ ] rename the test framework
+ - [ ] clean up the code
 
 ### Rule for writting tests
 - use single folders to collect tests into independent sections

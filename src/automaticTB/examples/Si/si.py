@@ -1,8 +1,7 @@
 import numpy as np
 from ...structure import Structure
 
-__all__ = ["get_si_structure", "fcc_si"]
-
+__all__ = ["get_Si_structure_2s2p", "get_Si_structure_2s2p3s"]
 
 fcc_si = {
     "cell": np.eye(3) * 5.43053,

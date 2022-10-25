@@ -1,7 +1,7 @@
 import typing, dataclasses
 import numpy as np
 from .kpath import Kpath, BandPathTick
-from ..tightbinding import TightBindingBase
+from ..tightbinding import TightBindingModel
 from ..printing import get_orbital_symbol_from_lm
 from ..tools import chemical_symbols
 
@@ -36,7 +36,7 @@ class BandStructureResult:
 
     @classmethod
     def from_tightbinding_and_kpath(
-        cls, tb: TightBindingBase, kpath: Kpath
+        cls, tb: TightBindingModel, kpath: Kpath
     ) -> "BandStructureResult":
         energies = tb.solveE_at_ks(kpath.kpoints)
         return cls(
@@ -221,7 +221,7 @@ class FatBandResult:
 
     @classmethod
     def from_tightbinding_and_kpath(cls,
-        tb: TightBindingBase, kpath: Kpath
+        tb: TightBindingModel, kpath: Kpath
     ) -> "FatBandResult":
         energies, coefficients = tb.solveE_c2_at_ks(kpath.kpoints)
         orbnames = []

@@ -22,8 +22,9 @@ class Pindex_lm:
     m: int
     translation: np.ndarray
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: "Pindex_lm") -> bool:
         return self.pindex == other.pindex and \
+               self.n == other.n and \
                self.l == other.l and self.m == other.m and \
                np.allclose(self.translation, other.translation, atol = zero_tolerance)
 

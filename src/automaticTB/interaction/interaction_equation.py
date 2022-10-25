@@ -1,19 +1,41 @@
-import typing, dataclasses
-from ..atomic_orbitals import AO    
 import numpy as np
+import typing
+from ..atomic_orbitals import AO    
 from ..tools import find_free_variable_indices_by_row_echelon, tensor_dot, Pair
 from ..tools import LinearEquation
 from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
-from ..SALCs import NamedLC
+from ..SALCs import NamedLC, IrrepSymbol
 from .interaction_pairs import AOPair, AOPairWithValue
-from .MOInteraction import HomogeneousEquationFinder
+from ._abstract_equation import AOEquationBase
 
 
 __all__ = ["InteractionEquation"]
 
 
-class InteractionEquation:
+class HomogeneousEquationFinder:
+    """
+    a class that help to organize the homogenous equation from the interaction rule
+    """
+    def __init__(self) -> None:
+        self.memory = {}
+
+
+    def get_equation(self, rep1: IrrepSymbol, rep2: IrrepSymbol, tp: np.ndarray) -> typing.Optional[np.ndarray]:
+        if rep1.symmetry_symbol != rep2.symmetry_symbol:
+            return tp
+
+        main1 = f"{rep1.main_irrep}^{rep1.main_index}"
+        main2 = f"{rep2.main_irrep}^{rep2.main_index}"
+        pair = " ".join([main1, main2])
+        if pair not in self.memory:
+            self.memory[pair] = tp
+            return None
+        else:
+            return tp - self.memory[pair]
+
+
+class InteractionEquation(AOEquationBase):
     """
     This class keep track of the interactions, given a nncluster
     It treat AO interactions separately:
@@ -119,6 +141,7 @@ class InteractionEquation:
         for l_ao in self._center_aos:
             centered_ao_pairs.append(AOPair(l_ao, l_ao))
         return centered_ao_pairs + self.ao_pairs
+
 
     def solve_interactions_to_InteractionPairs(
         self, values: typing.List[float]
