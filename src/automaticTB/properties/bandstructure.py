@@ -8,16 +8,17 @@ from ..tools import chemical_symbols
 @dataclasses.dataclass
 class BandStructureResult:
     x: np.ndarray
-    E: np.ndarray
+    E: np.ndarray # [nk, nbnd]
     ticks: typing.List[BandPathTick]
+
 
     def write_data_to_file(self, filename: str):
         if len(self.x) != self.E.shape[0]:
             raise "Size of energy not equal to x positions"
         ticks = [ "{:>s}:{:>10.6f}".format(tick.symbol, tick.xpos) for tick in self.ticks]
-        results = " & ".join(ticks) + "\n"
-        results += f"nk   {self.E.shape[0]}\n"
-        results += f"nbnd {self.E.shape[1]}\n"
+        results = "# " + " & ".join(ticks) + "\n"
+        results += f"# nk   {self.E.shape[0]}\n"
+        results += f"# nbnd {self.E.shape[1]}\n"
         dataformat = "{:>20.12e}"
         for x, ys in zip(self.x, self.E):
             results += dataformat.format(x)
@@ -48,14 +49,14 @@ class BandStructureResult:
     def from_datafile(cls, filename: str):
         with open(filename, 'r') as f:
             aline = f.readline()
-            parts = aline.split("&")
+            parts = aline.lstrip("#").split("&")
             ticks = [
                 BandPathTick(part.split(":")[0].strip(), float(part.split(":")[1])) for part in parts
             ]
-            nk = int(f.readline().split()[-1])
-            nbnd = int(f.readline().split()[-1])
+            nk = int(f.readline().lstrip("#").split()[-1])
+            nbnd = int(f.readline().lstrip("#").split()[-1])
             xy = []
-            for ik in range(nk):
+            for _ in range(nk):
                 xy.append( 
                     np.array(f.readline().split(), dtype=float) 
                 )

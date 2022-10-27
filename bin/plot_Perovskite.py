@@ -1,5 +1,5 @@
 import typing
-from automaticTB.examples.structures import get_perovskite_structure
+from automaticTB.examples import get_perovskite_structure
 from automaticTB.interaction import (
     InteractionEquation, AOPair, AOPairWithValue, CombinedInteractionEquation
 )

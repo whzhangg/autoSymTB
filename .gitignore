@@ -25,8 +25,11 @@ plots/**/*.vesta
 plots/**/*.cif
 plots/**/*.cube
 
-tests/properties/*.pdf
+tests/properties/band/singleband_band/*
+tests/properties/dos/singleband_dos/*
+tests/properties/fatband/perovskite_fatband/*
+
 tests/plot/*.cube
 
-bin/*.cube
-bin/*.pdf
+bin/**/*.cube
+bin/**/*.pdf

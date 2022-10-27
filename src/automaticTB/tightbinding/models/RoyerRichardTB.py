@@ -144,7 +144,7 @@ class Royer_Richard_TB(TightBindingBase):
 
     @property
     def cell(self) -> np.ndarray:
-        return self.cell
+        return self._cell
 
     @property
     def types(self) -> typing.List[int]:
@@ -153,22 +153,22 @@ class Royer_Richard_TB(TightBindingBase):
     @property
     def basis(self) -> typing.List[Pindex_lm]:
         return [
-            Pindex_lm(0, 0, 0, np.array([0,0,0])),
-            Pindex_lm(0, 1,-1, np.array([0,0,0])),
-            Pindex_lm(0, 1, 0, np.array([0,0,0])),
-            Pindex_lm(0, 1, 1, np.array([0,0,0])),
-            Pindex_lm(1, 0, 0, np.array([0,0,0])),
-            Pindex_lm(1, 1,-1, np.array([0,0,0])),
-            Pindex_lm(1, 1, 0, np.array([0,0,0])),
-            Pindex_lm(1, 1, 1, np.array([0,0,0])),
-            Pindex_lm(2, 0, 0, np.array([0,0,0])),
-            Pindex_lm(2, 1,-1, np.array([0,0,0])),
-            Pindex_lm(2, 1, 0, np.array([0,0,0])),
-            Pindex_lm(2, 1, 1, np.array([0,0,0])),
-            Pindex_lm(3, 0, 0, np.array([0,0,0])),
-            Pindex_lm(3, 1,-1, np.array([0,0,0])),
-            Pindex_lm(3, 1, 0, np.array([0,0,0])),
-            Pindex_lm(3, 1, 1, np.array([0,0,0])),
+            Pindex_lm(0, 2, 0, 0, np.array([0,0,0])),
+            Pindex_lm(0, 2, 1,-1, np.array([0,0,0])),
+            Pindex_lm(0, 2, 1, 0, np.array([0,0,0])),
+            Pindex_lm(0, 2, 1, 1, np.array([0,0,0])),
+            Pindex_lm(1, 2, 0, 0, np.array([0,0,0])),
+            Pindex_lm(1, 2, 1,-1, np.array([0,0,0])),
+            Pindex_lm(1, 2, 1, 0, np.array([0,0,0])),
+            Pindex_lm(1, 2, 1, 1, np.array([0,0,0])),
+            Pindex_lm(2, 2, 0, 0, np.array([0,0,0])),
+            Pindex_lm(2, 2, 1,-1, np.array([0,0,0])),
+            Pindex_lm(2, 2, 1, 0, np.array([0,0,0])),
+            Pindex_lm(2, 2, 1, 1, np.array([0,0,0])),
+            Pindex_lm(3, 2, 0, 0, np.array([0,0,0])),
+            Pindex_lm(3, 2, 1,-1, np.array([0,0,0])),
+            Pindex_lm(3, 2, 1, 0, np.array([0,0,0])),
+            Pindex_lm(3, 2, 1, 1, np.array([0,0,0])),
         ]
 
     def Hijk(self, k: typing.Tuple[float]):

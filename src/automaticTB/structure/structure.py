@@ -107,7 +107,7 @@ class Structure:
     def from_cpt_voronoi(
         cls, cell: np.ndarray, positions: typing.List[np.ndarray], types: typing.List[int], 
         orbital_dict: typing.Dict[str, typing.List[int]], 
-        rcut: float = 4.0, 
+        rcut: float = 5.0, 
         weight_cutoff: float = 1e-1
     ) -> "Structure":
         """

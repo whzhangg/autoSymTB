@@ -1,8 +1,7 @@
-# we do not gather method here because the 
-# two files here naturally divide the content of this package
+# related to DOS
+from .dos import *
+from .kmesh import *
 
-from .kmesh import Kmesh
-from .kpath import Kline, Kpath
-from .dos import TetraDOS, get_tetrados_result
-#from .boltztrap import SingleBoltzTrapResult, TBoltzTrapCalculation
+# related to bands
+from .kpath import *
 from .bandstructure import BandStructureResult, FatBandResult

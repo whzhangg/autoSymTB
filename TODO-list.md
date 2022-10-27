@@ -16,8 +16,9 @@
        2, 6, 12 
  - [x] change printAO to use structure, instead of cluster
  - [x] Si, tight-binding model
- - [ ] rename the test framework
- - [ ] clean up the code
+ - [x] clean up the tests
+ - [ ] fatband add n number
+ - [ ] PbTe tight-binding
 
 ### Rule for writting tests
 - use single folders to collect tests into independent sections

@@ -1,8 +1,8 @@
 import numpy as np
-import abc, typing, copy
+import abc
 from .kmesh import TetraKmesh
-from ..tools import find_RCL
-from ..tightbinding import TightBindingModel
+
+__all__ = ["TetraDOS"]
 
 class SpinDegenerateDOSBase(abc.ABC):
     """for all the three public methods, should return dict containing dos of each spin"""
@@ -31,6 +31,7 @@ class SpinDegenerateDOSBase(abc.ABC):
     def write_data_to_file(self, filename: str):
         assert self.x.shape == self.dos.shape
         with open(filename, 'w') as f:
+            f.write("#{:>19s}{:>20s}".format("Energy (eV)", "DOS (1/eV)"))
             for x, y in zip(self.x, self.dos):
                 f.write("{:>20.12e}{:>20.12e}\n".format(x,y))
 
@@ -208,18 +209,3 @@ class TetraDOS(SpinDegenerateDOSBase):
 
         return nsum
 
-
-def get_tetrados_result(
-    tb: TightBindingModel, ngrid: typing.Tuple[int, int, int], x_density: int = 50, 
-) -> TetraDOS:
-    reciprocal_cell = find_RCL(tb.cell)
-
-    kmesh = TetraKmesh(reciprocal_cell, ngrid)
-    energies = tb.solveE_at_ks(kmesh.kpoints)
-
-    e_min = np.min(energies)
-    e_max = np.max(energies)
-    e_min = e_min - (e_max - e_min) * 0.05
-    e_max = e_max + (e_max - e_min) * 0.05
-    
-    return TetraDOS(kmesh, energies, np.linspace(e_min, e_max, x_density))
