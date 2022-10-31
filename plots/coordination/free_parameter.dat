@@ -1,9 +1,0 @@
-linear,            2/m,  8 , 32
-square rectangle,  mmm, 10 , 64
-square pyramidal,  4mm, 15 , 80
-square plane,    4/mmm,  6 , 64
-trigonal plane,   \bar{6}/m,  6 , 48
-trigonal prism,   \bar{6}/m, 10 , 96
-tetrahedral,      \bar{4}3m,  5 , 64
-cubic,            m\bar{3}m,  5 , 128
-octahedral,       m\bar{3}m,  5 , 96
