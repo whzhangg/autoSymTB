@@ -1,12 +1,11 @@
 import numpy as np
 import typing
-from ..atomic_orbitals import AO    
 from ..tools import find_free_variable_indices_by_row_echelon, tensor_dot, Pair
 from ..tools import LinearEquation
 from ..structure import NearestNeighborCluster, ClusterSubSpace
 from ..parameters import zero_tolerance
 from ..SALCs import NamedLC, IrrepSymbol
-from .interaction_pairs import AOPair, AOPairWithValue
+from .interaction_pairs import AO, AOPair, AOPairWithValue
 from ._abstract_equation import AOEquationBase
 
 
@@ -52,10 +51,10 @@ class InteractionEquation(AOEquationBase):
         interaction_ao_pairs: typing.List[Pair],
         homogeneous_equation: np.ndarray
     ) -> None:
-        self._center_aos = center_aos
+        self.center_aos = center_aos
         self._centered_free_AOpairs: typing.List[AOPair] = []
-        for (n,l) in list(set([ (ao.n, ao.l) for ao in self._center_aos ])):
-            for ao in self._center_aos:
+        for (n,l) in list(set([ (ao.n, ao.l) for ao in self.center_aos ])):
+            for ao in self.center_aos:
                 if ao.n == n and ao.l == l:
                     self._centered_free_AOpairs.append(AOPair(ao, ao))
                     break
@@ -138,7 +137,7 @@ class InteractionEquation(AOEquationBase):
     @property
     def all_AOpairs(self) -> typing.List[AOPair]:
         centered_ao_pairs = []
-        for l_ao in self._center_aos:
+        for l_ao in self.center_aos:
             centered_ao_pairs.append(AOPair(l_ao, l_ao))
         return centered_ao_pairs + self.ao_pairs
 
@@ -156,10 +155,10 @@ class InteractionEquation(AOEquationBase):
             n, l = c_free_aop.l_AO.n, c_free_aop.l_AO.l
             nl_value[(n, l)] = values[i]
 
-        for l_ao in self._center_aos:
+        for l_ao in self.center_aos:
             all_ao_pairs.append(AOPair(l_ao, l_ao))
             all_values.append(nl_value[(l_ao.n, l_ao.l)])
-            #for r_ao in self._center_aos:
+            #for r_ao in self.center_aos:
             #    all_ao_pairs.append(AOPair(l_ao, r_ao))
             #    if l_ao.n == r_ao.n and l_ao.l == r_ao.l and l_ao.m == r_ao.m:
             #        all_values.append(nl_value[(l_ao.n, l_ao.l)])

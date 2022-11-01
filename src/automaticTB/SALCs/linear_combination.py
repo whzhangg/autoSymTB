@@ -127,7 +127,7 @@ class LinearCombination:
             site.rotate(cartesian_matrix) for site in self.sites
         ]
         orbital_rotataion = orbital_rotation_from_symmetry_matrix(cartesian_matrix, self.orbital_list.irreps_str)
-        print(self.orbital_list.irreps_str)
+        #print(self.orbital_list.irreps_str)
         new_coefficient = np.dot(orbital_rotataion, self.coefficients)
         return new_sites, new_coefficient
 

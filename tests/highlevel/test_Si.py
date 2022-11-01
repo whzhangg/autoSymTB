@@ -2,11 +2,10 @@ from automaticTB.examples import get_Si_structure_2s2p3s
 from automaticTB.functions import (
     get_namedLCs_from_nncluster,
     get_free_AOpairs_from_nncluster_and_namedLCs,
-    get_tbModel_from_structure_interactions_overlaps
+    get_tbModel_from_structure_interactions_overlaps,
+    get_combined_equation_from_structure
 )
-from automaticTB.interaction import InteractionEquation, CombinedInteractionEquation
 import numpy as np
-from automaticTB.tightbinding import gather_InteractionPairs_into_HijRs, TightBindingModel
 
 si_2s2p3s_irreps = {
     "A_1 @ 1^th A_1",
@@ -69,12 +68,8 @@ def test_Si_decomposition():
     assert len(free_pairs) == 13
 
 def test_Si_solve_dispersion():
-    all_equation = []
-    for nlc, si_environment in zip(all_named_lcs, bulksi.nnclusters):
-        all_equation.append(
-            InteractionEquation.from_nncluster_namedLC(si_environment, nlc)
-        )
-    combined = CombinedInteractionEquation(all_equation)
+    combined = get_combined_equation_from_structure(bulksi)
+
     for aopair, answer in zip(combined.free_AOpairs, system_free_interaction):
         assert str(aopair) == answer
 

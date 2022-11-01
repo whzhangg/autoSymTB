@@ -1,10 +1,9 @@
 import typing
 import numpy as np
-from ..atomic_orbitals import AO
 from ..tools import LinearEquation
 from .interaction_equation import InteractionEquation
 from ._abstract_equation import AOEquationBase
-from .interaction_pairs import AOPair, AOPairWithValue
+from .interaction_pairs import AO, AOPair, AOPairWithValue
 
 
 __all__ = ["CombinedInteractionEquation"]
@@ -43,8 +42,8 @@ class CombinedInteractionEquation(AOEquationBase):
         all_centered_aos: typing.List[AO] = []
         self._all_centered_AOpairs: typing.List[AOPair] = []
         for equation in cluster_equations:
-            all_centered_aos += equation._center_aos
-            for cao in equation._center_aos:
+            all_centered_aos += equation.center_aos
+            for cao in equation.center_aos:
                 self._all_centered_AOpairs.append(AOPair(cao, cao))
         znl_list = list(set([(ao.atomic_number, ao.n, ao.l) for ao in all_centered_aos]))
 

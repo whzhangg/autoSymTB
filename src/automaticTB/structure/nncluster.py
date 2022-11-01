@@ -11,7 +11,6 @@ from .cif import write_cif_file, atom_from_cpt_cartesian
 
 
 class ClusterSubSpace(typing.NamedTuple):
-    equivalence_type: int
     l: int
     indices: typing.List[int]
 
@@ -98,8 +97,8 @@ class NearestNeighborCluster:
                 
                 if eq_type == center_index:
                     result = [Pair(
-                            ClusterSubSpace(eq_type, orb, indices),
-                            ClusterSubSpace(eq_type, orb, indices)
+                            ClusterSubSpace(orb, sorted(indices)),
+                            ClusterSubSpace(orb, sorted(indices))
                         )]
                     self._meta["centered_subspace_pairs"] = result
                     
@@ -131,10 +130,10 @@ class NearestNeighborCluster:
                     indices += list(range(orbital_slices[iatom][orb].start, orbital_slices[iatom][orb].stop))
                 
                 if eq_type == center_index:
-                    center_subspace.append(ClusterSubSpace(eq_type, orb, indices))
+                    center_subspace.append(ClusterSubSpace(orb, sorted(indices)))
                 else:  
                     # self interaction are treated just as other interactions
-                    other_subspaces.append(ClusterSubSpace(eq_type, orb, indices))
+                    other_subspaces.append(ClusterSubSpace(orb, sorted(indices)))
 
         result = []
         for center in center_subspace:

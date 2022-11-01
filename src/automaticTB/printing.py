@@ -48,7 +48,7 @@ def print_ao_pairs(structure: Structure, pairs: typing.List[Pair]):
     for i, pair in enumerate(pairs):
         left: AO = pair.left
         right: AO = pair.right
-        result = "{:>3d}".format(i+1) + " > Free AO interaction: "
+        result = "{:>3d}".format(i+1) + " > Pair: "
         lpos = structure.cell.T.dot(
             left.translation + structure.positions[left.primitive_index]
         )
@@ -56,8 +56,8 @@ def print_ao_pairs(structure: Structure, pairs: typing.List[Pair]):
             right.translation + structure.positions[right.primitive_index]
         )
         rij = rpos - lpos
-        result += f"{left.chemical_symbol:>2s} {_parse_orbital(left.n, left.l, left.m):>7s} -> "
-        result += f"{right.chemical_symbol:>2s} {_parse_orbital(right.n, right.l, right.m):>7s} @ "
+        result += f"{left.chemical_symbol:>2s}-{left.primitive_index:0>2d} {_parse_orbital(left.n, left.l, left.m):>7s} -> "
+        result += f"{right.chemical_symbol:>2s}-{right.primitive_index:0>2d}{_parse_orbital(right.n, right.l, right.m):>7s} @ "
         result += "({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
         print(result)
 

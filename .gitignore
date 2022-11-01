@@ -33,3 +33,5 @@ tests/plot/*.cube
 
 bin/**/*.cube
 bin/**/*.pdf
+
+tmp/

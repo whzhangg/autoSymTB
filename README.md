@@ -44,3 +44,6 @@ Tp uninstall, issue command:
 pip uninstall automaticTB
 ```
 
+### Installation of libmsym
+Libmsym is used to discover molecular symmetry, to install, we can follow the exact procedure as 
+given in the github project (https://github.com/mcodev31/libmsym) in our conda environment.

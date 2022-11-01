@@ -1,11 +1,39 @@
 import typing, dataclasses
 import numpy as np
 from ..tools import Pair
-from ..atomic_orbitals import AO 
 from ..parameters import zero_tolerance
+from ..tools import atomic_numbers
+
+__all__ = ["AO", "AOPair", "AOPairWithValue"]
 
 
-__all__ = ["AOPair", "AOPairWithValue"]
+@dataclasses.dataclass
+class AO:
+    """defines an atomic orbital in a molecular"""
+    cluster_index: int
+    primitive_index: int
+    translation: np.ndarray
+    chemical_symbol: str
+    n: int
+    l: int
+    m: int
+
+    @property
+    def atomic_number(self) -> int:
+        return atomic_numbers[self.chemical_symbol]
+
+    def __eq__(self, o: "AO") -> bool:
+        return  self.primitive_index == o.primitive_index and \
+                self.l == o.l and \
+                self.m == o.m and \
+                self.n == o.n and \
+                np.allclose(self.translation, o.translation, zero_tolerance)
+
+    def __repr__(self) -> str:
+        result = f"{self.chemical_symbol:>2s} (i_p={self.primitive_index:>2d})"
+        result+= f" n ={self.n:>2d}; l ={self.l:>2d}; m ={self.m:>2d}"
+        result+=  " @({:>5.1f},{:>5.1f},{:>5.1f})".format(*self.translation)
+        return result
 
 
 @dataclasses.dataclass

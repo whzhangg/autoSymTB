@@ -148,10 +148,10 @@ class LinearEquation:
         self.row_echelon_form = remove_zero_vector_from_coefficients(
             _row_echelon(homogeneous_equation)
         )
-        self.leading_variables_index: typing.Set[int] \
+        leading_variables_index: typing.Set[int] \
             = {_first_non_zero(row) for row in self.row_echelon_form}
         self.free_variables_index: typing.Set[int] \
-            = set(range(self.row_echelon_form.shape[1])) - self.leading_variables_index
+            = set(range(self.row_echelon_form.shape[1])) - leading_variables_index
 
     def solve_providing_values(
         self, free_interaction_values: typing.List[float]
@@ -175,4 +175,3 @@ class LinearEquation:
         assert stacked_left.shape[0] == stacked_left.shape[1]
         assert len(stacked_left) == len(stacked_right)
         return np.dot(np.linalg.inv(stacked_left), stacked_right)
-

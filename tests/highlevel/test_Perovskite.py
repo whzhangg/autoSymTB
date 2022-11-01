@@ -1,15 +1,18 @@
-from automaticTB.functions import (
-    get_namedLCs_from_nncluster, 
-    get_free_AOpairs_from_nncluster_and_namedLCs
-)
-from automaticTB.interaction import InteractionEquation, CombinedInteractionEquation
+import numpy as np
+import dataclasses, typing
+
+from automaticTB.examples import get_perovskite_structure
 from automaticTB.examples.Perovskite.ao_interaction import (
     get_interaction_values_from_list_AOpairs
 )
-import numpy as np
-from automaticTB.examples import get_perovskite_structure
-import dataclasses, typing
-from automaticTB.tightbinding import gather_InteractionPairs_into_HijRs, TightBindingModel
+
+from automaticTB.functions import (
+    get_namedLCs_from_nncluster, 
+    get_free_AOpairs_from_nncluster_and_namedLCs,
+    get_combined_equation_from_structure, 
+    get_tbModel_from_structure_interactions_overlaps
+)
+
 
 @dataclasses.dataclass
 class Answer:
@@ -65,6 +68,7 @@ structure = get_perovskite_structure()
 all_named_lcs = []
 for nncluster in structure.nnclusters:
     all_named_lcs.append(get_namedLCs_from_nncluster(nncluster))
+combined = get_combined_equation_from_structure(structure)
 
 def test_perovskite_decomposition():
     for answer, nncluster, named_lcs in zip(answers, structure.nnclusters, all_named_lcs):
@@ -76,21 +80,9 @@ def test_perovskite_decomposition():
         assert len(free) == answer.nfree
 
 def test_perovskite_combined_free_parameter():
-    equation_systems = []
-    for nncluster, named_lcs in zip(structure.nnclusters, all_named_lcs):
-        equation_systems.append(
-            InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs)
-        )
-    combined = CombinedInteractionEquation(equation_systems)
     assert len(combined.free_AOpairs) == 9
     
 def test_recover_values():
-    equation_systems = []
-    for nncluster, named_lcs in zip(structure.nnclusters, all_named_lcs):
-        equation_systems.append(
-            InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs)
-        )
-    combined = CombinedInteractionEquation(equation_systems)
     free_ao = combined.free_AOpairs
 
     free_values \
@@ -104,22 +96,17 @@ def test_recover_values():
         assert np.isclose(aopair_with_value.value.real, correct_value, atol=1e-3)
             
 def test_solve_energy():
-    equation_systems = []
-    for nncluster, named_lcs in zip(structure.nnclusters, all_named_lcs):
-        equation_systems.append(
-            InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs)
-        )
-    combined = CombinedInteractionEquation(equation_systems)
     free_ao = combined.free_AOpairs
 
     free_values \
         = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, free_ao)
 
     solved = combined.solve_interactions_to_InteractionPairs(free_values)
-    HijRs = gather_InteractionPairs_into_HijRs(solved)
-    model = TightBindingModel(
-        structure.cell, structure.positions, structure.types, HijRs
+
+    model = get_tbModel_from_structure_interactions_overlaps(
+        structure, solved
     )
+    
     cubic_kpos_results = {
         "M": (  np.array([0.5,0.5,0.0]),
                 np.array([
