@@ -53,14 +53,17 @@ class SiteSymmetryGroup:
 
 
     @classmethod
-    def from_cartesian_matrices(cls, cartesian_matrices: typing.List[np.ndarray], groupname: str = ""):
+    def from_cartesian_matrices(cls, 
+        cartesian_matrices: typing.List[np.ndarray], groupname: str = ""
+    ) -> "SiteSymmetryGroup":
         main_groupname = get_pointgroupname_from_rotation_matrices(cartesian_matrices)
         givengroup = groupname if groupname else main_groupname
         assert givengroup in symmetry_reduction[main_groupname]  
         
         dressed = dress_symmetry_operation(cartesian_matrices) # matrices with seitz symbol
         
-        operation: typing.List[BilbaoGroupOperation] = find_corresponding_characters(givengroup, main_groupname, dressed)
+        operation: typing.List[BilbaoGroupOperation] \
+            = find_corresponding_characters(givengroup, main_groupname, dressed)
         matrices = []
         index_of_identity = -1
         irreps = {}

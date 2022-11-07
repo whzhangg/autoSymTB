@@ -10,4 +10,5 @@ from .utilities import (
     rotation_fraction_to_cartesian
 )
 
-from .group_list import GroupsList
+from .group_list import *
+from .sch_symbol import *

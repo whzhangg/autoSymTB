@@ -113,10 +113,12 @@ def operation_type_from_rotation_matrix(W:np.array) -> int:
 
 def _find_point_group_from_counter(counts: collections.Counter) -> str:
     numbers = (
-        counts.get("-6",0), counts.get("-4",0), counts.get("-3",0), counts.get("m",0), counts.get("-1",0),
-        counts.get( "1",0), counts.get( "2",0), counts.get( "3",0), counts.get( "4",0), counts.get( "6",0)
+        counts.get("-6",0), counts.get("-4",0), counts.get("-3",0), 
+        counts.get("m",0), counts.get("-1",0), counts.get( "1",0), 
+        counts.get( "2",0), counts.get( "3",0), counts.get( "4",0), counts.get( "6",0)
     )
     number_to_pointgroup = { counts:ptg for ptg, counts in number_type_of_W.items() } # just reverse the dictionary
     if numbers not in number_to_pointgroup:
+        print(numbers)
         raise "_find_point_group_from_counter: this is not a subgroup"
     return number_to_pointgroup[numbers]
