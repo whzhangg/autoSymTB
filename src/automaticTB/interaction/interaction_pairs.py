@@ -2,9 +2,10 @@ import typing, dataclasses
 import numpy as np
 from ..tools import Pair
 from ..parameters import zero_tolerance
-from ..tools import atomic_numbers
+from ..tools import atomic_numbers, parse_orbital
 
 __all__ = ["AO", "AOPair", "AOPairWithValue"]
+
 
 
 @dataclasses.dataclass
@@ -68,6 +69,16 @@ class AOPair:
         return  (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
                 (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
 
+    def __str__(self) -> str:
+        result = " > Pair: "
+        left = self.l_AO; right = self.r_AO
+        rij = right.absolute_position - left.absolute_position
+        result += f"{left.chemical_symbol:>2s}-{left.primitive_index:0>2d} " 
+        result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
+        result += f"{right.chemical_symbol:>2s}-{right.primitive_index:0>2d} "
+        result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
+        result += "@ ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
+        return result
 
 @dataclasses.dataclass
 class AOPairWithValue(AOPair):
@@ -81,3 +92,14 @@ class AOPairWithValue(AOPair):
         
         return  valueOK and pair_OK
 
+    def __str__(self) -> str:
+        result = " > Pair: "
+        left = self.l_AO; right = self.r_AO
+        rij = right.absolute_position - left.absolute_position
+        result += f"{left.chemical_symbol:>2s}-{left.primitive_index:0>2d} " 
+        result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
+        result += f"{right.chemical_symbol:>2s}-{right.primitive_index:0>2d} "
+        result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
+        result += "@ ({:>6.2f},{:>6.2f},{:>6.2f}) ".format(*rij)
+        result += f"Hij = {self.value:>.4f}"
+        return result

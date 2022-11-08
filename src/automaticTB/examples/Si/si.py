@@ -2,9 +2,8 @@ import numpy as np
 from ...structure import Structure
 
 __all__ = [
-    "get_Si_structure_2s2p", 
-    "get_Si_structure_2s2p3s", 
-    "get_Si_structure_2s2p3s_2NN"
+    "get_Si_structure", 
+    "get_Si_structure_2NN"
 ]
 
 fcc_si = {
@@ -23,21 +22,14 @@ fcc_si = {
 }
 
 
-def get_Si_structure_2s2p() -> Structure:
+def get_Si_structure() -> Structure:
     c, p, t = fcc_si["cell"], fcc_si["positions"], fcc_si["types"]
-    return Structure.from_cpt_rcut(c,p,t, {"Si": [[2,0],[2,1]]}, 3.0)
+    return Structure.from_cpt_rcut(c,p,t, 3.0)
 
 
-def get_Si_structure_2s2p3s() -> Structure:
-    c, p, t = fcc_si["cell"], fcc_si["positions"], fcc_si["types"]
-    
-    return Structure.from_cpt_rcut(
-        c, p, t, {"Si": [[2, 0],[2, 1], [3, 0]]}, 3.0
-    )
-
-def get_Si_structure_2s2p3s_2NN() -> Structure:
+def get_Si_structure_2NN() -> Structure:
     c, p, t = fcc_si["cell"], fcc_si["positions"], fcc_si["types"]
 
     return Structure.from_cpt_rcut(
-        c, p, t, {"Si": [[2, 0],[2, 1], [3, 0]]}, 3.9
+        c, p, t, 3.9
     )

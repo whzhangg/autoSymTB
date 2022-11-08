@@ -2,8 +2,7 @@ import typing, dataclasses
 import numpy as np
 from .kpath import Kpath, BandPathTick
 from ..tightbinding import TightBindingModel
-from ..printing import get_orbital_symbol_from_lm
-from ..tools import chemical_symbols
+from ..tools import chemical_symbols, get_orbital_symbol_from_lm
 
 @dataclasses.dataclass
 class BandStructureResult:

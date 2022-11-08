@@ -7,94 +7,16 @@ from automaticTB.examples.Perovskite.ao_interaction import (
 )
 
 from automaticTB.functions import (
-    get_namedLCs_from_nncluster, 
-    get_free_AOpairs_from_nncluster_and_namedLCs,
-    get_combined_equation_from_structure, 
+    get_equationsystem_from_structure_orbital_dict,
     get_tbModel_from_structure_interactions_overlaps
 )
 
 
-@dataclasses.dataclass
-class Answer:
-    nfree : int
-    symmetry: str
-    irreps: typing.List[str]
-
-answers = [
-    Answer(
-        7, "m-3m", 
-        irreps = {
-            "A_1g @ 1^th A_1g", "A_1g @ 2^th A_1g", "A_1g @ 3^th A_1g", "E_g->A_1 @ 1^th E_g",
-            "E_g->A_2 @ 1^th E_g","E_g->A_1 @ 2^th E_g","E_g->A_2 @ 2^th E_g",
-            "T_1g->A_2 @ 1^th T_1g","T_1g->B_1 @ 1^th T_1g","T_1g->B_2 @ 1^th T_1g",
-            "T_1u->A_1 @ 1^th T_1u","T_1u->B_1 @ 1^th T_1u","T_1u->B_2 @ 1^th T_1u",
-            "T_1u->A_1 @ 2^th T_1u","T_1u->B_1 @ 2^th T_1u","T_1u->B_2 @ 2^th T_1u",
-            "T_1u->A_1 @ 3^th T_1u","T_1u->B_1 @ 3^th T_1u","T_1u->B_2 @ 3^th T_1u",
-            "T_1u->A_1 @ 4^th T_1u","T_1u->B_1 @ 4^th T_1u","T_1u->B_2 @ 4^th T_1u",
-            "T_2g->A_1 @ 1^th T_2g","T_2g->B_1 @ 1^th T_2g","T_2g->B_2 @ 1^th T_2g",
-            "T_2u->A_2 @ 1^th T_2u","T_2u->B_1 @ 1^th T_2u","T_2u->B_2 @ 1^th T_2u"
-        }
-    ),
-    Answer(
-        7, "4/mmm",
-        irreps = {
-            "A_1g @ 1^th A_1g","A_1g @ 2^th A_1g","A_1g @ 3^th A_1g","A_2u @ 1^th A_2u",
-            "A_2u @ 2^th A_2u","A_2u @ 3^th A_2u","E_g->B_1 @ 1^th E_g","E_g->B_2 @ 1^th E_g",
-            "E_u->B_1 @ 1^th E_u","E_u->B_2 @ 1^th E_u","E_u->B_1 @ 2^th E_u",
-            "E_u->B_2 @ 2^th E_u"
-        }
-    ),
-    Answer(
-        7, "4/mmm",
-        irreps = {
-            "A_1g @ 1^th A_1g","A_1g @ 2^th A_1g","A_1g @ 3^th A_1g","A_2u @ 1^th A_2u",
-            "A_2u @ 2^th A_2u","A_2u @ 3^th A_2u","E_g->B_1 @ 1^th E_g","E_g->B_2 @ 1^th E_g",
-            "E_u->B_1 @ 1^th E_u","E_u->B_2 @ 1^th E_u","E_u->B_1 @ 2^th E_u",
-            "E_u->B_2 @ 2^th E_u",
-        }
-    ),
-    Answer(
-        7, "4/mmm",
-        irreps = {
-            "A_1g @ 1^th A_1g","A_1g @ 2^th A_1g","A_1g @ 3^th A_1g","A_2u @ 1^th A_2u",
-            "A_2u @ 2^th A_2u","A_2u @ 3^th A_2u","E_g->B_1 @ 1^th E_g","E_g->B_2 @ 1^th E_g",
-            "E_u->B_1 @ 1^th E_u","E_u->B_2 @ 1^th E_u","E_u->B_1 @ 2^th E_u",
-            "E_u->B_2 @ 2^th E_u",          
-        }
-    )
-]
-
 structure = get_perovskite_structure()
-all_named_lcs = []
-for nncluster in structure.nnclusters:
-    all_named_lcs.append(get_namedLCs_from_nncluster(nncluster))
-combined = get_combined_equation_from_structure(structure)
+combined = get_equationsystem_from_structure_orbital_dict(
+    structure, {"Pb":"6s6p", "Cl": "3s3p"})
 
-def test_perovskite_decomposition():
-    for answer, nncluster, named_lcs in zip(answers, structure.nnclusters, all_named_lcs):
-        assert nncluster.sitesymmetrygroup.groupname == answer.symmetry
-        assert len(named_lcs) == nncluster.orbitalslist.num_orb
-        for nlc in named_lcs:
-            assert str(nlc.name) in answer.irreps       
-        free = get_free_AOpairs_from_nncluster_and_namedLCs(nncluster, named_lcs)
-        assert len(free) == answer.nfree
-
-def test_perovskite_combined_free_parameter():
-    assert len(combined.free_AOpairs) == 9
-    
-def test_recover_values():
-    free_ao = combined.free_AOpairs
-
-    free_values \
-        = get_interaction_values_from_list_AOpairs(structure.cell, structure.positions, free_ao)
-
-    solved = combined.solve_interactions_to_InteractionPairs(free_values)
-    for aopair_with_value in solved:
-        correct_value = get_interaction_values_from_list_AOpairs(
-            structure.cell, structure.positions, [aopair_with_value]
-        )[0]
-        assert np.isclose(aopair_with_value.value.real, correct_value, atol=1e-3)
-            
+          
 def test_solve_energy():
     free_ao = combined.free_AOpairs
 

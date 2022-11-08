@@ -1,81 +1,52 @@
-from automaticTB.examples import get_Si_structure_2s2p3s
+from automaticTB.examples import get_Si_structure
 from automaticTB.functions import (
-    get_namedLCs_from_nncluster,
-    get_free_AOpairs_from_nncluster_and_namedLCs,
-    get_tbModel_from_structure_interactions_overlaps,
-    get_combined_equation_from_structure
+    get_equationsystem_from_structure_orbital_dict,
+    get_tbModel_from_structure_interactions_overlaps
 )
 import numpy as np
 
-si_2s2p3s_irreps = {
-    "A_1 @ 1^th A_1",
-    "A_1 @ 2^th A_1",
-    "A_1 @ 3^th A_1",
-    "A_1 @ 4^th A_1",
-    "A_1 @ 5^th A_1",
-    "E->A_1 @ 1^th E",
-    "E->A_2 @ 1^th E",
-    "T_1->A_2 @ 1^th T_1",
-    "T_1->B_1 @ 1^th T_1",
-    "T_1->B_2 @ 1^th T_1",
-    "T_2->A_1 @ 1^th T_2",
-    "T_2->B_1 @ 1^th T_2",
-    "T_2->B_2 @ 1^th T_2",
-    "T_2->A_1 @ 2^th T_2",
-    "T_2->B_1 @ 2^th T_2",
-    "T_2->B_2 @ 2^th T_2",
-    "T_2->A_1 @ 3^th T_2",
-    "T_2->B_1 @ 3^th T_2",
-    "T_2->B_2 @ 3^th T_2",
-    "T_2->A_1 @ 4^th T_2",
-    "T_2->B_1 @ 4^th T_2",
-    "T_2->B_2 @ 4^th T_2",
-    "T_2->A_1 @ 5^th T_2",
-    "T_2->B_1 @ 5^th T_2",
-    "T_2->B_2 @ 5^th T_2"
-}
+bulksi = get_Si_structure()
+si_orbital = {"Si":"3s3p"}
 
-system_free_interaction = [
-"AOPair(l_AO=i=0(Si) n=3 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=3 l=0 m=0 @ 0.00 0.00 0.00)",
-"AOPair(l_AO=i=0(Si) n=2 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=0 m=0 @ 0.00 0.00 0.00)",
-"AOPair(l_AO=i=0(Si) n=2 l=1 m=-1 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=1 m=-1 @ 0.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=3 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=0 m=0 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=3 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=1 m=1 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=2 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=0 m=0 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=3 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=3 l=0 m=0 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=2 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=1 m=1 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=2 l=0 m=0 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=3 l=0 m=0 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=2 l=1 m=1 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=0 m=0 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=2 l=1 m=1 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=1 m=0 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=2 l=1 m=1 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=2 l=1 m=1 @-1.00 0.00 0.00)",
-"AOPair(l_AO=i=1(Si) n=2 l=1 m=1 @ 0.00 0.00 0.00, r_AO=i=0(Si) n=3 l=0 m=0 @-1.00 0.00 0.00)",
-]
 
-bulksi = get_Si_structure_2s2p3s()
-all_named_lcs = []
-for si_environment in bulksi.nnclusters:
-    all_named_lcs.append(get_namedLCs_from_nncluster(si_environment))
+def test_Si_decomposition_sp():
+    equation_system = get_equationsystem_from_structure_orbital_dict(bulksi, {"Si":"3s3p"})
+    for i, free in enumerate(equation_system.free_AOpairs):
+        print(f"{i+1:>2d}" + str(free))
 
-def test_Si_decomposition():
-    named_lcs = all_named_lcs[0]
-    si_environment = bulksi.nnclusters[0]
-    assert len(named_lcs) == si_environment.orbitalslist.num_orb
-    for nlc in named_lcs:
-        assert str(nlc.name) in si_2s2p3s_irreps
-        
-    free_pairs = get_free_AOpairs_from_nncluster_and_namedLCs(si_environment, named_lcs)
+    assert len(equation_system.free_AOpairs) == 9
 
-    assert len(free_pairs) == 13
 
-def test_Si_solve_dispersion():
-    combined = get_combined_equation_from_structure(bulksi)
+def test_Si_decomposition_sps():
+    equation_system = get_equationsystem_from_structure_orbital_dict(bulksi, {"Si":"3s3p4s"})
+    for i, free in enumerate(equation_system.free_AOpairs):
+        print(f"{i+1:>2d}" + str(free))
 
-    for aopair, answer in zip(combined.free_AOpairs, system_free_interaction):
-        assert str(aopair) == answer
+    assert len(equation_system.free_AOpairs) == 17
+
+
+def test_Si_solve_dispersion_sps():
+    combined = get_equationsystem_from_structure_orbital_dict(bulksi, {"Si":"3s3p4s"})
 
     values = np.array([
-        8.23164, -3.3179, 1.67862, 0.0, 7.2505/4, -9.599/4, 0.0, 
-        7.1423/4, 0.0, -7.1423/4, -4.7757/4, 1.6955/4, -7.2505/4
+        -3.3179,    # 1 > Pair: Si-00      3s -> Si-00      3s @ (  0.00,  0.00,  0.00)
+        8.23164,    # 2 > Pair: Si-01      4s -> Si-01      4s @ (  0.00,  0.00,  0.00)
+        0.00000,    # 3 > Pair: Si-01      4s -> Si-00      3s @ (  1.36, -1.36, -1.36)
+        0.00000,    # 4 > Pair: Si-00      3s -> Si-00      4s @ (  0.00,  0.00,  0.00)
+        -9.5990/4,  # 5 > Pair: Si-01      3s -> Si-00      3s @ (  1.36, -1.36, -1.36)
+        7.2505/4,   # 6 > Pair: Si-01      4s -> Si-00     3px @ (  1.36, -1.36, -1.36)
+        1.67862,    # 7 > Pair: Si-00     3px -> Si-00     3px @ (  0.00,  0.00,  0.00)
+        0.00000,    # 8 > Pair: Si-01      4s -> Si-00      4s @ (  1.36, -1.36, -1.36)
+        7.1423/4,   # 9 > Pair: Si-01      3s -> Si-00     3px @ (  1.36, -1.36, -1.36)
+        8.23164,    #10 > Pair: Si-00      4s -> Si-00      4s @ (  0.00,  0.00,  0.00)
+        0.00000,    #11 > Pair: Si-01      3s -> Si-00      4s @ (  1.36, -1.36, -1.36)
+        -3.3179,    #12 > Pair: Si-01      3s -> Si-01      3s @ (  0.00,  0.00,  0.00)
+        -4.7757/4,  #13 > Pair: Si-01     3px -> Si-00     3pz @ (  1.36, -1.36, -1.36)
+        1.6955/4,   #14 > Pair: Si-01     3px -> Si-00     3px @ (  1.36, -1.36, -1.36)
+        -7.2505/4,  #15 > Pair: Si-01     3px -> Si-00      4s @ (  1.36, -1.36, -1.36)
+        0.00000,    #16 > Pair: Si-01      3s -> Si-01      4s @ (  0.00,  0.00,  0.00)
+        -7.1423/4,  #17 > Pair: Si-01     3px -> Si-00      3s @ (  1.36, -1.36, -1.36)
+        1.67862,    #18 > Pair: Si-01     3px -> Si-01     3px @ (  0.00,  0.00,  0.00)
     ])
 
     solved_interaction = combined.solve_interactions_to_InteractionPairs(values)
@@ -115,3 +86,5 @@ def test_Si_solve_dispersion():
         kpos, result = value
         e, _ = model.solveE_at_k(kpos)
         assert np.allclose(e, result, atol = 1e-4)
+
+test_Si_solve_dispersion_sps()

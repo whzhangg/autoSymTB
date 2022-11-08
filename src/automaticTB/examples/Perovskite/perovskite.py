@@ -18,11 +18,9 @@ cubic_perovskite = {
 }
 
 def get_perovskite_structure() -> Structure:
-    orbits_used = {
-        "Pb": [[6,0],[6,1]],
-        "Cl": [[3,0],[3,1]]
-    }
     return Structure.from_cpt_rcut(
         cubic_perovskite["cell"], 
         cubic_perovskite["positions"], 
-        cubic_perovskite["types"], orbits_used, 3.0)
+        cubic_perovskite["types"], 
+        3.0
+    )

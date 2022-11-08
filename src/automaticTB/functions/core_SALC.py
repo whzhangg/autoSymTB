@@ -1,3 +1,4 @@
+'''
 import typing
 from ..SALCs import VectorSpace, decompose_vectorspace_to_namedLC, NamedLC
 from ..structure import NearestNeighborCluster
@@ -15,3 +16,5 @@ def get_namedLCs_from_nncluster(cluster: NearestNeighborCluster) -> typing.List[
     """
     _vectorspace = VectorSpace.from_NNCluster(cluster)
     return decompose_vectorspace_to_namedLC(_vectorspace, cluster.sitesymmetrygroup)
+
+'''
