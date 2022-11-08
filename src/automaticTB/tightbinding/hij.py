@@ -1,7 +1,6 @@
 import typing, dataclasses
 import numpy as np
-from ..interaction import AOPairWithValue
-from ..atomic_orbitals import AO 
+from ..interaction import AO, AOPairWithValue
 from ..parameters import zero_tolerance
 
 """

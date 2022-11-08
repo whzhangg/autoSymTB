@@ -1,8 +1,8 @@
 """
-Description:
-The function of this module is to extract necessary information from a crystal structure, the final information is contained in the NearestneighborCluster class, which describe an atom with its local structure
+the core functionality of this module is to process crystal structure only, as well as 
+basic crystallographic point group symmetry
+However, it does not include orbitals
 """
 
-from .nncluster import NearestNeighborCluster, ClusterSubSpace
-from .sites import Site, CrystalSite
-from .structure import Structure
+from .sites import *
+from .structure import *

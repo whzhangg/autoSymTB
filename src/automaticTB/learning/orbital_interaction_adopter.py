@@ -11,7 +11,7 @@ from e3nn.o3 import Irreps
 from ..structure import Structure, NearestNeighborCluster
 from ..parameters import torch_float, torch_device
 from ..tools import Pair
-from ..atomic_orbitals import AO
+from ..interaction import AO
 
 def _get_onehot_element_encoding(
     atomic_number_in: int, atomic_number_set: typing.Set[int]

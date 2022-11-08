@@ -1,10 +1,9 @@
 import numpy as np
 import typing
 from .tools import Pair
-from .atomic_orbitals import AO
 from .SALCs import NamedLC
 from .structure import Structure
-from .interaction import AOPairWithValue
+from .interaction import AOPairWithValue, AO
 
 __all__ = [
     "get_orbital_symbol_from_lm", # used in bandstructure plots

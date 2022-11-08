@@ -1,7 +1,6 @@
 import typing, dataclasses
 import numpy as np
-from ..structure.sites import Site
-from ..structure.nncluster import NearestNeighborCluster
+from ..structure import LocalSite, NeighborCluster
 from .linear_combination import LinearCombination, OrbitalsList
 from ..parameters import zero_tolerance, LC_coefficients_dtype
 from ..tools import get_distinct_nonzero_vector_from_coefficients
@@ -30,16 +29,16 @@ def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearComb
 
 @dataclasses.dataclass
 class VectorSpace:
-    sites: typing.List[Site]
+    sites: typing.List[LocalSite]
     orbital_list: OrbitalsList
     coefficients_matrix: np.ndarray  # dtype = complex
 
     @classmethod
-    def from_NNCluster(cls, cluster: NearestNeighborCluster):
+    def from_NNCluster(cls, cluster: NeighborCluster):
         return cls.from_sites_and_orbitals(cluster.baresites, cluster.orbitalslist)
 
     @classmethod
-    def from_sites_and_orbitals(cls, sites: typing.List[Site], orbital_list: OrbitalsList):
+    def from_sites_and_orbitals(cls, sites: typing.List[LocalSite], orbital_list: OrbitalsList):
         nbasis = orbital_list.num_orb
         coefficients = np.eye(nbasis, dtype=LC_coefficients_dtype)
         return cls(sites, orbital_list, coefficients)

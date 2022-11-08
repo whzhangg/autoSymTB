@@ -1,51 +1,28 @@
 import typing
-from ..interaction import InteractionEquation, CombinedInteractionEquation
-from ..SALCs import NamedLC
-from ..structure import NearestNeighborCluster
-from ..tools import Pair
+from ..interaction import (
+    get_InteractingAOSubspaces_from_cluster, CombinedAOSubspaceInteraction
+)
+from ..structure import NeighborCluster
 from ..structure import Structure
-from .core_SALC import get_namedLCs_from_nncluster
 
 __all__ = [
-    "get_free_AOpairs_from_nncluster_and_namedLCs", 
-    "get_overall_free_AOpairs_from_nnclusters_and_namedLCs",
-    "get_combined_equation_from_structure"
+    "get_equationsystem_from_nncluster", 
+    "get_free_AOpairs_from_structure",
 ]
 
-def get_free_AOpairs_from_nncluster_and_namedLCs(
-    cluster: NearestNeighborCluster, 
-    named_lcs: typing.List[NamedLC]
-) -> typing.List[Pair]:
+
+def get_equationsystem_from_nncluster(cluster: NeighborCluster) \
+-> CombinedAOSubspaceInteraction:
     """
     A high level function that return the free AO pairs
     """
-    system = InteractionEquation.from_nncluster_namedLC(cluster, named_lcs)
-    return system.free_AOpairs
+    iaosubspaces = get_InteractingAOSubspaces_from_cluster(cluster)
+    return CombinedAOSubspaceInteraction(iaosubspaces)
 
 
-def get_overall_free_AOpairs_from_nnclusters_and_namedLCs(
-    list_of_clusters: typing.List[NearestNeighborCluster],
-    list_of_named_lcs: typing.List[typing.List[NamedLC]]
-) -> typing.List[Pair]:
-    """
-    A high level function that return the global free AO pairs
-    """
-    equations = [
-        InteractionEquation.from_nncluster_namedLC(ncluster, nlcs)
-        for ncluster, nlcs in zip(list_of_clusters, list_of_named_lcs)
-    ]
-    combined_systems = CombinedInteractionEquation(equations)
-    return combined_systems.free_AOpairs
-
-def get_combined_equation_from_structure(structure: Structure) -> CombinedInteractionEquation:
-    """
-    this function provide high level utility to get a combined equation from input structure
-    """
-    equations = []
-    for nncluster in structure.nnclusters:
-        named_lcs = get_namedLCs_from_nncluster(nncluster)
-        equations.append(
-            InteractionEquation.from_nncluster_namedLC(nncluster, named_lcs)
-        )
-    return CombinedInteractionEquation(equations)
-
+def get_free_AOpairs_from_structure(structure: Structure) \
+-> CombinedAOSubspaceInteraction:
+    all_iao = []
+    for cluster in structure.nnclusters:
+        all_iao += get_InteractingAOSubspaces_from_cluster(cluster)
+    return CombinedAOSubspaceInteraction(all_iao)

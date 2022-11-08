@@ -9,6 +9,11 @@ from pymatgen.symmetry.analyzer import cluster_sites, PointGroupOperations, gene
 
 __all__ = ["PointGroupAnalyzer", "get_schSymbol_symOperations_from_pos_types"]
 
+"""
+notes:
+this class find symmetry operation using the momentum inertia method and first identifying the 
+principle axes. Than it tries all the possible symmetry depending on the information it knows
+"""
 
 def get_schSymbol_symOperations_from_pos_types(
     cart_positions: np.ndarray, types: typing.List[int]
@@ -34,7 +39,7 @@ class PointGroupAnalyzer:
     it does not center molecular
     """
 
-    inversion_op = SymmOp.inversion()
+    inversion_op = SymmOp.inversion() # wh: get inversion operation
 
     def __init__(self, mol, tolerance=0.3, eigen_tolerance=0.01, matrix_tolerance=0.1):
         """
@@ -98,12 +103,14 @@ class PointGroupAnalyzer:
             else:
                 self._proc_sym_top()
 
+
     def _proc_linear(self):
         if self.is_valid_op(PointGroupAnalyzer.inversion_op):
             self.sch_symbol = "D*h"
             self.symmops.append(PointGroupAnalyzer.inversion_op)
         else:
             self.sch_symbol = "C*v"
+
 
     def _proc_asym_top(self):
         """
@@ -117,6 +124,51 @@ class PointGroupAnalyzer:
             self._proc_dihedral()
         else:
             self._proc_cyclic()
+
+    def _proc_no_rot_sym(self):
+        """
+        Handles molecules with no rotational symmetry. Only possible point
+        groups are C1, Cs and Ci.
+        """
+        self.sch_symbol = "C1"
+        if self.is_valid_op(PointGroupAnalyzer.inversion_op):
+            self.sch_symbol = "Ci"
+            self.symmops.append(PointGroupAnalyzer.inversion_op)
+        else:
+            for v in self.principal_axes:
+                mirror_type = self._find_mirror(v)
+                if not mirror_type == "":
+                    self.sch_symbol = "Cs"
+                    break
+
+    def _proc_dihedral(self):
+        """
+        Handles dihedral group molecules, i.e those with intersecting R2 axes
+        and a main axis.
+        """
+        main_axis, rot = max(self.rot_sym, key=lambda v: v[1])
+        self.sch_symbol = f"D{rot}"
+        mirror_type = self._find_mirror(main_axis)
+        if mirror_type == "h":
+            self.sch_symbol += "h"
+        elif not mirror_type == "":
+            self.sch_symbol += "d"
+
+    def _proc_cyclic(self):
+        """
+        Handles cyclic group molecules.
+        """
+        main_axis, rot = max(self.rot_sym, key=lambda v: v[1])
+        self.sch_symbol = f"C{rot}"
+        mirror_type = self._find_mirror(main_axis)
+        if mirror_type == "h":
+            self.sch_symbol += "h"
+        elif mirror_type == "v":
+            self.sch_symbol += "v"
+        elif mirror_type == "":
+            if self.is_valid_op(SymmOp.rotoreflection(main_axis, angle=180 / rot)):
+                self.sch_symbol = f"S{2 * rot}"
+
 
     def _proc_sym_top(self):
         """
@@ -143,49 +195,6 @@ class PointGroupAnalyzer:
         else:
             self._proc_no_rot_sym()
 
-    def _proc_no_rot_sym(self):
-        """
-        Handles molecules with no rotational symmetry. Only possible point
-        groups are C1, Cs and Ci.
-        """
-        self.sch_symbol = "C1"
-        if self.is_valid_op(PointGroupAnalyzer.inversion_op):
-            self.sch_symbol = "Ci"
-            self.symmops.append(PointGroupAnalyzer.inversion_op)
-        else:
-            for v in self.principal_axes:
-                mirror_type = self._find_mirror(v)
-                if not mirror_type == "":
-                    self.sch_symbol = "Cs"
-                    break
-
-    def _proc_cyclic(self):
-        """
-        Handles cyclic group molecules.
-        """
-        main_axis, rot = max(self.rot_sym, key=lambda v: v[1])
-        self.sch_symbol = f"C{rot}"
-        mirror_type = self._find_mirror(main_axis)
-        if mirror_type == "h":
-            self.sch_symbol += "h"
-        elif mirror_type == "v":
-            self.sch_symbol += "v"
-        elif mirror_type == "":
-            if self.is_valid_op(SymmOp.rotoreflection(main_axis, angle=180 / rot)):
-                self.sch_symbol = f"S{2 * rot}"
-
-    def _proc_dihedral(self):
-        """
-        Handles dihedral group molecules, i.e those with intersecting R2 axes
-        and a main axis.
-        """
-        main_axis, rot = max(self.rot_sym, key=lambda v: v[1])
-        self.sch_symbol = f"D{rot}"
-        mirror_type = self._find_mirror(main_axis)
-        if mirror_type == "h":
-            self.sch_symbol += "h"
-        elif not mirror_type == "":
-            self.sch_symbol += "d"
 
     def _check_R2_axes_asym(self):
         """

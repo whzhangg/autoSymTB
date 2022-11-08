@@ -1,3 +1,4 @@
 from .interaction_pairs import *
-from .interaction_equation import *
-from .combined_interaction_equations import *
+from .subspace_interaction import *
+from .subspaces import *
+from .interface import *

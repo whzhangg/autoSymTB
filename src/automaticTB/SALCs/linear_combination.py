@@ -1,6 +1,6 @@
 import numpy as np
 import dataclasses, typing
-from ..structure import Site
+from ..structure import LocalSite
 from ..rotation import orbital_rotation_from_symmetry_matrix
 from .symmetrygroup import CartesianOrbitalRotation
 from ..atomic_orbitals import Orbitals, OrbitalsList
@@ -9,7 +9,7 @@ from ..parameters import zero_tolerance
 # it should not be created manually, but from vector space and get_nonzero_LC methods
 @dataclasses.dataclass
 class LinearCombination:
-    sites: typing.List[Site]
+    sites: typing.List[LocalSite]
     orbital_list: OrbitalsList  # mainly for printing
     coefficients: np.ndarray
         
@@ -73,7 +73,7 @@ class LinearCombination:
         return result
     
 
-    def _site_string(self, site: Site, orbitals: Orbitals, coefficient: np.ndarray) -> str: 
+    def _site_string(self, site: LocalSite, orbitals: Orbitals, coefficient: np.ndarray) -> str: 
         lm_name = {
             (0,  0):  "s",
             (1, -1): "py",
@@ -122,7 +122,7 @@ class LinearCombination:
             self.sites, self.orbital_list, ordered_coefficient
         )
     
-    def _rotate_site_and_coefficient(self, cartesian_matrix) -> typing.Tuple[typing.List[Site], np.ndarray]:
+    def _rotate_site_and_coefficient(self, cartesian_matrix) -> typing.Tuple[typing.List[LocalSite], np.ndarray]:
         new_sites = [
             site.rotate(cartesian_matrix) for site in self.sites
         ]

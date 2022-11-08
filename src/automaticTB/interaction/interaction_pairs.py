@@ -12,6 +12,7 @@ class AO:
     """defines an atomic orbital in a molecular"""
     cluster_index: int
     primitive_index: int
+    absolute_position: np.ndarray
     translation: np.ndarray
     chemical_symbol: str
     n: int
@@ -51,6 +52,10 @@ class AOPair:
     @property
     def right(self) -> AO:
         return self.r_AO
+
+    @property
+    def vector_right_to_left(self) -> np.ndarray:
+        return self.l_AO.absolute_position - self.r_AO.absolute_position
 
     @classmethod
     def from_pair(cls, aopair: Pair) -> "AOPair":

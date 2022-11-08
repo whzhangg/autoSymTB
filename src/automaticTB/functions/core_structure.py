@@ -6,19 +6,19 @@ import re, typing
 
 __all__ = ["get_structure_from_cif_file"]
 
+
 def get_structure_from_cif_file(
-    filename: str, orbitals_dict: typing.Dict[str, str]) -> Structure:
+    filename: str, rcut: typing.Optional[float] = None
+) -> Structure:
     """
-    use voronoi method to find the coordinated atoms for interaction, since it is parameter free
-    - filename: the cif file
-    - orbitals_dict: {"Si" : "3s3p4s"}
+    high level function to get a structure object from cif file
     """
     c, p, t = read_cif_to_cpt(filename)
-    orbitals = {
-        k: _get_orbital_ln_from_string(v) for k, v in orbitals_dict.items()
-    }
+    if rcut is None:
+        return Structure.from_cpt_voronoi(c, p, t)
+    else:
+        return Structure.from_cpt_rcut(c, p, t, rcut)
 
-    return Structure.from_cpt_voronoi(c, p, t, orbitals)
 
 
 def _get_orbital_ln_from_string(orbital: str) -> typing.List[typing.Tuple[int, int]]:

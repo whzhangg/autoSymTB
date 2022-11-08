@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from automaticTB.atomic_orbitals import AO
+from automaticTB.interaction import AO
 from automaticTB.tools import Pair
 
 """
