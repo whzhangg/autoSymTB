@@ -22,17 +22,18 @@ def test_Si_decomposition_sps():
     for i, free in enumerate(equation_system.free_AOpairs):
         print(f"{i+1:>2d}" + str(free))
 
-    assert len(equation_system.free_AOpairs) == 17
+    assert len(equation_system.free_AOpairs) == 16
 
 
 def test_Si_solve_dispersion_sps():
     combined = get_equationsystem_from_structure_orbital_dict(bulksi, {"Si":"3s3p4s"})
+    for i, free in enumerate(combined.free_AOpairs):
+        print(f"{i+1:>2d}" + str(free))
 
     values = np.array([
         -3.3179,    # 1 > Pair: Si-00      3s -> Si-00      3s @ (  0.00,  0.00,  0.00)
         8.23164,    # 2 > Pair: Si-01      4s -> Si-01      4s @ (  0.00,  0.00,  0.00)
         0.00000,    # 3 > Pair: Si-01      4s -> Si-00      3s @ (  1.36, -1.36, -1.36)
-        0.00000,    # 4 > Pair: Si-00      3s -> Si-00      4s @ (  0.00,  0.00,  0.00)
         -9.5990/4,  # 5 > Pair: Si-01      3s -> Si-00      3s @ (  1.36, -1.36, -1.36)
         7.2505/4,   # 6 > Pair: Si-01      4s -> Si-00     3px @ (  1.36, -1.36, -1.36)
         1.67862,    # 7 > Pair: Si-00     3px -> Si-00     3px @ (  0.00,  0.00,  0.00)
@@ -44,7 +45,6 @@ def test_Si_solve_dispersion_sps():
         -4.7757/4,  #13 > Pair: Si-01     3px -> Si-00     3pz @ (  1.36, -1.36, -1.36)
         1.6955/4,   #14 > Pair: Si-01     3px -> Si-00     3px @ (  1.36, -1.36, -1.36)
         -7.2505/4,  #15 > Pair: Si-01     3px -> Si-00      4s @ (  1.36, -1.36, -1.36)
-        0.00000,    #16 > Pair: Si-01      3s -> Si-01      4s @ (  0.00,  0.00,  0.00)
         -7.1423/4,  #17 > Pair: Si-01     3px -> Si-00      3s @ (  1.36, -1.36, -1.36)
         1.67862,    #18 > Pair: Si-01     3px -> Si-01     3px @ (  0.00,  0.00,  0.00)
     ])

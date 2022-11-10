@@ -1,8 +1,9 @@
 import dataclasses, typing, numpy as np
 from ..tools import chemical_symbols, get_cell_from_origin_centered_positions
 from ._utilities import write_cif_file, atom_from_cpt_cartesian
-from ..sitesymmetry import SiteSymmetryGroup
+from ..sitesymmetry import SiteSymmetryGroup, GroupsList_sch, spherical_symmetry_group
 from ..parameters import zero_tolerance
+from .pymatgen_sym import symOperations_from_pos_types
 
 __all__ = ["LocalSite", "CrystalSite", "NeighborCluster"]
 
@@ -32,6 +33,7 @@ class CrystalSite:
     site: LocalSite # absolute cartesian coordinates
     absolute_position: np.ndarray
     index_pcell: int
+    equivalent_index: int
     translation: np.ndarray
 
     def __str__(self) -> str:
@@ -84,3 +86,39 @@ class NeighborCluster:
         types = [s.atomic_number for s in self.baresites]
         atom = atom_from_cpt_cartesian(cell, positions, types)
         write_cif_file(filename, atom)
+
+    def set_symmetry(self, find_additional_symmetry: bool = False) -> None:
+        """
+        first it checks if the atom is an isolated atom with full spherical symmetry
+        if we require to find additional symmetry, it will call the pymatgen method
+        """
+        vectors = np.vstack([ns.site.pos for ns in self.neighbor_sites])
+        if len(vectors) == 1 and np.allclose(
+            vectors[0], np.zeros_like(vectors[0]), atol=zero_tolerance
+        ):
+            self.sitesymmetrygroup = spherical_symmetry_group
+            return
+        
+        if find_additional_symmetry:
+            types = [ns.site.chemical_symbol for ns in self.neighbor_sites]
+            sym_sch, operations = symOperations_from_pos_types(
+                vectors, types
+            )
+            if sym_sch == "Kh":
+                self.sitesymmetrygroup = spherical_symmetry_group
+            if sym_sch in GroupsList_sch:
+                self.sitesymmetrygroup = SiteSymmetryGroup.from_cartesian_matrices(operations)
+
+    def find_and_set_additional_symmetry(self) -> None:
+        """
+        attemp to use pymatgen's method to obtain additional symmetry
+        """
+        vectors = np.vstack([ns.site.pos for ns in self.neighbor_sites])
+        types = [ns.site.chemical_symbol for ns in self.neighbor_sites]
+        sym_sch, operations = symOperations_from_pos_types(
+            vectors, types
+        )
+        if sym_sch == "Kh":
+            self.sitesymmetrygroup = spherical_symmetry_group
+        if sym_sch in GroupsList_sch:
+            self.sitesymmetrygroup = SiteSymmetryGroup.from_cartesian_matrices(operations)

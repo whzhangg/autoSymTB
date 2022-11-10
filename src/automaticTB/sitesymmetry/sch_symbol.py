@@ -1,8 +1,5 @@
 import typing
 
-__all__ = ["sch_from_HM", "HM_from_sch"]
-
-
 sch_from_HM: typing.Dict[str, str] = {
     "1": "C1",
     "-1": "Ci",

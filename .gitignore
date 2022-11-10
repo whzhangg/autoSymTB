@@ -8,6 +8,7 @@ docs/**/*.pptx
 !docs/figures/*.pdf
 
 examples/*.cube
+examples/**/*.yaml
 applications/
 
 src/*.egg-info

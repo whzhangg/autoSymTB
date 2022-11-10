@@ -12,6 +12,7 @@ __all__ = ["AO", "AOPair", "AOPairWithValue"]
 class AO:
     """defines an atomic orbital in a molecular"""
     cluster_index: int
+    equivalent_index: int
     primitive_index: int
     absolute_position: np.ndarray
     translation: np.ndarray
@@ -66,6 +67,9 @@ class AOPair:
         return Pair(self.l_AO, self.r_AO)
 
     def __eq__(self, o: "AOPair") -> bool:
+        """
+        
+        """
         return  (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
                 (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
 
@@ -77,7 +81,8 @@ class AOPair:
         result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
         result += f"{right.chemical_symbol:>2s}-{right.primitive_index:0>2d} "
         result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
-        result += "@ ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
+        result += "r = ({:>6.2f},{:>6.2f},{:>6.2f}) ".format(*rij)
+        result += "t = ({:>3d}{:>3d}{:>3d})".format(*np.array(right.translation, dtype=int))
         return result
 
 @dataclasses.dataclass
@@ -86,6 +91,7 @@ class AOPairWithValue(AOPair):
     value: typing.Union[float, complex]
 
     def __eq__(self, o: "AOPairWithValue") -> bool:
+        pair_OK = super()
         valueOK = np.isclose(self.value, o.value, atol = zero_tolerance)
         pair_OK = (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
                   (self.l_AO == o.r_AO and self.r_AO == o.l_AO)

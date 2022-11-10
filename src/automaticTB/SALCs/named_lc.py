@@ -9,6 +9,9 @@ class IrrepSymbol:
 
     @classmethod
     def from_str(cls, input: str):
+        """
+        the main symbol ^ index -> subduction symbol
+        """
         parts = input.split("->")
         mains = parts[0].split("^")
         main_irrep = mains[0]

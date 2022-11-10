@@ -20,5 +20,6 @@ def get_equationsystem_from_structure_orbital_dict(
 ) -> CombinedAOSubspaceInteraction:
     all_iao = []
     for cluster in structure.nnclusters:
+        cluster.find_and_set_additional_symmetry()
         all_iao += get_InteractingAOSubspaces_from_cluster(cluster, orbital_dict)
     return CombinedAOSubspaceInteraction(all_iao)

@@ -10,24 +10,30 @@ from pymatgen.symmetry.analyzer import cluster_sites, PointGroupOperations, gene
 __all__ = ["PointGroupAnalyzer", "get_schSymbol_symOperations_from_pos_types"]
 
 """
-notes:
-this class find symmetry operation using the momentum inertia method and first identifying the 
-principle axes. Than it tries all the possible symmetry depending on the information it knows
+this package find the the set of symmetry operation
 """
 
-def get_schSymbol_symOperations_from_pos_types(
-    cart_positions: np.ndarray, types: typing.List[int]
+def symOperations_from_pos_types(
+    cart_positions: np.ndarray, types: typing.List[int], tolerance: float = 0.05
 ) -> typing.Tuple[str, typing.List[np.ndarray]]:
+    """
+    return the sch symbol of the group and the symmetry operations, 
+    tolerance is for the equivalent site
+    """
     molecular = Molecule(types, cart_positions)
-    group = PointGroupAnalyzer(molecular)
-    ops = group.get_symmetry_operations()
+    group = PointGroupAnalyzer(molecular, tolerance = tolerance)
+    
+    if group.sch_symbol == "Kh":
+        return group.sch_symbol, []
+    else:
+        ops = group.get_symmetry_operations()
 
-    operation_matrices = []
-    for op in ops:
-        assert np.allclose(op.translation_vector, np.zeros(3))
-        operation_matrices.append(op.rotation_matrix)
+        operation_matrices = []
+        for op in ops:
+            assert np.allclose(op.translation_vector, np.zeros(3))
+            operation_matrices.append(op.rotation_matrix)
 
-    return group.sch_symbol, operation_matrices
+        return group.sch_symbol, operation_matrices
 
 
 class PointGroupAnalyzer:
@@ -41,7 +47,7 @@ class PointGroupAnalyzer:
 
     inversion_op = SymmOp.inversion() # wh: get inversion operation
 
-    def __init__(self, mol, tolerance=0.3, eigen_tolerance=0.01, matrix_tolerance=0.1):
+    def __init__(self, mol: Molecule, tolerance=0.3, eigen_tolerance=0.01, matrix_tolerance=0.1):
         """
         The default settings are usually sufficient.
 
@@ -65,8 +71,10 @@ class PointGroupAnalyzer:
             self.sch_symbol = "Cs"
 
     def _analyze(self):
-        if len(self.centered_mol) == 1:
-            self.sch_symbol = "Kh"
+        if len(self.centered_mol) == 1 and np.allclose(
+            self.centered_mol.sites[0].coords, np.zeros(3), atol=self.tol
+            ):
+                self.sch_symbol = "Kh"
         else:
             inertia_tensor = np.zeros((3, 3))
             total_inertia = 0

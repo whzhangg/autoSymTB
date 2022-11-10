@@ -84,6 +84,7 @@ def _get_AO_from_CrystalSites_OrbitalList(
             aos.append(
                 AO(
                     cluster_index = i_cluster,
+                    equivalent_index = csite.equivalent_index,
                     primitive_index = csite.index_pcell,
                     absolute_position = csite.absolute_position,
                     translation = csite.translation,

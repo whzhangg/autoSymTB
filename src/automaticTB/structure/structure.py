@@ -33,6 +33,18 @@ class Structure:
     types: typing.List[int]
     nnclusters: typing.List[NeighborCluster]
 
+    @property
+    def eqivalent_indices(self) -> typing.List:
+        """
+        a list containing the equivalent atoms
+        """
+        sym_data = spglib.get_symmetry(
+            (self.cell, self.positions, self.types), 
+            symprec = symprec
+        )
+
+        return sym_data["equivalent_atoms"]
+
 
     @classmethod
     def from_cpt_rcut(
@@ -54,7 +66,9 @@ class Structure:
             position_string(pos):i for i, pos in enumerate(p)
         }
 
-        rotations = spglib.get_symmetry((c,p,t), symprec = symprec)["rotations"]
+        sym_data = spglib.get_symmetry((c,p,t), symprec = symprec)
+        rotations = sym_data["rotations"]
+        eq_indices = sym_data["equivalent_atoms"]
         cartesian_rotations = rotation_fraction_to_cartesian(rotations, c)
 
         pymatgen_structure = matgenStructure.Structure(lattice = c, species = t, coords = p)
@@ -75,7 +89,9 @@ class Structure:
                     CrystalSite(
                         localsite,
                         get_absolute_pos_from_cell_fractional_pos_translation(c, p[index], tr),
-                        index, tr
+                        index, 
+                        eq_indices[index],
+                        tr
                     )
                 )
                 
@@ -99,7 +115,9 @@ class Structure:
         c, p, t = cls.get_standarized_cpt(cell, positions, types)
         cartesian_p = np.einsum("ji, kj -> ki", c, p) # note we use ji, so no transpose necessary
 
-        rotations = spglib.get_symmetry((c,p,t), symprec = symprec)["rotations"]
+        sym_data = spglib.get_symmetry((c,p,t), symprec = symprec)
+        rotations = sym_data["rotations"]
+        eq_indices = sym_data["equivalent_atoms"]
         cartesian_rotations = rotation_fraction_to_cartesian(rotations, c)
 
         pymatgen_structure = matgenStructure.Structure(lattice = c, species = t, coords = p)
@@ -114,14 +132,13 @@ class Structure:
             crystalsites.append(
                 CrystalSite(
                     LocalSite(t[i], np.zeros_like(cpos)),
-                    cpos, i, np.zeros_like(cpos)
+                    cpos, i, eq_indices[i], np.zeros_like(cpos)
                 )
             )
             
             # other nnsite
             for nn in [nn for nn in nn_info if nn["weight"] > weight_cutoff]:
                 index = nn["site_index"]
-                atomic_type = t[index]
                 tr = nn["image"]
                 cartesian = cartesian_p[index]
                 relative_cartesian = cartesian + np.dot(c.T, tr) - cpos
@@ -130,7 +147,7 @@ class Structure:
                     CrystalSite(
                         localsite, 
                         get_absolute_pos_from_cell_fractional_pos_translation(c, p[index], tr),
-                        index, tr
+                        index, eq_indices[index], tr
                     )
                 )
                 

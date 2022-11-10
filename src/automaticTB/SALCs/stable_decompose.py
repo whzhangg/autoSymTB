@@ -12,6 +12,37 @@ __all__ = ["decompose_vectorspace_to_namedLC"]
 
 def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: SiteSymmetryGroup) \
 -> typing.List[NamedLC]:
+    if group.is_spherical_symmetry:
+        return decompose_vectorspace_to_namedLC_sphericalsymmetric(vectorspace)
+    else:
+        return decompose_vectorspace_to_namedLC_not_sphericalsymmetric(vectorspace, group)
+
+
+def decompose_vectorspace_to_namedLC_sphericalsymmetric(
+    vectorspace: VectorSpace
+) -> typing.List[NamedLC]:
+    """
+    this function treat the special case of spherical symmetric group
+    """
+    nlms = vectorspace.orbital_list.sh_list
+    lcs = vectorspace.get_nonzero_linear_combinations()
+    if len(nlms) != len(lcs):
+        print("decompose spherical symmetric vectorspace, something wrong")
+        raise
+
+    named_lcs = []
+    for nlm, lc in zip(nlms, lcs):
+        name = f"{nlm.n}-{nlm.l}^1->{nlm.m}"
+        named_lcs.append(
+            NamedLC(IrrepSymbol.from_str(name), lc)
+        )
+    
+    return named_lcs
+
+
+def decompose_vectorspace_to_namedLC_not_sphericalsymmetric(
+    vectorspace: VectorSpace, group: SiteSymmetryGroup
+) -> typing.List[NamedLC]:
     """
     This function recursively decompose vector space so that the input vector space is decomposed entirely into one-dimensional 
     representations. This method has no knowledge of atoms or basis, it only require that the linearcombination (vectors) know 

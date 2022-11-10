@@ -6,40 +6,19 @@ from .utilities import get_pointgroupname_from_rotation_matrices
 from .symmetry_reduction import symmetry_reduction
 from .SeitzFinder.dress_operation import dress_symmetry_operation
 from .Bilbao.interface import PointGroupData, BilbaoGroupOperation
+from .sch_symbol import sch_from_HM
 from automaticTB.parameters import use_complex_character
 
 #references = BilbaoStandardGroups(complex_characters=True)
 references = PointGroupData(complex_character = use_complex_character)
 
-def find_cooresponding_characters_from_map(
-    dressed: typing.Dict[str, np.ndarray], 
-    required_group_reference: typing.Dict[str, BilbaoGroupOperation],
-    reduction_reference: typing.Dict[str, str]) \
--> typing.List[BilbaoGroupOperation]:
-    obtained_operation: typing.List[BilbaoGroupOperation] = []
-    
-    for subgroup_seitz, maingroup_seitz in reduction_reference.items():
-        obtained_operation.append(
-            BilbaoGroupOperation(
-                subgroup_seitz,
-                dressed[maingroup_seitz],
-                required_group_reference[subgroup_seitz].chi
-            )
-        )
-    return obtained_operation
 
-
-def find_corresponding_characters(
-    givengroup: str, 
-    maingroup: str,
-    dressed: typing.Dict[str, np.ndarray]
-) -> typing.List[BilbaoGroupOperation]:
-    reduction_reference = symmetry_reduction[maingroup][givengroup]
-    required_group_reference = references.get_BilbaoPointGroup(givengroup).seitz_operation_dict
-
-    return find_cooresponding_characters_from_map(
-        dressed, required_group_reference, reduction_reference
-    )
+def get_point_group_as_SiteSymmetryGroup(groupname: str) -> "SiteSymmetryGroup":
+    groupdata = references.get_BilbaoPointGroup(groupname)
+    rotations = [ op.matrix for op in groupdata.operations ]
+    result = SiteSymmetryGroup.from_cartesian_matrices(rotations)
+    assert result.groupname == groupname
+    return result
 
 
 @dataclasses.dataclass
@@ -51,6 +30,13 @@ class SiteSymmetryGroup:
     subgroups: typing.List[str]
     dressed_op: typing.Dict[str, np.ndarray]
 
+    @property
+    def is_spherical_symmetry(self) -> bool:
+        return self.groupname == "Kh"
+
+    @property
+    def sch_symbol(self) -> str:
+        return sch_from_HM[self.groupname]
 
     @classmethod
     def from_cartesian_matrices(cls, 
@@ -90,7 +76,11 @@ class SiteSymmetryGroup:
         )
 
 
-    def get_subgroup(self, subgroup: str):
+    def get_subgroup(self, subgroup: str) -> "SiteSymmetryGroup":
+        if self.is_spherical_symmetry:
+            print("trying to get subgroup of spherial symmetric group")
+            SystemExit()
+
         if subgroup not in self.subgroups:
             raise ValueError(f"{subgroup} is not a subgroup of the current group {self.groupname}")
         
@@ -122,7 +112,12 @@ class SiteSymmetryGroup:
         )
 
 
-    def get_subgroup_from_subgroup_and_seitz_map(self, subgroup: str, seitz_mapper: typing.Dict[str, str]):
+    def get_subgroup_from_subgroup_and_seitz_map(
+        self, subgroup: str, seitz_mapper: typing.Dict[str, str]
+    ) -> "SiteSymmetryGroup":
+        if self.is_spherical_symmetry:
+            print("trying to get subgroup of spherial symmetric group")
+            SystemExit()
         if subgroup not in self.subgroups:
             raise ValueError(f"{subgroup} is not a subgroup of the current group {self.groupname}")
         
@@ -159,9 +154,39 @@ class SiteSymmetryGroup:
         )
 
 
-def get_point_group_as_SiteSymmetryGroup(groupname: str) -> SiteSymmetryGroup:
-    groupdata = references.get_BilbaoPointGroup(groupname)
-    rotations = [ op.matrix for op in groupdata.operations ]
-    result = SiteSymmetryGroup.from_cartesian_matrices(rotations)
-    assert result.groupname == groupname
-    return result
+spherical_symmetry_group = SiteSymmetryGroup(
+    "Kh", 
+    [], {}, {}, [], {}
+)
+
+
+def find_cooresponding_characters_from_map(
+    dressed: typing.Dict[str, np.ndarray], 
+    required_group_reference: typing.Dict[str, BilbaoGroupOperation],
+    reduction_reference: typing.Dict[str, str]) \
+-> typing.List[BilbaoGroupOperation]:
+    obtained_operation: typing.List[BilbaoGroupOperation] = []
+    
+    for subgroup_seitz, maingroup_seitz in reduction_reference.items():
+        obtained_operation.append(
+            BilbaoGroupOperation(
+                subgroup_seitz,
+                dressed[maingroup_seitz],
+                required_group_reference[subgroup_seitz].chi
+            )
+        )
+    return obtained_operation
+
+
+def find_corresponding_characters(
+    givengroup: str, 
+    maingroup: str,
+    dressed: typing.Dict[str, np.ndarray]
+) -> typing.List[BilbaoGroupOperation]:
+    reduction_reference = symmetry_reduction[maingroup][givengroup]
+    required_group_reference = references.get_BilbaoPointGroup(givengroup).seitz_operation_dict
+
+    return find_cooresponding_characters_from_map(
+        dressed, required_group_reference, reduction_reference
+    )
+
