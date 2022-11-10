@@ -47,17 +47,20 @@ class CombinedAOSubspaceInteraction:
         row_nonh_start = 0
         for subspace in subspace_interactions:
             all_index = [self.considered_ao_pairs.index(aop) for aop in subspace.all_AOpairs]
+            #print("* indices: " + str(all_index))
             row_homo_end = row_homo_start + len(subspace.linear_equation.homogeneous_equation)
             
             if len(subspace.linear_equation.homogeneous_equation) > 0:
-                self.homogeneous_part[row_homo_start:row_homo_end, all_index] \
-                    = subspace.linear_equation.homogeneous_equation
+                for i_org, i_new in enumerate(all_index):
+                    self.homogeneous_part[row_homo_start:row_homo_end, i_new] \
+                        += subspace.linear_equation.homogeneous_equation[:, i_org]
             row_homo_start = row_homo_end
             
             row_nonh_end = row_nonh_start + len(subspace.linear_equation.non_homogeneous)
             if len(subspace.linear_equation.non_homogeneous) > 0:
-                self.non_homogeneous[row_nonh_start:row_nonh_end, all_index] \
-                    = subspace.linear_equation.non_homogeneous
+                for i_org, i_new in enumerate(all_index):
+                    self.non_homogeneous[row_nonh_start:row_nonh_end, i_new] \
+                        += subspace.linear_equation.non_homogeneous[:, i_org]
             row_nonh_start = row_nonh_end
 
         #self._num_free_parameter = np.linalg.matrix_rank(non_homogeneous, tol = zero_tolerance)

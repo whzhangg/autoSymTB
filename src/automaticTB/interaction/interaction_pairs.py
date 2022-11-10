@@ -67,11 +67,34 @@ class AOPair:
         return Pair(self.l_AO, self.r_AO)
 
     def __eq__(self, o: "AOPair") -> bool:
-        """
-        
-        """
-        return  (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
-                (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
+
+        #return  (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
+        #        (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
+
+        def check_ao(ao1: AO, ao2: AO) -> bool:
+            """
+            the same ao if orbital is the same and both belong to the same equivalent atoms
+            """
+            return ao1.equivalent_index == ao2.equivalent_index and \
+                   ao1.l == ao2.l and ao1.m == ao2.m and ao1.n == ao2.n
+
+        # case 1: the same sequence
+        vector_same = np.allclose(
+            self.vector_right_to_left, o.vector_right_to_left, 
+            atol = zero_tolerance
+        )
+        ao_same = check_ao(self.l_AO, o.l_AO) and check_ao(self.r_AO, o.r_AO)
+        if vector_same and ao_same: return True
+
+        vector_reverse = np.allclose(
+            self.vector_right_to_left, -1.0 * o.vector_right_to_left, 
+            atol = zero_tolerance
+        )
+        ao_reverse = check_ao(self.l_AO, o.r_AO) and check_ao(self.r_AO, o.l_AO)
+        if vector_reverse and ao_reverse: return True
+
+        return False
+
 
     def __str__(self) -> str:
         result = " > Pair: "
@@ -81,8 +104,8 @@ class AOPair:
         result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
         result += f"{right.chemical_symbol:>2s}-{right.primitive_index:0>2d} "
         result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
-        result += "r = ({:>6.2f},{:>6.2f},{:>6.2f}) ".format(*rij)
-        result += "t = ({:>3d}{:>3d}{:>3d})".format(*np.array(right.translation, dtype=int))
+        result += "r = ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
+        #result += " t = ({:>3d}{:>3d}{:>3d})".format(*np.array(right.translation, dtype=int))
         return result
 
 @dataclasses.dataclass

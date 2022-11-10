@@ -87,4 +87,4 @@ def test_Si_solve_dispersion_sps():
         e, _ = model.solveE_at_k(kpos)
         assert np.allclose(e, result, atol = 1e-4)
 
-test_Si_solve_dispersion_sps()
+test_Si_decomposition_sps()
