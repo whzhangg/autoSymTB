@@ -1,10 +1,10 @@
 import numpy as np
 import dataclasses, typing
-from ..structure import LocalSite
-from ..rotation import orbital_rotation_from_symmetry_matrix
+from ...structure import LocalSite
+from ...rotation import orbital_rotation_from_symmetry_matrix
 from .symmetrygroup import CartesianOrbitalRotation
-from ..atomic_orbitals import Orbitals, OrbitalsList
-from ..parameters import zero_tolerance
+from ...atomic_orbitals import Orbitals, OrbitalsList
+from ...parameters import zero_tolerance
 
 # it should not be created manually, but from vector space and get_nonzero_LC methods
 @dataclasses.dataclass

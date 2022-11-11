@@ -1,9 +1,9 @@
 import typing, dataclasses, re, numpy as np
 from .interaction_pairs import AO, AOPair, AOPairWithValue
-from ..SALCs import NamedLC
+from .SALCs import NamedLC
 from ..tools import Pair, LinearEquation, tensor_dot, format_lines_into_two_columns
 from ..parameters import zero_tolerance
-from ..SALCs import IrrepSymbol
+from .SALCs import IrrepSymbol
 
 __all__ = ["AOSubspace", "InteractingAOSubspace"]
 

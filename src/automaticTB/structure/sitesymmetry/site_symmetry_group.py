@@ -153,11 +153,12 @@ class SiteSymmetryGroup:
             dressed_subgroup_operation
         )
 
-
-spherical_symmetry_group = SiteSymmetryGroup(
-    "Kh", 
-    [], {}, {}, [], {}
-)
+    @staticmethod
+    def get_spherical_symmetry_group() -> "SiteSymmetryGroup":
+        return SiteSymmetryGroup(
+                    "Kh", 
+                    [], {}, {}, [], {}
+                )
 
 
 def find_cooresponding_characters_from_map(

@@ -1,6 +1,6 @@
 import dataclasses, typing
-from ..sitesymmetry import SiteSymmetryGroup, subduction_data
-from ..rotation import orbital_rotation_from_symmetry_matrix
+from ...structure.sitesymmetry import SiteSymmetryGroup, subduction_data
+from ...rotation import orbital_rotation_from_symmetry_matrix
 import numpy as np
 
 @dataclasses.dataclass

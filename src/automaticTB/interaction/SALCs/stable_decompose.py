@@ -1,6 +1,6 @@
 import typing
 import numpy as np
-from automaticTB.sitesymmetry import SiteSymmetryGroup
+from ...structure.sitesymmetry import SiteSymmetryGroup
 from .vectorspace import VectorSpace, get_nonzero_independent_linear_combinations
 from .linear_combination import LinearCombination
 from automaticTB.parameters import zero_tolerance

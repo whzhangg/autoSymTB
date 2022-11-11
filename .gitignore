@@ -10,7 +10,7 @@ examples/*.cube
 examples/**/*.yaml
 
 src/*.egg-info
-src/automaticTB/sitesymmetry/Bilbao/local
+src/automaticTB/structure/sitesymmetry/Bilbao/local
 
 tests/properties/band/singleband_band/*
 tests/properties/dos/singleband_dos/*

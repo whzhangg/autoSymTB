@@ -2,7 +2,7 @@
 import numpy as np
 import dataclasses, typing
 from ..utilities import operation_type_from_rotation_matrix
-from ...parameters import zero_tolerance
+from ....parameters import zero_tolerance
 
 class SymDirection:
     # a normalized vector presenting a direction

@@ -1,9 +1,9 @@
 import typing, dataclasses
 import numpy as np
-from ..structure import LocalSite, NeighborCluster
+from ...structure import LocalSite
 from .linear_combination import LinearCombination, OrbitalsList
-from ..parameters import zero_tolerance, LC_coefficients_dtype
-from ..tools import get_distinct_nonzero_vector_from_coefficients
+from ...parameters import zero_tolerance, LC_coefficients_dtype
+from ...tools import get_distinct_nonzero_vector_from_coefficients
 
 
 def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearCombination]) \
@@ -32,10 +32,6 @@ class VectorSpace:
     sites: typing.List[LocalSite]
     orbital_list: OrbitalsList
     coefficients_matrix: np.ndarray  # dtype = complex
-
-    @classmethod
-    def from_NNCluster(cls, cluster: NeighborCluster):
-        return cls.from_sites_and_orbitals(cluster.baresites, cluster.orbitalslist)
 
     @classmethod
     def from_sites_and_orbitals(cls, sites: typing.List[LocalSite], orbital_list: OrbitalsList):

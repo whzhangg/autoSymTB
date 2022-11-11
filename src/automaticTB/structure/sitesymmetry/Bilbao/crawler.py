@@ -1,6 +1,7 @@
 import requests, os, typing, re
 from bs4 import BeautifulSoup
-from automaticTB.config import rootfolder
+
+current_folder = os.path.split(__file__)[0]
 
 def get_websoup(url:str,agent='Mozilla/5.0') -> BeautifulSoup:
     """
@@ -60,7 +61,7 @@ class LocalImage:
 
 class Bilbao_PointGroups:
     server = "https://www.cryst.ehu.es/"
-    local = os.path.join(rootfolder, "sitesymmetry", "Bilbao", "local")
+    local = os.path.join(current_folder, "local")
     entrance_url = "https://www.cryst.ehu.es/rep/point.html"
 
     def __init__(self) -> None:
