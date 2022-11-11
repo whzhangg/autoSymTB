@@ -3,36 +3,16 @@
 **/*.aux
 **/.DS_Store
 
-docs/**/*.pdf
-docs/**/*.pptx
-!docs/figures/*.pdf
+resources/
+tmp/
 
 examples/*.cube
 examples/**/*.yaml
-applications/
 
 src/*.egg-info
-src/automaticTB/SALCs/examples
-src/automaticTB/SALCs/SubductionTables.tar.gz
-src/automaticTB/tests/**/*.pdf
-src/automaticTB/tests/**/*.dat
 src/automaticTB/sitesymmetry/Bilbao/local
-src/automaticTB/examples/**/*.yml
-src/automaticTB/examples/**/*.cube
-src/automaticTB/examples/**/*.png
-src/automaticTB/plotting/**/*.cube
-
-plots/**/*.vesta
-plots/**/*.cif
-plots/**/*.cube
 
 tests/properties/band/singleband_band/*
 tests/properties/dos/singleband_dos/*
 tests/properties/fatband/perovskite_fatband/*
-
 tests/plot/*.cube
-
-bin/**/*.cube
-bin/**/*.pdf
-
-tmp/
