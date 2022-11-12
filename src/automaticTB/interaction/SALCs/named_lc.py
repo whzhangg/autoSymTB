@@ -26,3 +26,6 @@ class IrrepSymbol:
 class NamedLC(typing.NamedTuple):
     name: IrrepSymbol
     lc: LinearCombination
+
+    def __str__(self) -> str:
+        return "\n".join([str(self.name), str(self.lc)])

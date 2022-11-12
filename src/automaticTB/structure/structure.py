@@ -62,7 +62,7 @@ class Structure:
 
     @property
     def centered_clusters(self) -> typing.List["CenteredCluster"]:
-        if self._rcut is None:
+        if self._rcut is not None:
             return self._get_centered_cluster_rcut()
         else:
             return self._get_centered_cluster_voronoi()
@@ -111,7 +111,7 @@ class Structure:
                 CenteredCluster(
                     center_site = center_csite,
                     neighbor_sites = neighbor_csites,
-                    cart_rotations = self._cartesian_pos
+                    cart_rotations = self._cartesian_rotations
                 )
             )
         
@@ -166,7 +166,7 @@ class Structure:
                 CenteredCluster(
                     center_site = center_csite,
                     neighbor_sites = neighbor_csites,
-                    cart_rotations = self._cartesian_pos
+                    cart_rotations = self._cartesian_rotations
                 )
             )
 
@@ -195,13 +195,19 @@ class CenteredCluster:
         """
         get centered equivalent clusters in order of increasing number of neighbors
         """
-        equivalent_clusters = []
         bare_sites = [ csite.site for csite in self.neighbor_sites ]
 
         group, equivalentset = self._get_siteSym_eqGroup_from_sites_and_rots(
                                     bare_sites, self.cart_rotations
                                 )
-                
+        
+        equivalent_clusters = [
+            CenteredEquivalentCluster(
+                    center_site = self.center_site, 
+                    neighbor_sites = [self.center_site],
+                    sitesymmetrygroup = group
+                )
+        ] # add the self-interaction for the center atom
         for indices in equivalentset.values():
             equivalent_clusters.append(
                 CenteredEquivalentCluster(
@@ -218,7 +224,7 @@ class CenteredCluster:
 
 
     def __str__(self) -> str:
-        results = [f"CenteredCluster "]
+        results = [f"Centered Cluster "]
         results.append(f"centered on {self.center_site.site.chemical_symbol} " + \
                    f"(i={self.center_site.index_pcell:>2d})")
         results.append("-"*31)
@@ -259,7 +265,7 @@ class CenteredCluster:
                     break
             if is_symmetry:
                 symmetries.append(sym)
-        
+
         group = SiteSymmetryGroup.from_cartesian_matrices(symmetries)
 
         equivalent_result = {}
@@ -298,7 +304,7 @@ class CenteredEquivalentCluster:
 
 
     def __str__(self) -> str:
-        results = [f"cluster ({self.sitesymmetrygroup.groupname:>5s}) "]
+        results = [f"Centered Equiv. Cluster ({self.sitesymmetrygroup.groupname:>5s}) "]
         results.append(f"centered on {self.center_site.site.chemical_symbol} " + \
                    f"(i={self.center_site.index_pcell:>2d})")
         results.append(f"         -> Distance : {self.distance:>6f}")

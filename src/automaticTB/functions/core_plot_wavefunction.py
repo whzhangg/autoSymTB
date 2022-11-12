@@ -1,6 +1,6 @@
 from ..plotting.interface import get_molecular_wavefunction_from_linear_combination
 from ..plotting import DensityCubePlot
-from ..SALCs import LinearCombination
+from ..interaction.SALCs import LinearCombination
 
 __all__ = ["plot_molecular_wavefunction_from_linear_combination"]
 

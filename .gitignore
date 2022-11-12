@@ -3,7 +3,7 @@
 **/*.aux
 **/.DS_Store
 
-resources/
+docs/
 tmp/
 
 examples/*.cube

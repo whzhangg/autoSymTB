@@ -1,6 +1,6 @@
 import typing, dataclasses
 import numpy as np
-from ..SALCs import LinearCombination
+from ..interaction.SALCs import LinearCombination
 from ..parameters import zero_tolerance
 from ..tools import get_cell_from_origin_centered_positions
 from .molecular_wavefunction import MolecularWavefunction, Wavefunction, WavefunctionsOnSite

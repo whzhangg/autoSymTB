@@ -177,12 +177,15 @@ class InteractingAOSubspace:
         return aopairs_withvalue
 
     def __str__(self) -> str:
+        l_str = {0:"s", 1:"p", 2:"d", 3:"f"}
         l_ele = self.ao_pair[0].l_AO.chemical_symbol
+        l_orb = f"{self.ao_pair[0].l_AO.n:>2d}{l_str[self.ao_pair[0].l_AO.l]}"
         r_ele = self.ao_pair[0].r_AO.chemical_symbol
+        r_orb = f"{self.ao_pair[0].r_AO.n:>2d}{l_str[self.ao_pair[0].r_AO.l]}"
         vector = self.ao_pair[0].r_AO.absolute_position - self.ao_pair[0].l_AO.absolute_position
         distance = np.linalg.norm(vector)
         part1 = ["-------------------------------------------------------"]
-        part1.append(f"Block: ({l_ele:>2s}) -- r ={distance:>6.3}A --> ({r_ele:<2s})")
+        part1.append(f"Block: ({l_ele:>2s}{l_orb}) -- r ={distance:>6.3}A --> ({r_ele:<2s}{r_orb})")
         l_lines = ["left"]
         for nlc in self.l_subspace.namedlcs:
             l_lines.append(str(nlc.name))

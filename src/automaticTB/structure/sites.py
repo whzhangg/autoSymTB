@@ -1,7 +1,7 @@
 import dataclasses, typing, numpy as np
 from ..tools import chemical_symbols
 
-__all__ = ["LocalSite", "CrystalSite", "NeighborCluster"]
+__all__ = ["LocalSite", "CrystalSite"]
 
 @dataclasses.dataclass
 class LocalSite:

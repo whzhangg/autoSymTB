@@ -81,8 +81,8 @@ class PointGroupData:
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-        from automaticTB.sitesymmetry.group_list import GroupsList
-        from automaticTB.sitesymmetry.utilities import rotation_fraction_to_cartesian
+        from ..group_list import GroupsList
+        from ..utilities import rotation_fraction_to_cartesian
         from .extract_group_characters import get_GroupCharacterInfo_from_bilbao
         from .group_operations import get_group_operation
         from .symmetry_map import mapper_seitz_to_simplified

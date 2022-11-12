@@ -2,8 +2,7 @@ from .subduction import subduction_data
 
 from .site_symmetry_group import (
     get_point_group_as_SiteSymmetryGroup,
-    SiteSymmetryGroup,
-    spherical_symmetry_group
+    SiteSymmetryGroup
 )
 
 from .utilities import (

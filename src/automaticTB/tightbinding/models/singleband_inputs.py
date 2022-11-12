@@ -42,7 +42,10 @@ class SingleBandInputs:
         for h_t in self.home_translations:
             for a_t in self.all_translations:
                 home_ao = AO(
-                    cluster_index = 0, primitive_index = 0,
+                    cluster_index = 0, 
+                    equivalent_index = 0,
+                    primitive_index = 0,
+                    absolute_position = self.pos,
                     translation = h_t,
                     chemical_symbol = chemical_symbols[self.types[0]],
                     n = self.orbitals_nlm[0],
@@ -50,8 +53,11 @@ class SingleBandInputs:
                     m = self.orbitals_nlm[2]
                 )
                 other_ao = AO(
-                    cluster_index = 0, primitive_index = 0,
+                    cluster_index = 0, 
+                    equivalent_index = 0,
+                    primitive_index = 0,
                     translation = a_t,
+                    absolute_position = self.pos + a_t,
                     chemical_symbol = chemical_symbols[self.types[0]],
                     n = self.orbitals_nlm[0],
                     l = self.orbitals_nlm[1],
