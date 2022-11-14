@@ -1,6 +1,6 @@
 import numpy as np
 import typing
-from automaticTB.interaction import AO
+from automaticTB.solve.interaction import AO
 from automaticTB.tools import Pair
 
 """

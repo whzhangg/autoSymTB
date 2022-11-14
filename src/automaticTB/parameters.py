@@ -1,10 +1,11 @@
 import numpy as np
 import torch
 # how small we consider to be zero
+
 zero_tolerance = 1e-4
 
 # spg
-symprec = 1e-4
+tolerance_structure = 1e-4 # Ang. for use in crystals structure related comparsion
 
 use_complex_character = True
 

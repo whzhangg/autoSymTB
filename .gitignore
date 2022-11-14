@@ -6,13 +6,9 @@
 docs/
 tmp/
 
-examples/*.cube
+examples/**/*.cube
+examples/**/*.pdf
 examples/**/*.yaml
 
 src/*.egg-info
-src/automaticTB/structure/sitesymmetry/Bilbao/local
-
-tests/properties/band/singleband_band/*
-tests/properties/dos/singleband_dos/*
-tests/properties/fatband/perovskite_fatband/*
-tests/plot/*.cube
+src/automaticTB/solve/sitesymmetry/Bilbao/local

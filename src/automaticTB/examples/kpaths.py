@@ -1,5 +1,5 @@
 import numpy as np
-from automaticTB.properties.kpath import Kpath
+from automaticTB.properties.kpoints import Kpath
 
 __all__ = ["cubic_kpath"]
 

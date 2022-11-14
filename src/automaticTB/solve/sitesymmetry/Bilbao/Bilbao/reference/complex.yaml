@@ -1,0 +1,5527 @@
+'-1':
+  name: '-1'
+  operations:
+    -1 000:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '-1'
+  - '1'
+'-3':
+  name: '-3'
+  operations:
+    -1 000:
+      chi:
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '-1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '-1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 +:
+      chi:
+        1_E_g: &id003 !!python/complex '-0.5000000000000006-0.8660254037844385j'
+        1_E_u: &id004 !!python/complex '0.5000000000000006+0.8660254037844385j'
+        2_E_g: &id001 !!python/complex '-0.4999999999999998+0.8660254037844388j'
+        2_E_u: &id002 !!python/complex '0.4999999999999998-0.8660254037844388j'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 -:
+      chi:
+        1_E_g: *id001
+        1_E_u: *id002
+        2_E_g: *id003
+        2_E_u: *id004
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 +:
+      chi:
+        1_E_g: *id003
+        1_E_u: *id003
+        2_E_g: *id001
+        2_E_u: *id001
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi:
+        1_E_g: *id001
+        1_E_u: *id001
+        2_E_g: *id003
+        2_E_u: *id003
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '-3'
+  - '3'
+  - '-1'
+  - '1'
+-3m:
+  name: -3m
+  operations:
+    -1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '-2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 +:
+      chi: &id005
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '-1.0'
+        E_u: !!python/complex '1.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 -:
+      chi: *id005
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: &id006
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id006
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 110:
+      chi: *id006
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 001 +:
+      chi: &id007
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '-1.0'
+        E_u: !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi: *id007
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 010:
+      chi: &id008
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id008
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id008
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - -3m
+  - 3m
+  - '32'
+  - '-3'
+  - '3'
+  - 2/m
+  - m
+  - '2'
+  - '-1'
+  - '1'
+'-4':
+  name: '-4'
+  operations:
+    -4 001 +:
+      chi:
+        1_E: !!python/complex '-1.0j'
+        2_E: !!python/complex '1.0j'
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 -:
+      chi:
+        1_E: !!python/complex '1.0j'
+        2_E: !!python/complex '-1.0j'
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        1_E: !!python/complex '1.0'
+        2_E: !!python/complex '1.0'
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        1_E: !!python/complex '-1.0'
+        2_E: !!python/complex '-1.0'
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '-4'
+  - '2'
+  - '1'
+-42m:
+  name: -42m
+  operations:
+    -4 001 +:
+      chi: &id009
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 -:
+      chi: *id009
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '-2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: &id010
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id010
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 1-10:
+      chi: &id011
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id011
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - -42m
+  - '-4'
+  - mm2
+  - '222'
+  - '2'
+  - m
+  - '1'
+-43m:
+  name: -43m
+  operations:
+    -4 001 +:
+      chi: &id012
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+        T_1: !!python/complex '1.0'
+        T_2: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 -:
+      chi: *id012
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 010 +:
+      chi: *id012
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    -4 010 -:
+      chi: *id012
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    -4 100 +:
+      chi: *id012
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+    -4 100 -:
+      chi: *id012
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+        T_1: !!python/complex '3.0'
+        T_2: !!python/complex '3.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi: &id013
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+        T_1: !!python/complex '-1.0'
+        T_2: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: *id013
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id013
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 -1-11 +:
+      chi: &id014
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '-1.0'
+        T_1: !!python/complex '0.0'
+        T_2: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -1-11 -:
+      chi: *id014
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 -11-1 +:
+      chi: *id014
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -11-1 -:
+      chi: *id014
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    3 1-1-1 +:
+      chi: *id014
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 1-1-1 -:
+      chi: *id014
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 111 +:
+      chi: *id014
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 111 -:
+      chi: *id014
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    m -101:
+      chi: &id015
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+        T_1: !!python/complex '-1.0'
+        T_2: !!python/complex '1.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    m 01-1:
+      chi: *id015
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    m 011:
+      chi: *id015
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+    m 1-10:
+      chi: *id015
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 101:
+      chi: *id015
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    m 110:
+      chi: *id015
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - -43m
+  - '23'
+  - 3m
+  - '3'
+  - -42m
+  - '-4'
+  - mm2
+  - '222'
+  - '2'
+  - m
+  - '1'
+'-6':
+  name: '-6'
+  operations:
+    -6 001 +:
+      chi:
+        1_E_': *id001
+        1_E_'': *id002
+        2_E_': *id003
+        2_E_'': *id004
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -6 001 -:
+      chi:
+        1_E_': *id003
+        1_E_'': *id004
+        2_E_': *id001
+        2_E_'': *id002
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        1_E_': !!python/complex '1.0'
+        1_E_'': !!python/complex '1.0'
+        2_E_': !!python/complex '1.0'
+        2_E_'': !!python/complex '1.0'
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 +:
+      chi:
+        1_E_': *id003
+        1_E_'': *id003
+        2_E_': *id001
+        2_E_'': *id001
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi:
+        1_E_': *id001
+        1_E_'': *id001
+        2_E_': *id003
+        2_E_'': *id003
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        1_E_': !!python/complex '1.0'
+        1_E_'': !!python/complex '-1.0'
+        2_E_': !!python/complex '1.0'
+        2_E_'': !!python/complex '-1.0'
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '-1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+  subgroups:
+  - '-6'
+  - '3'
+  - m
+  - '1'
+-6m2:
+  name: -6m2
+  operations:
+    -6 001 +:
+      chi: &id016
+        A_''_1: !!python/complex '-1.0'
+        A_''_2: !!python/complex '-1.0'
+        A_'_1: !!python/complex '1.0'
+        A_'_2: !!python/complex '1.0'
+        E_': !!python/complex '-1.0'
+        E_'': !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -6 001 -:
+      chi: *id016
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_''_1: !!python/complex '1.0'
+        A_''_2: !!python/complex '1.0'
+        A_'_1: !!python/complex '1.0'
+        A_'_2: !!python/complex '1.0'
+        E_': !!python/complex '2.0'
+        E_'': !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 1-10:
+      chi: &id017
+        A_''_1: !!python/complex '1.0'
+        A_''_2: !!python/complex '-1.0'
+        A_'_1: !!python/complex '1.0'
+        A_'_2: !!python/complex '-1.0'
+        E_': !!python/complex '0.0'
+        E_'': !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 120:
+      chi: *id017
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 210:
+      chi: *id017
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 001 +:
+      chi: &id018
+        A_''_1: !!python/complex '1.0'
+        A_''_2: !!python/complex '1.0'
+        A_'_1: !!python/complex '1.0'
+        A_'_2: !!python/complex '1.0'
+        E_': !!python/complex '-1.0'
+        E_'': !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi: *id018
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        A_''_1: !!python/complex '-1.0'
+        A_''_2: !!python/complex '-1.0'
+        A_'_1: !!python/complex '1.0'
+        A_'_2: !!python/complex '1.0'
+        E_': !!python/complex '2.0'
+        E_'': !!python/complex '-2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 010:
+      chi: &id019
+        A_''_1: !!python/complex '-1.0'
+        A_''_2: !!python/complex '1.0'
+        A_'_1: !!python/complex '1.0'
+        A_'_2: !!python/complex '-1.0'
+        E_': !!python/complex '0.0'
+        E_'': !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id019
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id019
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - -6m2
+  - '-6'
+  - 3m
+  - '32'
+  - '3'
+  - mm2
+  - '2'
+  - m
+  - '1'
+'1':
+  name: '1'
+  operations:
+    1 000:
+      chi:
+        A: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '1'
+'2':
+  name: '2'
+  operations:
+    1 000:
+      chi:
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '2'
+  - '1'
+2/m:
+  name: 2/m
+  operations:
+    -1 000:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+  subgroups:
+  - 2/m
+  - '2'
+  - m
+  - '-1'
+  - '1'
+'222':
+  name: '222'
+  operations:
+    1 000:
+      chi:
+        A: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        B_3: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '-1.0'
+        B_3: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi:
+        A: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '1.0'
+        B_3: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi:
+        A: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        B_3: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+  subgroups:
+  - '222'
+  - '2'
+  - '1'
+'23':
+  name: '23'
+  operations:
+    1 000:
+      chi:
+        1_E: !!python/complex '1.0'
+        2_E: !!python/complex '1.0'
+        A: !!python/complex '1.0'
+        T: !!python/complex '3.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi: &id020
+        1_E: !!python/complex '1.0'
+        2_E: !!python/complex '1.0'
+        A: !!python/complex '1.0'
+        T: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: *id020
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id020
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 -1-11 +:
+      chi: &id021
+        1_E: *id001
+        2_E: *id003
+        A: !!python/complex '1.0'
+        T: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -1-11 -:
+      chi: &id022
+        1_E: *id003
+        2_E: *id001
+        A: !!python/complex '1.0'
+        T: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 -11-1 +:
+      chi: *id021
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -11-1 -:
+      chi: *id022
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    3 1-1-1 +:
+      chi: *id021
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 1-1-1 -:
+      chi: *id022
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 111 +:
+      chi: *id021
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 111 -:
+      chi: *id022
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+  subgroups:
+  - '23'
+  - '3'
+  - '222'
+  - '2'
+  - '1'
+'3':
+  name: '3'
+  operations:
+    1 000:
+      chi:
+        1_E: !!python/complex '1.0'
+        2_E: !!python/complex '1.0'
+        A: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 +:
+      chi:
+        1_E: *id003
+        2_E: *id001
+        A: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi:
+        1_E: *id001
+        2_E: *id003
+        A: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '3'
+  - '1'
+'32':
+  name: '32'
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: &id023
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id023
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 110:
+      chi: *id023
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 001 +:
+      chi: &id024
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi: *id024
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '32'
+  - '3'
+  - '2'
+  - '1'
+3m:
+  name: 3m
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 +:
+      chi: &id025
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi: *id025
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 010:
+      chi: &id026
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id026
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id026
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - 3m
+  - '3'
+  - m
+  - '1'
+'4':
+  name: '4'
+  operations:
+    1 000:
+      chi:
+        1_E: !!python/complex '1.0'
+        2_E: !!python/complex '1.0'
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        1_E: !!python/complex '-1.0'
+        2_E: !!python/complex '-1.0'
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 +:
+      chi:
+        1_E: !!python/complex '-1.0j'
+        2_E: !!python/complex '1.0j'
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 -:
+      chi:
+        1_E: !!python/complex '1.0j'
+        2_E: !!python/complex '-1.0j'
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '4'
+  - '2'
+  - '1'
+4/m:
+  name: 4/m
+  operations:
+    -1 000:
+      chi:
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '-1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '-1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 +:
+      chi:
+        1_E_g: !!python/complex '-1.0j'
+        1_E_u: !!python/complex '1.0j'
+        2_E_g: !!python/complex '1.0j'
+        2_E_u: !!python/complex '-1.0j'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 -:
+      chi:
+        1_E_g: !!python/complex '1.0j'
+        1_E_u: !!python/complex '-1.0j'
+        2_E_g: !!python/complex '-1.0j'
+        2_E_u: !!python/complex '1.0j'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        1_E_g: !!python/complex '-1.0'
+        1_E_u: !!python/complex '-1.0'
+        2_E_g: !!python/complex '-1.0'
+        2_E_u: !!python/complex '-1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 +:
+      chi:
+        1_E_g: !!python/complex '-1.0j'
+        1_E_u: !!python/complex '-1.0j'
+        2_E_g: !!python/complex '1.0j'
+        2_E_u: !!python/complex '1.0j'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 -:
+      chi:
+        1_E_g: !!python/complex '1.0j'
+        1_E_u: !!python/complex '1.0j'
+        2_E_g: !!python/complex '-1.0j'
+        2_E_u: !!python/complex '-1.0j'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        1_E_g: !!python/complex '-1.0'
+        1_E_u: !!python/complex '1.0'
+        2_E_g: !!python/complex '-1.0'
+        2_E_u: !!python/complex '1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+  subgroups:
+  - 4/m
+  - '4'
+  - '-4'
+  - 2/m
+  - '2'
+  - m
+  - '-1'
+  - '1'
+4/mmm:
+  name: 4/mmm
+  operations:
+    -1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '-2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 +:
+      chi: &id027
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 -:
+      chi: *id027
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        E_g: !!python/complex '-2.0'
+        E_u: !!python/complex '-2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: &id028
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 1-10:
+      chi: &id029
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id028
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 110:
+      chi: *id029
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    4 001 +:
+      chi: &id030
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 -:
+      chi: *id030
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '-2.0'
+        E_u: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 010:
+      chi: &id031
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 1-10:
+      chi: &id032
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id031
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id032
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - 4/mmm
+  - -42m
+  - 4mm
+  - '422'
+  - 4/m
+  - '4'
+  - '-4'
+  - mmm
+  - mm2
+  - '222'
+  - 2/m
+  - m
+  - '2'
+  - '-1'
+  - '1'
+'422':
+  name: '422'
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '-2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: &id033
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 1-10:
+      chi: &id034
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id033
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 110:
+      chi: *id034
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    4 001 +:
+      chi: &id035
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 -:
+      chi: *id035
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '422'
+  - '4'
+  - '222'
+  - '2'
+  - '1'
+'432':
+  name: '432'
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+        T_1: !!python/complex '3.0'
+        T_2: !!python/complex '3.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 -101:
+      chi: &id036
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+        T_1: !!python/complex '-1.0'
+        T_2: !!python/complex '1.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    2 001:
+      chi: &id037
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+        T_1: !!python/complex '-1.0'
+        T_2: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 01-1:
+      chi: *id036
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+    2 010:
+      chi: *id037
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 011:
+      chi: *id036
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    2 1-10:
+      chi: *id036
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id037
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 101:
+      chi: *id036
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    2 110:
+      chi: *id036
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 -1-11 +:
+      chi: &id038
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        E: !!python/complex '-1.0'
+        T_1: !!python/complex '0.0'
+        T_2: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -1-11 -:
+      chi: *id038
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 -11-1 +:
+      chi: *id038
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -11-1 -:
+      chi: *id038
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    3 1-1-1 +:
+      chi: *id038
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 1-1-1 -:
+      chi: *id038
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 111 +:
+      chi: *id038
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 111 -:
+      chi: *id038
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    4 001 +:
+      chi: &id039
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+        T_1: !!python/complex '1.0'
+        T_2: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 -:
+      chi: *id039
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 010 +:
+      chi: *id039
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    4 010 -:
+      chi: *id039
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    4 100 +:
+      chi: *id039
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    4 100 -:
+      chi: *id039
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+  subgroups:
+  - '432'
+  - '23'
+  - '32'
+  - '422'
+  - '4'
+  - '3'
+  - '222'
+  - '2'
+  - '1'
+4mm:
+  name: 4mm
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '-2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 +:
+      chi: &id040
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 -:
+      chi: *id040
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 010:
+      chi: &id041
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '-1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 1-10:
+      chi: &id042
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '1.0'
+        E: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id041
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id042
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - 4mm
+  - '4'
+  - mm2
+  - '2'
+  - m
+  - '1'
+'6':
+  name: '6'
+  operations:
+    1 000:
+      chi:
+        1_E_1: !!python/complex '1.0'
+        1_E_2: !!python/complex '1.0'
+        2_E_1: !!python/complex '1.0'
+        2_E_2: !!python/complex '1.0'
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        1_E_1: !!python/complex '-1.0'
+        1_E_2: !!python/complex '1.0'
+        2_E_1: !!python/complex '-1.0'
+        2_E_2: !!python/complex '1.0'
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 +:
+      chi:
+        1_E_1: *id003
+        1_E_2: *id003
+        2_E_1: *id001
+        2_E_2: *id001
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi:
+        1_E_1: *id001
+        1_E_2: *id001
+        2_E_1: *id003
+        2_E_2: *id003
+        A: !!python/complex '1.0'
+        B: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 +:
+      chi:
+        1_E_1: *id002
+        1_E_2: *id001
+        2_E_1: *id004
+        2_E_2: *id003
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 -:
+      chi:
+        1_E_1: *id004
+        1_E_2: *id003
+        2_E_1: *id002
+        2_E_2: *id001
+        A: !!python/complex '1.0'
+        B: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '6'
+  - '3'
+  - '2'
+  - '1'
+6/m:
+  name: 6/m
+  operations:
+    -1 000:
+      chi:
+        1_E_1g: !!python/complex '1.0'
+        1_E_1u: !!python/complex '-1.0'
+        1_E_2g: !!python/complex '1.0'
+        1_E_2u: !!python/complex '-1.0'
+        2_E_1g: !!python/complex '1.0'
+        2_E_1u: !!python/complex '-1.0'
+        2_E_2g: !!python/complex '1.0'
+        2_E_2u: !!python/complex '-1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 +:
+      chi:
+        1_E_1g: *id003
+        1_E_1u: *id004
+        1_E_2g: *id003
+        1_E_2u: *id004
+        2_E_1g: *id001
+        2_E_1u: *id002
+        2_E_2g: *id001
+        2_E_2u: *id002
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 -:
+      chi:
+        1_E_1g: *id001
+        1_E_1u: *id002
+        1_E_2g: *id001
+        1_E_2u: *id002
+        2_E_1g: *id003
+        2_E_1u: *id004
+        2_E_2g: *id003
+        2_E_2u: *id004
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -6 001 +:
+      chi:
+        1_E_1g: *id002
+        1_E_1u: *id001
+        1_E_2g: *id001
+        1_E_2u: *id002
+        2_E_1g: *id004
+        2_E_1u: *id003
+        2_E_2g: *id003
+        2_E_2u: *id004
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -6 001 -:
+      chi:
+        1_E_1g: *id004
+        1_E_1u: *id003
+        1_E_2g: *id003
+        1_E_2u: *id004
+        2_E_1g: *id002
+        2_E_1u: *id001
+        2_E_2g: *id001
+        2_E_2u: *id002
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        1_E_1g: !!python/complex '1.0'
+        1_E_1u: !!python/complex '1.0'
+        1_E_2g: !!python/complex '1.0'
+        1_E_2u: !!python/complex '1.0'
+        2_E_1g: !!python/complex '1.0'
+        2_E_1u: !!python/complex '1.0'
+        2_E_2g: !!python/complex '1.0'
+        2_E_2u: !!python/complex '1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        1_E_1g: !!python/complex '-1.0'
+        1_E_1u: !!python/complex '-1.0'
+        1_E_2g: !!python/complex '1.0'
+        1_E_2u: !!python/complex '1.0'
+        2_E_1g: !!python/complex '-1.0'
+        2_E_1u: !!python/complex '-1.0'
+        2_E_2g: !!python/complex '1.0'
+        2_E_2u: !!python/complex '1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 +:
+      chi:
+        1_E_1g: *id003
+        1_E_1u: *id003
+        1_E_2g: *id003
+        1_E_2u: *id003
+        2_E_1g: *id001
+        2_E_1u: *id001
+        2_E_2g: *id001
+        2_E_2u: *id001
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi:
+        1_E_1g: *id001
+        1_E_1u: *id001
+        1_E_2g: *id001
+        1_E_2u: *id001
+        2_E_1g: *id003
+        2_E_1u: *id003
+        2_E_2g: *id003
+        2_E_2u: *id003
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 +:
+      chi:
+        1_E_1g: *id002
+        1_E_1u: *id002
+        1_E_2g: *id001
+        1_E_2u: *id001
+        2_E_1g: *id004
+        2_E_1u: *id004
+        2_E_2g: *id003
+        2_E_2u: *id003
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 -:
+      chi:
+        1_E_1g: *id004
+        1_E_1u: *id004
+        1_E_2g: *id003
+        1_E_2u: *id003
+        2_E_1g: *id002
+        2_E_1u: *id002
+        2_E_2g: *id001
+        2_E_2u: *id001
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        1_E_1g: !!python/complex '-1.0'
+        1_E_1u: !!python/complex '1.0'
+        1_E_2g: !!python/complex '1.0'
+        1_E_2u: !!python/complex '-1.0'
+        2_E_1g: !!python/complex '-1.0'
+        2_E_1u: !!python/complex '1.0'
+        2_E_2g: !!python/complex '1.0'
+        2_E_2u: !!python/complex '-1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_g: !!python/complex '-1.0'
+        B_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+  subgroups:
+  - 6/m
+  - '-6'
+  - '6'
+  - '-3'
+  - '3'
+  - 2/m
+  - m
+  - '2'
+  - '-1'
+  - '1'
+6/mmm:
+  name: 6/mmm
+  operations:
+    -1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        E_1g: !!python/complex '2.0'
+        E_1u: !!python/complex '-2.0'
+        E_2g: !!python/complex '2.0'
+        E_2u: !!python/complex '-2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 +:
+      chi: &id043
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        E_1g: !!python/complex '-1.0'
+        E_1u: !!python/complex '1.0'
+        E_2g: !!python/complex '-1.0'
+        E_2u: !!python/complex '1.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 001 -:
+      chi: *id043
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -6 001 +:
+      chi: &id044
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '1.0'
+        E_1g: !!python/complex '1.0'
+        E_1u: !!python/complex '-1.0'
+        E_2g: !!python/complex '-1.0'
+        E_2u: !!python/complex '1.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -6 001 -:
+      chi: *id044
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        E_1g: !!python/complex '2.0'
+        E_1u: !!python/complex '2.0'
+        E_2g: !!python/complex '2.0'
+        E_2u: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '-1.0'
+        E_1g: !!python/complex '-2.0'
+        E_1u: !!python/complex '-2.0'
+        E_2g: !!python/complex '2.0'
+        E_2u: !!python/complex '2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: &id045
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        E_1g: !!python/complex '0.0'
+        E_1u: !!python/complex '0.0'
+        E_2g: !!python/complex '0.0'
+        E_2u: !!python/complex '0.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 1-10:
+      chi: &id046
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '-1.0'
+        E_1g: !!python/complex '0.0'
+        E_1u: !!python/complex '0.0'
+        E_2g: !!python/complex '0.0'
+        E_2u: !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id045
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 110:
+      chi: *id045
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 120:
+      chi: *id046
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 210:
+      chi: *id046
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 001 +:
+      chi: &id047
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        E_1g: !!python/complex '-1.0'
+        E_1u: !!python/complex '-1.0'
+        E_2g: !!python/complex '-1.0'
+        E_2u: !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi: *id047
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 +:
+      chi: &id048
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '-1.0'
+        E_1g: !!python/complex '1.0'
+        E_1u: !!python/complex '1.0'
+        E_2g: !!python/complex '-1.0'
+        E_2u: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 -:
+      chi: *id048
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '1.0'
+        E_1g: !!python/complex '-2.0'
+        E_1u: !!python/complex '2.0'
+        E_2g: !!python/complex '2.0'
+        E_2u: !!python/complex '-2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 010:
+      chi: &id049
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        E_1g: !!python/complex '0.0'
+        E_1u: !!python/complex '0.0'
+        E_2g: !!python/complex '0.0'
+        E_2u: !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 1-10:
+      chi: &id050
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '1.0'
+        E_1g: !!python/complex '0.0'
+        E_1u: !!python/complex '0.0'
+        E_2g: !!python/complex '0.0'
+        E_2u: !!python/complex '0.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id049
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id049
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 120:
+      chi: *id050
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 210:
+      chi: *id050
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - 6/mmm
+  - -6m2
+  - 6mm
+  - '622'
+  - 6/m
+  - -3m
+  - '-6'
+  - '6'
+  - 3m
+  - '32'
+  - '-3'
+  - '3'
+  - mmm
+  - mm2
+  - '222'
+  - 2/m
+  - '2'
+  - m
+  - '-1'
+  - '1'
+'622':
+  name: '622'
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E_1: !!python/complex '2.0'
+        E_2: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        E_1: !!python/complex '-2.0'
+        E_2: !!python/complex '2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: &id051
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '1.0'
+        E_1: !!python/complex '0.0'
+        E_2: !!python/complex '0.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 1-10:
+      chi: &id052
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '-1.0'
+        E_1: !!python/complex '0.0'
+        E_2: !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id051
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 110:
+      chi: *id051
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 120:
+      chi: *id052
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 210:
+      chi: *id052
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 001 +:
+      chi: &id053
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E_1: !!python/complex '-1.0'
+        E_2: !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi: *id053
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 +:
+      chi: &id054
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        E_1: !!python/complex '1.0'
+        E_2: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 -:
+      chi: *id054
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - '622'
+  - '6'
+  - '32'
+  - '3'
+  - '222'
+  - '2'
+  - '1'
+6mm:
+  name: 6mm
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E_1: !!python/complex '2.0'
+        E_2: !!python/complex '2.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        E_1: !!python/complex '-2.0'
+        E_2: !!python/complex '2.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 +:
+      chi: &id055
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+        E_1: !!python/complex '-1.0'
+        E_2: !!python/complex '-1.0'
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    3 001 -:
+      chi: *id055
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 +:
+      chi: &id056
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+        E_1: !!python/complex '1.0'
+        E_2: !!python/complex '-1.0'
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    6 001 -:
+      chi: *id056
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 010:
+      chi: &id057
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '-1.0'
+        E_1: !!python/complex '0.0'
+        E_2: !!python/complex '0.0'
+      matrix:
+      - 0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 1-10:
+      chi: &id058
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '1.0'
+        E_1: !!python/complex '0.0'
+        E_2: !!python/complex '0.0'
+      matrix:
+      - -0.5
+      - 0.8660254037844388
+      - 0.0
+      - 0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id057
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 110:
+      chi: *id057
+      matrix:
+      - 0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - -0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 120:
+      chi: *id058
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 210:
+      chi: *id058
+      matrix:
+      - -0.5
+      - -0.8660254037844388
+      - 0.0
+      - -0.8660254037844386
+      - 0.5
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - 6mm
+  - '6'
+  - 3m
+  - '3'
+  - mm2
+  - '2'
+  - m
+  - '1'
+m:
+  name: m
+  operations:
+    1 000:
+      chi:
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 001:
+      chi:
+        A_': !!python/complex '1.0'
+        A_'': !!python/complex '-1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+  subgroups:
+  - m
+  - '1'
+m-3:
+  name: m-3
+  operations:
+    -1 000:
+      chi:
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '-1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '-1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        T_g: !!python/complex '3.0'
+        T_u: !!python/complex '-3.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 -1-11 +:
+      chi: &id059
+        1_E_g: *id001
+        1_E_u: *id002
+        2_E_g: *id003
+        2_E_u: *id004
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        T_g: !!python/complex '0.0'
+        T_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    -3 -1-11 -:
+      chi: &id060
+        1_E_g: *id003
+        1_E_u: *id004
+        2_E_g: *id001
+        2_E_u: *id002
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        T_g: !!python/complex '0.0'
+        T_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    -3 -11-1 +:
+      chi: *id059
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    -3 -11-1 -:
+      chi: *id060
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    -3 1-1-1 +:
+      chi: *id059
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    -3 1-1-1 -:
+      chi: *id060
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    -3 111 +:
+      chi: *id059
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    -3 111 -:
+      chi: *id060
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    1 000:
+      chi:
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        T_g: !!python/complex '3.0'
+        T_u: !!python/complex '3.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi: &id061
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        T_g: !!python/complex '-1.0'
+        T_u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi: *id061
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id061
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 -1-11 +:
+      chi: &id062
+        1_E_g: *id001
+        1_E_u: *id001
+        2_E_g: *id003
+        2_E_u: *id003
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        T_g: !!python/complex '0.0'
+        T_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -1-11 -:
+      chi: &id063
+        1_E_g: *id003
+        1_E_u: *id003
+        2_E_g: *id001
+        2_E_u: *id001
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        T_g: !!python/complex '0.0'
+        T_u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 -11-1 +:
+      chi: *id062
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -11-1 -:
+      chi: *id063
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    3 1-1-1 +:
+      chi: *id062
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 1-1-1 -:
+      chi: *id063
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 111 +:
+      chi: *id062
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 111 -:
+      chi: *id063
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    m 001:
+      chi: &id064
+        1_E_g: !!python/complex '1.0'
+        1_E_u: !!python/complex '-1.0'
+        2_E_g: !!python/complex '1.0'
+        2_E_u: !!python/complex '-1.0'
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        T_g: !!python/complex '-1.0'
+        T_u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 010:
+      chi: *id064
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id064
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - m-3
+  - '23'
+  - '-3'
+  - '3'
+  - mmm
+  - mm2
+  - '222'
+  - 2/m
+  - '2'
+  - m
+  - '-1'
+  - '1'
+m-3m:
+  name: m-3m
+  operations:
+    -1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '-2.0'
+        T_1g: !!python/complex '3.0'
+        T_1u: !!python/complex '-3.0'
+        T_2g: !!python/complex '3.0'
+        T_2u: !!python/complex '-3.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -3 -1-11 +:
+      chi: &id065
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '-1.0'
+        E_u: !!python/complex '1.0'
+        T_1g: !!python/complex '0.0'
+        T_1u: !!python/complex '0.0'
+        T_2g: !!python/complex '0.0'
+        T_2u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    -3 -1-11 -:
+      chi: *id065
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    -3 -11-1 +:
+      chi: *id065
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    -3 -11-1 -:
+      chi: *id065
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    -3 1-1-1 +:
+      chi: *id065
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    -3 1-1-1 -:
+      chi: *id065
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    -3 111 +:
+      chi: *id065
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    -3 111 -:
+      chi: *id065
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    -4 001 +:
+      chi: &id066
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+        T_1g: !!python/complex '1.0'
+        T_1u: !!python/complex '-1.0'
+        T_2g: !!python/complex '-1.0'
+        T_2u: !!python/complex '1.0'
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 001 -:
+      chi: *id066
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    -4 010 +:
+      chi: *id066
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    -4 010 -:
+      chi: *id066
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    -4 100 +:
+      chi: *id066
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+    -4 100 -:
+      chi: *id066
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    1 000:
+      chi:
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '2.0'
+        T_1g: !!python/complex '3.0'
+        T_1u: !!python/complex '3.0'
+        T_2g: !!python/complex '3.0'
+        T_2u: !!python/complex '3.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 -101:
+      chi: &id067
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+        T_1g: !!python/complex '-1.0'
+        T_1u: !!python/complex '-1.0'
+        T_2g: !!python/complex '1.0'
+        T_2u: !!python/complex '1.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    2 001:
+      chi: &id068
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '2.0'
+        T_1g: !!python/complex '-1.0'
+        T_1u: !!python/complex '-1.0'
+        T_2g: !!python/complex '-1.0'
+        T_2u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 01-1:
+      chi: *id067
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+    2 010:
+      chi: *id068
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 011:
+      chi: *id067
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    2 1-10:
+      chi: *id067
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi: *id068
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 101:
+      chi: *id067
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    2 110:
+      chi: *id067
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    3 -1-11 +:
+      chi: &id069
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '-1.0'
+        E_u: !!python/complex '-1.0'
+        T_1g: !!python/complex '0.0'
+        T_1u: !!python/complex '0.0'
+        T_2g: !!python/complex '0.0'
+        T_2u: !!python/complex '0.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -1-11 -:
+      chi: *id069
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 -11-1 +:
+      chi: *id069
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+    3 -11-1 -:
+      chi: *id069
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    3 1-1-1 +:
+      chi: *id069
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 1-1-1 -:
+      chi: *id069
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - -1.0
+      - 0.0
+      - 0.0
+    3 111 +:
+      chi: *id069
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    3 111 -:
+      chi: *id069
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+    4 001 +:
+      chi: &id070
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+        T_1g: !!python/complex '1.0'
+        T_1u: !!python/complex '1.0'
+        T_2g: !!python/complex '-1.0'
+        T_2u: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 001 -:
+      chi: *id070
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    4 010 +:
+      chi: *id070
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    4 010 -:
+      chi: *id070
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    4 100 +:
+      chi: *id070
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    4 100 -:
+      chi: *id070
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+    m -101:
+      chi: &id071
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '-1.0'
+        A_2u: !!python/complex '1.0'
+        E_g: !!python/complex '0.0'
+        E_u: !!python/complex '0.0'
+        T_1g: !!python/complex '-1.0'
+        T_1u: !!python/complex '1.0'
+        T_2g: !!python/complex '1.0'
+        T_2u: !!python/complex '-1.0'
+      matrix:
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    m 001:
+      chi: &id072
+        A_1g: !!python/complex '1.0'
+        A_1u: !!python/complex '-1.0'
+        A_2g: !!python/complex '1.0'
+        A_2u: !!python/complex '-1.0'
+        E_g: !!python/complex '2.0'
+        E_u: !!python/complex '-2.0'
+        T_1g: !!python/complex '-1.0'
+        T_1u: !!python/complex '1.0'
+        T_2g: !!python/complex '-1.0'
+        T_2u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 01-1:
+      chi: *id071
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+    m 010:
+      chi: *id072
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 011:
+      chi: *id071
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+    m 1-10:
+      chi: *id071
+      matrix:
+      - 0.0
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi: *id072
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 101:
+      chi: *id071
+      matrix:
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+    m 110:
+      chi: *id071
+      matrix:
+      - 0.0
+      - -1.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - m-3m
+  - -43m
+  - '432'
+  - m-3
+  - '23'
+  - -3m
+  - 3m
+  - '32'
+  - '-3'
+  - '3'
+  - 4/mmm
+  - -42m
+  - 4mm
+  - '422'
+  - 4/m
+  - '-4'
+  - '4'
+  - mmm
+  - mm2
+  - '222'
+  - 2/m
+  - '2'
+  - m
+  - '-1'
+  - '1'
+mm2:
+  name: mm2
+  operations:
+    1 000:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 010:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '1.0'
+        B_2: !!python/complex '-1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi:
+        A_1: !!python/complex '1.0'
+        A_2: !!python/complex '-1.0'
+        B_1: !!python/complex '-1.0'
+        B_2: !!python/complex '1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - mm2
+  - '2'
+  - m
+  - '1'
+mmm:
+  name: mmm
+  operations:
+    -1 000:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        B_3g: !!python/complex '1.0'
+        B_3u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    1 000:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        B_3g: !!python/complex '1.0'
+        B_3u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 001:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '-1.0'
+        B_3g: !!python/complex '-1.0'
+        B_3u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    2 010:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '1.0'
+        B_3g: !!python/complex '-1.0'
+        B_3u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    2 100:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '-1.0'
+        B_3g: !!python/complex '1.0'
+        B_3u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 001:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_1g: !!python/complex '1.0'
+        B_1u: !!python/complex '-1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '1.0'
+        B_3g: !!python/complex '-1.0'
+        B_3u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+    m 010:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '1.0'
+        B_2u: !!python/complex '-1.0'
+        B_3g: !!python/complex '-1.0'
+        B_3u: !!python/complex '1.0'
+      matrix:
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    m 100:
+      chi:
+        A_g: !!python/complex '1.0'
+        A_u: !!python/complex '-1.0'
+        B_1g: !!python/complex '-1.0'
+        B_1u: !!python/complex '1.0'
+        B_2g: !!python/complex '-1.0'
+        B_2u: !!python/complex '1.0'
+        B_3g: !!python/complex '1.0'
+        B_3u: !!python/complex '-1.0'
+      matrix:
+      - -1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+  subgroups:
+  - mmm
+  - mm2
+  - '222'
+  - 2/m
+  - '2'
+  - m
+  - '-1'
+  - '1'
