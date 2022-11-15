@@ -1,6 +1,5 @@
 import typing, dataclasses
 import numpy as np
-from ...tools import find_RCL
 
 __all__ = ["Kpath", "Kline"]
 
@@ -58,7 +57,9 @@ class Kpath:
     """
     ntot_default = 150
     def __init__(self, 
-        reciprocal_lattice: np.ndarray, klines : typing.List[Kline], quality: int = 0
+        reciprocal_lattice: np.ndarray, 
+        klines : typing.List[Kline], 
+        quality: int = 0
     ) -> None:
         self._klines = klines
         self._latticeT = reciprocal_lattice.T
@@ -87,18 +88,7 @@ class Kpath:
             start = end
         self._kpoints = np.vstack(self._kpoints)
         self._xpos = np.hstack(self._xpos)
-    
-    @classmethod
-    def from_cell_string(
-        cls, cell_realspace: np.ndarray, kline_strings: typing.List[str], quality: int = 0
-    ) -> "Kpath":
-        """
-        from wannier/alamode style band path, for example:
-        G 0.0 0.0 0.0 X 0.5 0.0 0.0
-        """
-        rcl = find_RCL(cell_realspace)
-        klines = [ Kline.from_str(ks) for ks in kline_strings ]
-        return cls(rcl, klines, quality)
+
 
     @property
     def ticks(self) -> typing.List[BandPathTick]:

@@ -1,5 +1,5 @@
 import numpy as np
-from automaticTB.properties.kpoints import Kpath
+from automaticTB.properties.kpoints import UnitCell
 
 __all__ = ["cubic_kpath"]
 
@@ -13,9 +13,9 @@ cubic_paths_str = [
     "M 0.5 0.5 0.0  G 0.0 0.0 0.0"
 ]
 
-cubic_kpath = Kpath.from_cell_string(
-    np.eye(3), cubic_paths_str
-)
+cell = UnitCell(np.eye(3))
+cubic_kpath = cell.get_kpath_from_path_string(cubic_paths_str)
+
 
 '''
 cubic_kpos = {

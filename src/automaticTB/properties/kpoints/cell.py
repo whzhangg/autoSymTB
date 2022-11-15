@@ -1,6 +1,7 @@
 import numpy as np, typing
 from .kmesh import Kmesh
-from .kpath import Kpath
+from .kpath import Kpath, Kline
+
 
 class UnitCell:
     @staticmethod
@@ -25,5 +26,44 @@ class UnitCell:
         return Kmesh(self.reciprocal_cell, nk)
 
 
-    def get_bandline(self, bandline_strings: typing.List[str]) -> Kpath:
-        return Kpath.from_cell_string(self.cell, bandline_strings)
+    def recommend_kgrid(self, gridsize: int) -> typing.Tuple[int, int, int]:
+        norms = np.linalg.norm(self.reciprocal_cell, axis=1)
+        ratio = gridsize / np.mean(norms)
+        return np.array(norms * ratio, dtype=int)
+
+
+    def get_kpath_from_path_string(self, 
+        kpath_string: typing.List[str], 
+        quality: int = 1
+    ) -> Kpath:
+        """
+        return a Kpath object with string in the style of wannier, eg:
+        X 0.5 0.0 0.0 G 0.0 0.0 0.0
+        seqarated by space only
+        """
+        kpaths = [Kline.from_str(s) for s in kpath_string]
+        return Kpath(self.reciprocal_cell, kpaths, quality)
+
+
+    def get_bandline_from_kpoint_position(self, 
+        kpoint_positions: typing.Dict[str, np.ndarray],
+        path_symbol: typing.List[str], 
+        quality: int = 1
+    ) -> Kpath:
+        """
+        provide kpath from a dictionary of kpoint position as well as the path symbol
+        path symbol is given by ["G - X","X - K"] for example    
+        """
+        kpaths = []
+        for apath in path_symbol:
+            parts = apath.split("-")
+            sym1 = parts[0].strip()
+            sym2 = parts[1].strip()
+            if sym1 not in kpoint_positions or sym2 not in kpoint_positions:
+                raise ValueError("kpoint symbol not provided in the dictionary")
+            kpaths.append(
+                Kline(
+                    sym1, kpoint_positions[sym1], sym2, kpoint_positions[sym2]
+                )
+            )
+        return Kpath(self.reciprocal_cell, kpaths, quality)

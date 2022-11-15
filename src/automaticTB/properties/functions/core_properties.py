@@ -1,6 +1,5 @@
 from ..tightbinding import TightBindingModel
-from ...tools import find_RCL
-from ..kpoints import Kpath
+from ..kpoints import Kpath, UnitCell
 from ..bands import BandStructureResult
 from ..dos import TetraKmesh, TetraDOS
 import numpy as np 
@@ -22,11 +21,8 @@ def write_DOS_from_tightbinding(
     it write the dos data to file as well as provide a script to plot the function.
     """
     cell = tbmodel.cell
-    rcl = find_RCL(cell)
-    norms = np.linalg.norm(rcl, axis=1)
-    ratio = gridsize / np.mean(norms)
-    ngrid = np.array(norms * ratio, dtype=int)
-    kmesh = TetraKmesh(rcl, ngrid)
+    cell = UnitCell(tbmodel.cell)
+    kmesh = TetraKmesh(cell.reciprocal_cell, cell.recommend_kgrid(gridsize))
 
     energies = tbmodel.solveE_at_ks(kmesh.kpoints)
 

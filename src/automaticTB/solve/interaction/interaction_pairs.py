@@ -66,6 +66,9 @@ class AOPair:
     def as_pair(self) -> Pair:
         return Pair(self.l_AO, self.r_AO)
 
+    def strict_match(self, o: "AOPair") -> bool:
+        return  self.l_AO == o.l_AO and self.r_AO == o.r_AO
+
     def __eq__(self, o: "AOPair") -> bool:
 
         #return  (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \

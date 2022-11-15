@@ -160,7 +160,11 @@ class LinearEquation:
 
         nrow, ncol = self.row_echelon_form.shape
         nfree = ncol - nrow
-        assert nfree == len(free_interaction_values)
+        if nfree != len(free_interaction_values):
+            raise RuntimeError(
+                "the input values do not fit with row_echelon_form with shape {:d},{:d}".format\
+                (*self.homogeneous_equation.shape)
+            )
         data_type = self.row_echelon_form.dtype
         new_rows = np.zeros((nfree, ncol), dtype=data_type)
         for i, fi in enumerate(self.free_variables_index):

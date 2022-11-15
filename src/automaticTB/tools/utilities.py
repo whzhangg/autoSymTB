@@ -3,7 +3,7 @@ import typing
 from .pair import Pair
 
 __all__ = [
-    "tensor_dot", "find_RCL", 
+    "tensor_dot",
     "random_rotation_matrix",
     "get_cell_from_origin_centered_positions"
 ]
@@ -21,21 +21,6 @@ def tensor_dot(list_left, list_right) -> typing.List[Pair]:
         for item2 in list_right:
             r.append(Pair(item1, item2))
     return r
-
-
-def find_RCL(cell: np.ndarray) -> np.ndarray:
-    '''
-    parameters: a1,a2,a3 the vector of lattice vector in unit of angstrom 
-    return:     b1,b2,b3 the vector of reciprocal vector in 1/A
-    '''
-    a1 = cell[0]
-    a2 = cell[1]
-    a3 = cell[2]
-    volumn=np.cross(a1,a2).dot(a3)
-    b1=(2*np.pi/volumn)*np.cross(a2,a3)
-    b2=(2*np.pi/volumn)*np.cross(a3,a1)
-    b3=(2*np.pi/volumn)*np.cross(a1,a2)
-    return np.vstack([b1,b2,b3])
 
 
 def random_rotation_matrix() -> np.ndarray:
