@@ -5,6 +5,7 @@ from .bands import BandStructureResult
 from .functions.core_properties import (
     write_DOS_from_tightbinding, wrtie_bandstructure_from_tightbinding
 )
+from ..tools import timefn
 
 class ElectronicModel:
     """
@@ -28,7 +29,7 @@ class ElectronicModel:
     def types(self) -> np.ndarray:
         return self.tb.types
 
-
+    @timefn
     def plot_bandstructure(
         self, 
         prefix: str,
@@ -43,7 +44,7 @@ class ElectronicModel:
         filename = f"{prefix}.pdf"
         bandresult.plot_data(filename)
 
-
+    @timefn
     def write_bandstructure(
         self,
         prefix: str,
@@ -61,7 +62,7 @@ class ElectronicModel:
             prefix, kpaths_str, emin, emax, quality, make_folder
         )
 
-
+    @timefn
     def write_dos(self,
         prefix: str, 
         emin: typing.Optional[float] = None,

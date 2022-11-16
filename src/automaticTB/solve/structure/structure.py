@@ -33,19 +33,51 @@ class Structure:
         """
         to find and use the primitive cell only
         """
-        pcell = spglib.find_primitive((cell, positions, types))
+        pcell = spglib.find_primitive((cell, positions, types), )
         c, p, t = pcell
         p, _ = get_home_position_and_cell_translation(p)  # so that p between [0,1)
         return c, p, t
+
+    @staticmethod
+    def get_unique_rotations(
+        rotations: typing.List[np.ndarray]
+    ) -> np.ndarray:
+        """
+        this is necessary because for unit cell, althought the symmetry is the same, there are 
+        additional symmetery operation because of the change in the lattice basis.
+        """
+        unique = []
+        for r in rotations:
+            found = False
+
+            for r_u in unique:
+                if np.allclose(r, r_u, atol=tolerance_structure): 
+                    found = True
+                    break
+            if found: continue
+            unique.append(r)
+        
+        return np.array(unique)
 
 
     def __init__(self, 
         cell: np.ndarray, positions: typing.List[np.ndarray], types: typing.List[int],
         atomic_orbital_dict: typing.Dict[str, str], 
-        rcut: typing.Optional[float] = None
+        rcut: typing.Optional[float] = None,
+        standardize: bool = True
     ) -> None:
-        # main properties
-        self.cell, self.positions, self.types = self.get_standarized_cpt(cell, positions, types)
+        """
+        cell, positions, types: (c, p, t) that describes the entire crystal structure
+        atomic_orbital_dict: a dictionary specifying the orbitals on each atoms
+        rcut: radius cutoff for identifying neighbors, if not specified, use voronoi method
+        standardize: standard to primitive cell if specified, otherwise will use the cell as given
+        """
+        if standardize:
+            self.cell, self.positions, self.types = \
+                self.get_standarized_cpt(cell, positions, types)
+        else:
+            self.cell, self.positions, self.types = \
+                (cell, positions, types)
 
         self._cartesian_pos = np.einsum("ji, kj -> ki", self.cell, self.positions)
         self._atomic_orbital_dict = atomic_orbital_dict
@@ -54,8 +86,10 @@ class Structure:
         sym_data = spglib.get_symmetry(
             (self.cell, self.positions, self.types), symprec = tolerance_structure
         )
+
         self._cartesian_rotations = rotation_fraction_to_cartesian(
-            sym_data["rotations"], self.cell
+            self.get_unique_rotations(sym_data["rotations"]), 
+            self.cell
         )
         self._eq_indices = sym_data["equivalent_atoms"]
 

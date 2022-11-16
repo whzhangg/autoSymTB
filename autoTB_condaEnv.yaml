@@ -20,4 +20,5 @@ dependencies:
   - pytorch
   - jupyter
   - pytest
+  - snakeviz
 prefix: /Users/wenhao/Applications/miniconda3/envs/autoTB

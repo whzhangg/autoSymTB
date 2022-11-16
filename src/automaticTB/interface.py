@@ -4,7 +4,7 @@ from .solve.structure import Structure
 from .solve.interaction import CombinedAOSubspaceInteraction
 from .parameters import tolerance_structure
 from .properties import ElectronicModel
-from .tools import atomic_numbers, chemical_symbols, parse_orbital
+from .tools import atomic_numbers, chemical_symbols, parse_orbital, timefn
 
 @dataclasses.dataclass
 class AtomicOrbital:
@@ -87,7 +87,6 @@ class OrbitalPropertyRelationship:
     all_pairs: typing.List[OrbitalPair]
     free_pair_indices: typing.List[int]
     homogeneous_equation: np.ndarray
-
 
     def _solve_all_values(self, input_values: typing.List[float]) -> np.ndarray:
         """
