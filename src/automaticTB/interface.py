@@ -115,7 +115,8 @@ class OrbitalPropertyRelationship:
 
     @classmethod
     def from_structure_combinedInteraction(
-        cls, struct: Structure, equation: CombinedAOSubspaceInteraction
+        cls, cell: np.ndarray, positions: np.ndarray, types: np.ndarray,
+        equation: CombinedAOSubspaceInteraction
     ) -> "OrbitalPropertyRelationship":
         from .solve.interaction import AO
 
@@ -123,10 +124,6 @@ class OrbitalPropertyRelationship:
             return AtomicOrbital(
                 ao.primitive_index, ao.n, ao.l, ao.m, np.array(ao.translation, dtype=int)
             )
-
-        cell = struct.cell
-        positions = struct.positions
-        types = struct.types
 
         all_OrbitalPair = [
             OrbitalPair(

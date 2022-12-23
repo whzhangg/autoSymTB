@@ -148,6 +148,10 @@ class CombinedAOSubspaceInteraction:
             self.all_AOpairs[i] for i in self.homogeneous_equation.free_variables_index
         ]
 
+    def print_free_AOpairs(self) -> None:
+        for i, f in enumerate(self.free_AOpairs):
+            print(f"{i+1:>3d} " + str(f))
+
 
     def solve_interactions_to_InteractionPairs(
         self, values: typing.List[float]

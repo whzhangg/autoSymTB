@@ -9,6 +9,7 @@ tmp/
 examples/**/*.cube
 examples/**/*.pdf
 examples/**/*.yaml
+examples/_*
 
 src/*.egg-info
 src/automaticTB/solve/sitesymmetry/Bilbao/local

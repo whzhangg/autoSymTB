@@ -16,6 +16,15 @@ class UnitCell:
         b3=(2*np.pi/volumn)*np.cross(a1,a2)
         return np.vstack([b1,b2,b3])
 
+    def get_volume(self) -> float:
+        """\
+        return volume in A^3
+        """
+        a1 = self.cell[0]
+        a2 = self.cell[1]
+        a3 = self.cell[2]
+        return np.cross(a1,a2).dot(a3)
+
 
     def __init__(self, cell: np.ndarray) -> None:
         self.cell = cell

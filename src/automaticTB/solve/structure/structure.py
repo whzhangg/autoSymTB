@@ -4,12 +4,11 @@ from ..sitesymmetry import (
     rotation_fraction_to_cartesian, SiteSymmetryGroup, GroupsList_sch
 )
 from .sites import LocalSite, CrystalSite
-from ...parameters import tolerance_structure, zero_tolerance
-from ...tools import read_cif_to_cpt, get_cell_from_origin_centered_positions
+from ...parameters import tolerance_structure, zero_tolerance, precision_decimal
+from ...tools import (
+    get_cell_from_origin_centered_positions
+)
 from ._utilities import (
-    get_absolute_pos_from_cell_fractional_pos_translation, 
-    get_home_position_and_cell_translation,
-    position_string,
     write_cif_file, 
     atom_from_cpt_cartesian, atom_from_cpt_fractional
 )
@@ -17,6 +16,12 @@ from .pymatgen_sym import symOperations_from_pos_types
 
 
 __all__ = ["Structure", "CenteredCluster", "CenteredEquivalentCluster"]
+
+
+def get_absolute_pos_from_cell_fractional_pos_translation(
+    cell: np.ndarray, x: np.ndarray, t: np.ndarray
+) -> np.ndarray:
+    return cell.T.dot(x + t)
 
 
 class Structure:
@@ -28,15 +33,23 @@ class Structure:
 
     @staticmethod
     def get_standarized_cpt(
-        cell: np.ndarray, positions: typing.List[np.ndarray], types: typing.List[int]
-    ) -> tuple:
+        cell: np.ndarray, positions: typing.List[np.ndarray], types: typing.List[int], 
+        standardize: bool = True
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
-        to find and use the primitive cell only
+        get structure, with position rounded and floored so that they are strictly
+        within [0, 1), although note that 0.9999999999999 can happen due to numerical precision
         """
-        pcell = spglib.find_primitive((cell, positions, types), )
-        c, p, t = pcell
-        p, _ = get_home_position_and_cell_translation(p)  # so that p between [0,1)
-        return c, p, t
+        if standardize:
+            pcell = spglib.find_primitive((cell, positions, types))
+            c, p, t = pcell
+        else:
+            c, p, t = cell, positions, types
+        
+        rounded = np.around(p, decimals=precision_decimal)
+        shifted = rounded - np.floor(rounded)
+        return c, shifted, np.array(t, dtype = int)
+
 
     @staticmethod
     def get_unique_rotations(
@@ -72,12 +85,9 @@ class Structure:
         rcut: radius cutoff for identifying neighbors, if not specified, use voronoi method
         standardize: standard to primitive cell if specified, otherwise will use the cell as given
         """
-        if standardize:
-            self.cell, self.positions, self.types = \
-                self.get_standarized_cpt(cell, positions, types)
-        else:
-            self.cell, self.positions, self.types = \
-                (cell, positions, types)
+        self.cell, self.positions, self.types = \
+            self.get_standarized_cpt(cell, positions, types, standardize)
+
 
         self._cartesian_pos = np.einsum("ji, kj -> ki", self.cell, self.positions)
         self._atomic_orbital_dict = atomic_orbital_dict
@@ -107,31 +117,26 @@ class Structure:
         get CenteredCluster using rcut method
         """
         c, p, t = self.cell, self.positions, self.types
-        fractional_position_index_reference = {
-            position_string(pos):i for i, pos in enumerate(p)
-        }
 
         pymatgen_structure = matgenStructure.Structure(lattice = c, species = t, coords = p)
         clusters = []
         for _, cpos in enumerate(self._cartesian_pos):
             sites = pymatgen_structure.get_sites_in_sphere(cpos, self._rcut)
-            fraction_pos = np.vstack([
-                np.array([site.a, site.b, site.c]) for site in sites
-            ])
-            home_pos, translation = get_home_position_and_cell_translation(fraction_pos)
-
+            
             neighbor_csites: typing.List[CrystalSite] = []
-            for hp, tr, site in zip(home_pos, translation, sites):
-                index = fractional_position_index_reference[position_string(hp)]
+            for site in sites:
                 relative_cartesian = np.array([site.x, site.y, site.z]) - cpos
-                _localsite = LocalSite(t[index], relative_cartesian)
-                _pos = get_absolute_pos_from_cell_fractional_pos_translation(c, p[index], tr)
+                _localsite = LocalSite(t[site.index], relative_cartesian)
+                tr = np.array(site.image)
+                _pos = get_absolute_pos_from_cell_fractional_pos_translation(
+                    c, p[site.index], tr
+                )
                 _crystalsite = \
                     CrystalSite(
                         site = _localsite,
                         absolute_position = _pos,
-                        index_pcell = index, 
-                        equivalent_index = self._eq_indices[index],
+                        index_pcell = site.index, 
+                        equivalent_index = self._eq_indices[site.index],
                         translation = tr,
                         orbitals = self._atomic_orbital_dict[_localsite.chemical_symbol]
                     )
@@ -231,7 +236,7 @@ class CenteredCluster:
         """
         bare_sites = [ csite.site for csite in self.neighbor_sites ]
 
-        group, equivalentset = self._get_siteSym_eqGroup_from_sites_and_rots(
+        group, equivalentset = self._get_siteSym_eqGroup_from_sites_andd_rots(
                                     bare_sites, self.cart_rotations
                                 )
         

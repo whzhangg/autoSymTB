@@ -4,8 +4,24 @@ import typing
 from ....solve.interaction import AO, AOPairWithValue
 from ....tools import chemical_symbols
 from ..tightbinding_model import TightBindingModel
-from ..hij import gather_InteractionPairs_into_HijRs, gather_InteractionPairs_into_SijRs
+from ..hij import Pindex_lm, HijR, SijR
 
+def convert_AOpair_to_HijR(aos: typing.List[AOPairWithValue]):
+    hijrs = []
+    for aopair in aos:
+        p_l = Pindex_lm(
+            pindex = aopair.l_AO.primitive_index,
+            n = aopair.l_AO.n, l = aopair.l_AO.l, m = aopair.l_AO.m,
+            translation = aopair.l_AO.translation
+        )
+        p_r = Pindex_lm(
+            pindex = aopair.r_AO.primitive_index,
+            n = aopair.r_AO.n, l = aopair.r_AO.l, m = aopair.r_AO.m,
+            translation = aopair.r_AO.translation
+        )
+
+        hijrs.append(HijR(p_l, p_r, aopair.value))
+    return hijrs
 
 __all__ = ["SingleBandInputs", "get_singleband_tightbinding_with_overlap"]
 
@@ -94,8 +110,8 @@ class SingleBandInputs:
 def get_singleband_tightbinding_with_overlap(overlap: float) -> TightBindingModel:
     """high level function that return a single band tight binding model"""
     singleband_inputs = SingleBandInputs(overlap)
-    HijRs = gather_InteractionPairs_into_HijRs(singleband_inputs.interactionPairH)
-    SijRs = gather_InteractionPairs_into_SijRs(singleband_inputs.overlapPairS)
+    HijRs = convert_AOpair_to_HijR(singleband_inputs.interactionPairH)
+    SijRs = convert_AOpair_to_HijR(singleband_inputs.overlapPairS)
 
     return TightBindingModel(
         singleband_inputs.cell, singleband_inputs.pos, singleband_inputs.types,

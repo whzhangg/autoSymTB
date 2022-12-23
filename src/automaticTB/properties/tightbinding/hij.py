@@ -37,3 +37,4 @@ class SijR:
     left: Pindex_lm
     right: Pindex_lm
     value: float
+
