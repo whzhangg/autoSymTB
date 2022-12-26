@@ -151,7 +151,8 @@ class OrbitalPropertyRelationship:
     def get_ElectronicModel_from_free_parameters(self, 
         free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None
     ) -> "ElectronicModel":
-        from .properties.tightbinding import HijR, SijR, Pindex_lm, TightBindingModel
+        from .properties.tightbinding.tightbinding_optimized import TightBindingModelOptimized
+        from .properties.tightbinding import HijR, SijR, Pindex_lm
 
         def _convert_AtomicOrbital_to_Pindex_lm(ao: AtomicOrbital) -> Pindex_lm:
             return Pindex_lm(
@@ -175,7 +176,7 @@ class OrbitalPropertyRelationship:
             )
 
         if free_Sijs is None:
-            tb = TightBindingModel(self.cell, self.positions, self.types, HijR_list)
+            tb = TightBindingModelOptimized(self.cell, self.positions, self.types, HijR_list)
         else:
             if len(free_Hijs) != len(free_Sijs):
                 raise RuntimeError("the size of input Hijs and Sijs are different")
@@ -190,7 +191,7 @@ class OrbitalPropertyRelationship:
                     )
                 )
             
-            tb = TightBindingModel(self.cell, self.positions, self.types, HijR_list, SijR_list)
+            tb = TightBindingModelOptimized(self.cell, self.positions, self.types, HijR_list, SijR_list)
 
         return ElectronicModel(tbmodel = tb)
 

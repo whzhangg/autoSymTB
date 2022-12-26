@@ -103,6 +103,22 @@ Currently, the class `ElectronicModel` is the interface that support the extract
 - `ElectronicModel.band_effectivemass(k, ibnd) -> dict`
 - `ElectronicModel.transport(grid_size, temps, mus, ncarriers, tau) -> TransportResult`
 
+## Performance
+
+### profiling
+
+Profiling is performed to understand the execution bottleneck for the calculation of transport properties. Secular solver which compute the solution to the eigen equation is found to be the bottleneck. 
+
+A further decomposition of `solver_secular` shows that the function that take most of the time is `fractional_matrix_power` used to find $S^{-1/2}$ (95% of the computation time). 
+
+The `solver_secular` implementation is replaced by `eig` implemented in the `scipy.linalg` package which natively implements the generalized solution for the eigen equation.
+
+As a result of profiling, `TightbindingModel` is re-written as `TightbindingModelOptimized` which a good speed improvement over the original implementation.
+
+### multiprocessing
+
+It is found that implementation of multiprocess (using concurrent) does not speed up implementation of the mathematic process in `solve_secular`. It seems that the implementation of numpy and scipy already utilize all the parallel capability of multi-core (vie multi-threading, as discussed [here](https://stackoverflow.com/questions/6941459/is-it-possible-to-know-which-scipy-numpy-functions-run-on-multiple-cores)) so that any additional parallalization will not speed up the process. Therefore, in the implementation of transport property calculation, multiprocessing is not included. 
+
 ## Appendix
 
 ### installation of libmsym (not needed)
