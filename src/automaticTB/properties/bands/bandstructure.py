@@ -68,7 +68,10 @@ class BandStructureResult:
         )
 
 
-    def plot_data(self, filename: str):
+    def plot_data(
+        self, filename: str, 
+        yminymax: typing.Optional[typing.Tuple[float]] = None
+    ):
         # plot simple band structure
         import matplotlib.pyplot as plt
         fig = plt.figure()
@@ -76,10 +79,13 @@ class BandStructureResult:
 
         axes.set_ylabel("Energy (eV)")
         #axes.set_xlabel("High Symmetry Point")
-        ymin = np.min(self.E)
-        ymax = np.max(self.E)
-        ymin = ymin - (ymax - ymin) * 0.05
-        ymax = ymax + (ymax - ymin) * 0.05
+        if yminymax is None:
+            ymin = np.min(self.E)
+            ymax = np.max(self.E)
+            ymin = ymin - (ymax - ymin) * 0.05
+            ymax = ymax + (ymax - ymin) * 0.05
+        else:
+            ymin, ymax = yminymax
 
         axes.set_xlim(min(self.x), max(self.x))
         axes.set_ylim(ymin, ymax)

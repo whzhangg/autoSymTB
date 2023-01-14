@@ -1,4 +1,4 @@
-import yaml, json, typing
+import yaml, json, typing, os
 from ase import io, Atoms
 
 _print_lm = {
@@ -62,19 +62,25 @@ def read_yaml(filename: str):
 
 
 def read_cif_to_cpt(filename: str) -> tuple:
-    struct: Atoms = io.read(filename,format='cif')
-    return struct.get_cell(), struct.get_scaled_positions(), struct.get_atomic_numbers()
+    if not filename.endswith("cif"):
+        raise RuntimeError(f"Structure file {filename} is not a .cif file !")
+    elif not os.path.exists(filename):
+        raise RuntimeError(f"Structure file {filename} cannot be found !")
+    else:
+        struct: Atoms = io.read(filename,format='cif')
+        return struct.get_cell(), struct.get_scaled_positions(), struct.get_atomic_numbers()
 
 
 def format_lines_into_two_columns(
     lines1: typing.List[str], lines2: typing.List[str], 
     spacing: typing.Optional[int] = None
-) -> str:
+) -> typing.List[str]:
     """
     this function take two list of strings and combine them together into two column lines
     """
     if spacing is None:
         longest = max([ len(l) for l in lines1 ] + [ len(l) for l in lines2 ]) * 1.6
+        longest = max(30, longest)
         spacing = int(longest)
 
     formatstring = "{:<"+str(spacing)+"s}{:<"+str(spacing)+"s}"
@@ -87,4 +93,4 @@ def format_lines_into_two_columns(
     for l1, l2 in zip(lines1, lines2):
         result.append(formatstring.format(l1, l2))
     
-    return "\n".join(result)
+    return result

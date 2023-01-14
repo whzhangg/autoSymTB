@@ -3,13 +3,13 @@ from .interaction_pairs import AO
 from ..structure import CrystalSite, CenteredEquivalentCluster
 from ..SALCs import VectorSpace, decompose_vectorspace_to_namedLC
 from ..atomic_orbitals import Orbitals, OrbitalsList
-from .subspaces import AOSubspace, InteractingAOSubspace
+from .subspaces import AOSubspace, InteractingAOSubspace, InteractingAOSubspaceList
 
 __all__ = ["get_InteractingAOSubspaces_from_cluster"]
 
 def get_InteractingAOSubspaces_from_cluster(
     cluster: CenteredEquivalentCluster,
-) -> typing.List[InteractingAOSubspace]:
+) -> InteractingAOSubspaceList:
 
     center_vectorspace: typing.List[VectorSpace] = []
     center_namedLCs = []
@@ -64,7 +64,7 @@ def get_InteractingAOSubspaces_from_cluster(
                 InteractingAOSubspace(left_subspace, right_subspace)
             )
 
-    return subspaces_pairs
+    return InteractingAOSubspaceList(subspaces_pairs)
 
 
 def _get_AO_from_CrystalSites_OrbitalList(

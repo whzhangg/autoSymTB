@@ -149,7 +149,8 @@ class OrbitalPropertyRelationship:
 
 
     def get_ElectronicModel_from_free_parameters(self, 
-        free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None
+        free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None,
+        print_solved_Hijs: bool = False
     ) -> "ElectronicModel":
         from .properties.tightbinding.tightbinding_optimized import TightBindingModelOptimized
         from .properties.tightbinding import HijR, SijR, Pindex_lm
@@ -166,7 +167,7 @@ class OrbitalPropertyRelationship:
 
         all_hijs = self._solve_all_values(free_Hijs)
         HijR_list = []
-        for v, pair in zip(all_hijs, self.all_pairs):
+        for ipair, v, pair in zip(range(len(self.all_pairs)), all_hijs, self.all_pairs):
             HijR_list.append(
                 HijR(
                     left = _convert_AtomicOrbital_to_Pindex_lm(pair.l_orbital), 
@@ -174,6 +175,23 @@ class OrbitalPropertyRelationship:
                     value = v
                 )
             )
+            if print_solved_Hijs:
+                left = pair.l_orbital
+                right = pair.r_orbital
+
+                left_symbol = chemical_symbols[self.types[left.pindex]]
+                right_symbol = chemical_symbols[self.types[right.pindex]]
+                left_position = np.dot(self.cell.T, self.positions[left.pindex] + left.translation)
+                right_position = np.dot(self.cell.T, self.positions[right.pindex] + right.translation)
+                result = f"> Pair: "
+                rij = right_position - left_position
+                result += f"{left_symbol:>2s}-{left.pindex:0>2d} " 
+                result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
+                result += f"{right_symbol:>2s}-{right.pindex:0>2d} "
+                result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
+                result += "r = ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
+                result += f" H = {v.real:>10.6f}"
+                print(result)
 
         if free_Sijs is None:
             tb = TightBindingModelOptimized(self.cell, self.positions, self.types, HijR_list)

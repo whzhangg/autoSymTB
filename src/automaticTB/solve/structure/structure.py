@@ -6,7 +6,7 @@ from ..sitesymmetry import (
 from .sites import LocalSite, CrystalSite
 from ...parameters import tolerance_structure, zero_tolerance, precision_decimal
 from ...tools import (
-    get_cell_from_origin_centered_positions
+    get_cell_from_origin_centered_positions, chemical_symbols
 )
 from ._utilities import (
     write_cif_file, 
@@ -93,15 +93,14 @@ class Structure:
         self._atomic_orbital_dict = atomic_orbital_dict
         self._rcut = rcut
 
-        sym_data = spglib.get_symmetry(
+        self.sym_data = spglib.get_symmetry_dataset(
             (self.cell, self.positions, self.types), symprec = tolerance_structure
         )
-
         self._cartesian_rotations = rotation_fraction_to_cartesian(
-            self.get_unique_rotations(sym_data["rotations"]), 
+            self.get_unique_rotations(self.sym_data["rotations"]), 
             self.cell
         )
-        self._eq_indices = sym_data["equivalent_atoms"]
+        self._eq_indices = self.sym_data["equivalent_atoms"]
 
 
     @property
@@ -217,6 +216,32 @@ class Structure:
         write_cif_file(filename, atom)
 
 
+    def print_log(self) -> None:
+        print(f"## Crystal structure used in the calculation")
+        print("---")
+        print(f"### SPGlib symmetry info (tolerance = {tolerance_structure:>.2e}):")
+        print( "  space group: {:s} {:s} ({:0>d})".format(
+                self.sym_data['international'],
+                self.sym_data['choice'], 
+                self.sym_data['number']
+            ))
+        print(f"  point group: {self.sym_data['pointgroup']}")
+        print(f"  number of rotations: {len(self._cartesian_rotations)}")
+        print("")
+        print(f"### Cell parameters:")
+        print(f"  a = {self.cell[0,0]:>12.6f},{self.cell[0,1]:>12.6f},{self.cell[0,2]:>12.6f}")
+        print(f"  b = {self.cell[1,0]:>12.6f},{self.cell[1,1]:>12.6f},{self.cell[1,2]:>12.6f}")
+        print(f"  c = {self.cell[2,0]:>12.6f},{self.cell[2,1]:>12.6f},{self.cell[2,2]:>12.6f}")
+        print("")
+        print(f"### Atoms in the cell:")
+        natom = len(self.positions)
+        for i, pos, type in zip(range(natom), self.positions, self.types):
+            symbol = chemical_symbols[type]
+            print("  {:0>d} {:>2s} : ({:>10.6f},{:>10.6f},{:>10.6f}) eq_index = {:d}, orb = {:s}".format(
+                i+1, symbol, *pos, self._eq_indices[i] + 1, self._atomic_orbital_dict[symbol]
+            ))
+        print(f"---")
+
 
 @dataclasses.dataclass
 class CenteredCluster:
@@ -236,7 +261,7 @@ class CenteredCluster:
         """
         bare_sites = [ csite.site for csite in self.neighbor_sites ]
 
-        group, equivalentset = self._get_siteSym_eqGroup_from_sites_andd_rots(
+        group, equivalentset = self._get_siteSym_eqGroup_from_sites_and_rots(
                                     bare_sites, self.cart_rotations
                                 )
         
@@ -285,6 +310,22 @@ class CenteredCluster:
         positions += shift
         atom = atom_from_cpt_cartesian(cell, positions, types)
         write_cif_file(filename, atom)
+
+
+    def print_log(self) -> None:
+        print("## Cluster centered on {:>2s} ({:>d})".format(
+            self.center_site.site.chemical_symbol, self.center_site.index_pcell+1
+        ))
+
+        distances = {}
+        for neisite in self.neighbor_sites:
+            dist = f"{np.linalg.norm(neisite.site.pos):>.2f}"
+            distances.setdefault(dist, []).append(neisite.site.chemical_symbol)
+        sorted_dist = sorted(distances.keys(), key=float)
+        distance_string = ""
+        for sd in sorted_dist:
+            distance_string += f"[{sd}A]-> (" + ",".join(distances[sd]) + ") "
+        print("  "+distance_string)
 
 
     @staticmethod
@@ -389,3 +430,24 @@ class CenteredEquivalentCluster:
                 self.sitesymmetrygroup = SiteSymmetryGroup.get_spherical_symmetry_group()
             if sym_sch in GroupsList_sch:
                 self.sitesymmetrygroup = SiteSymmetryGroup.from_cartesian_matrices(operations)
+
+    def print_log(self) -> None:
+        if self.distance < 1e-5:
+            print(
+                f"## Centered Equiv. Cluster ({self.sitesymmetrygroup.groupname:>5s})" +
+                f" on {self.center_site.site.chemical_symbol}"
+                f" ({self.center_site.index_pcell+1:>2d}) with itself"
+            )
+        else:
+            print(
+                f"## Centered Equiv. Cluster ({self.sitesymmetrygroup.groupname:>5s})" +
+                f" on {self.center_site.site.chemical_symbol}" + 
+                f" ({self.center_site.index_pcell+1:>2d})" +
+                f" -> Distance : {self.distance:>.4f}A to" + 
+                f" {self.neighbor_sites[0].site.chemical_symbol}"
+            )
+            print("---")
+            for csite in self.neighbor_sites:
+                print("  " + str(csite))
+            print("---")
+            

@@ -5,7 +5,7 @@ from ...tools import Pair, LinearEquation, tensor_dot, format_lines_into_two_col
 from ...parameters import zero_tolerance
 from ..SALCs import IrrepSymbol
 
-__all__ = ["AOSubspace", "InteractingAOSubspace"]
+__all__ = ["AOSubspace", "InteractingAOSubspace", "InteractingAOSubspaceList"]
 
 
 @dataclasses.dataclass
@@ -121,6 +121,64 @@ class FullLinearEquation:
         
         return cls(np.array(tps), np.array(references))
 
+@dataclasses.dataclass
+class InteractingAOSubspaceList:
+    subspaceslist: typing.List["InteractingAOSubspace"]
+
+    def print_log(self) -> None:
+        print(f"## Orbital interaction subspace")
+        l_str = {0:"s", 1:"p", 2:"d", 3:"f"}
+        l_orbitals: typing.Dict[str, typing.List[str]] = {}
+        r_orbitals: typing.Dict[str, typing.List[str]] = {}
+        
+        for subspace in self.subspaceslist:
+            tmp = subspace.l_subspace.aos[0]
+            l_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
+            l_orbitals[l_orb] = [str(nlc.name) for nlc in subspace.l_subspace.namedlcs]
+
+            tmp = subspace.r_subspace.aos[0]
+            r_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
+            r_orbitals[r_orb] = [str(nlc.name) for nlc in subspace.r_subspace.namedlcs]
+
+        max_length = -1
+        for vs in l_orbitals.values():
+            max_length = max(max_length, max(len(v) for v in vs))
+        for vs in r_orbitals.values():
+            max_length = max(max_length, max(len(v) for v in vs))
+        max_length = int(max_length * 1.5)
+
+        l_lines = ["Left ---"]
+        for k, vs in l_orbitals.items():
+            l_lines.append("")
+            l_lines.append(k)
+            for v in vs:
+                l_lines.append(v)
+
+        r_lines = ["Right --"]
+        for k, vs in r_orbitals.items():
+            r_lines.append("")
+            r_lines.append(k)
+            for v in vs:
+                r_lines.append(v)
+
+        formatted = format_lines_into_two_columns(l_lines, r_lines)
+        for f in formatted:
+            print(f"  {f}")
+        print("")
+        print(f"## Detailed orbital interactions for each subspace")
+        for subspace in self.subspaceslist:
+            tmp = subspace.l_subspace.aos[0]
+            l_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
+
+            tmp = subspace.r_subspace.aos[0]
+            r_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
+            print(
+                f"### {l_orb} -> {r_orb} (free/total) orb. interactions:" + 
+                f" ({len(subspace.free_AOpairs)}/{len(subspace.all_AOpairs)})"
+            )
+            if subspace.free_AOpairs:
+                for i, f in enumerate(subspace.free_AOpairs):
+                    print(f"  {i+1:>3d} " + str(f))
 
 class InteractingAOSubspace:
     """
@@ -173,7 +231,6 @@ class InteractingAOSubspace:
             aopairs_withvalue.append(
                 AOPairWithValue(aopair.l_AO, aopair.r_AO, v)
             )
-
         return aopairs_withvalue
 
     def __str__(self) -> str:

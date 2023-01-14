@@ -141,7 +141,6 @@ class CombinedAOSubspaceInteraction:
             subspace_interactions, considered_ao_pairs, additional_pair
         )
 
-
     @property
     def free_AOpairs(self) -> typing.List[AOPair]:
         return [
@@ -152,6 +151,12 @@ class CombinedAOSubspaceInteraction:
         for i, f in enumerate(self.free_AOpairs):
             print(f"{i+1:>3d} " + str(f))
 
+    def print_log(self) -> None:
+        print( "## Global free interaction of combined orbital space")
+        print(f"  (free/total) interactions: {len(self.free_AOpairs)}/{len(self.all_AOpairs)}")
+        if self.free_AOpairs:
+            for i, f in enumerate(self.free_AOpairs):
+                print(f"  {i+1:>3d} " + str(f))
 
     def solve_interactions_to_InteractionPairs(
         self, values: typing.List[float]

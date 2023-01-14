@@ -45,7 +45,8 @@ class TightBindingModelOptimized():
                         SijR(hijr.left, hijr.right, 0.0)
                     )
 
-        
+        debug_print = False
+
         self._HSijRs = []
         for hijr in HijR_list:
             index_i = index_ref[
@@ -57,6 +58,15 @@ class TightBindingModelOptimized():
 
             r = hijr.right.translation + \
                 self._positions[hijr.right.pindex] - self._positions[hijr.left.pindex]
+
+            if debug_print:
+                print(f"({index_i+1:>2d},{index_j+1:>2d})", end=" ") 
+                print(f"H = {hijr.value.real:>10.5f}", end=" ")
+                print("t_r = {:>6.3f},{:>6.3f},{:>6.3f}".format(*hijr.right.translation), end=" ")
+                print("t_l = {:>6.3f},{:>6.3f},{:>6.3f}".format(*hijr.left.translation), end=" ")
+                print("p_r = {:>6.3f},{:>6.3f},{:>6.3f}".format(*self._positions[hijr.right.pindex]), end=" ")
+                print("p_l = {:>6.3f},{:>6.3f},{:>6.3f}".format(*self._positions[hijr.left.pindex]), end=" ")
+                print(f"r = {r[0]:>6.3f}{r[1]:>6.3f}{r[2]:>6.3f}")
 
             hvalue = hijr.value
             found = False
@@ -101,6 +111,16 @@ class TightBindingModelOptimized():
         return self._types
 
 
+    def Hijk_Sijk_at_k(
+        self, k: np.ndarray
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        ks = np.array([k])
+        hijk, sijk, hijk_derv, sijk_derv = \
+            self.Hijk_SijK_and_derivatives(ks, True)
+        
+        return hijk[0], sijk[0], hijk_derv[0], sijk_derv[0]
+
+
     def Hijk_SijK_and_derivatives(
         self, ks: np.ndarray, require_derivative: bool = True
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -121,8 +141,8 @@ class TightBindingModelOptimized():
                 index_i, index_j, r, hvalue, svalue = hsijr
                 
                 kR = np.dot(ks, r)
-                tmph = hvalue * np.exp(2j * pi * kR)
-                tmps = svalue * np.exp(2j * pi * kR)
+                tmph = hvalue * np.exp(-2j * pi * kR) # use -2 instead of 2
+                tmps = svalue * np.exp(-2j * pi * kR)
 
                 hijk[:, index_i, index_j] += tmph
                 sijk[:, index_i, index_j] += tmps
@@ -144,8 +164,8 @@ class TightBindingModelOptimized():
                 index_i, index_j, r, hvalue, svalue = hsijr
                 
                 kR = np.dot(ks, r)
-                tmph = hvalue * np.exp(2j * pi * kR)
-                tmps = svalue * np.exp(2j * pi * kR)
+                tmph = hvalue * np.exp(-2j * pi * kR)
+                tmps = svalue * np.exp(-2j * pi * kR)
 
                 hijk[:, index_i, index_j] += tmph
                 sijk[:, index_i, index_j] += tmps
@@ -164,6 +184,8 @@ class TightBindingModelOptimized():
         hijk, sijk, _, _ = self.Hijk_SijK_and_derivatives(ks, require_derivative=False)
         result = []
         for h, s in zip(hijk, sijk):
+            #h = (h + np.conjugate(h.T)) / 2.0
+            #s = (s + np.conjugate(s.T)) / 2.0  # should symmetrize hamiltonian
             w, c = scipylinalg.eig(h, s)
             result.append(np.sort(w.real))
 

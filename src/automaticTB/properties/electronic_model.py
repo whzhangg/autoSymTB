@@ -33,7 +33,8 @@ class ElectronicModel:
     def plot_bandstructure(
         self, 
         prefix: str,
-        kpaths_str: typing.List[str]
+        kpaths_str: typing.List[str],
+        yminymax: typing.Optional[typing.Tuple[float]] = None
     ) -> None:
         """
         plot band structure result directly
@@ -42,7 +43,7 @@ class ElectronicModel:
         kpath = unitcell.get_kpath_from_path_string(kpaths_str)
         bandresult = BandStructureResult.from_tightbinding_and_kpath(self.tb, kpath)
         filename = f"{prefix}.pdf"
-        bandresult.plot_data(filename)
+        bandresult.plot_data(filename, yminymax)
 
     @timefn
     def write_bandstructure(
