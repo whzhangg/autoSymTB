@@ -142,16 +142,18 @@ def _row_echelon(A):
 
 
 class LinearEquation:
-    def __init__(self, homogeneous_equation: np.array) -> None:
+    def __init__(self, homogeneous_equation: np.ndarray) -> None:
         self.homogeneous_equation = homogeneous_equation
-
         self.row_echelon_form = remove_zero_vector_from_coefficients(
             _row_echelon(homogeneous_equation)
         )
         leading_variables_index: typing.Set[int] \
             = {_first_non_zero(row) for row in self.row_echelon_form}
-        self.free_variables_index: typing.Set[int] \
-            = set(range(self.row_echelon_form.shape[1])) - leading_variables_index
+
+        # free variable as sorted list of index
+        self.free_variables_index: typing.List[int] \
+            = list(set(range(self.row_echelon_form.shape[1])) - leading_variables_index)
+        self.free_variables_index.sort()
 
     def solve_providing_values(
         self, free_interaction_values: typing.List[float]

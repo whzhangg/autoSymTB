@@ -58,7 +58,6 @@ class SingleBandInputs:
         for h_t in self.home_translations:
             for a_t in self.all_translations:
                 home_ao = AO(
-                    cluster_index = 0, 
                     equivalent_index = 0,
                     primitive_index = 0,
                     absolute_position = self.pos,
@@ -69,7 +68,6 @@ class SingleBandInputs:
                     m = self.orbitals_nlm[2]
                 )
                 other_ao = AO(
-                    cluster_index = 0, 
                     equivalent_index = 0,
                     primitive_index = 0,
                     translation = a_t,

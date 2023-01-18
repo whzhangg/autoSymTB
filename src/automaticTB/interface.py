@@ -163,6 +163,7 @@ class OrbitalPropertyRelationship:
             )
 
         if len(free_Hijs) != len(self.free_pair_indices):
+            print(f'input = {len(free_Hijs)}, required = {len(self.free_pair_indices)}')
             raise RuntimeError("the size of input Hijs/Sijs are different from free parameters")
 
         all_hijs = self._solve_all_values(free_Hijs)
@@ -223,7 +224,7 @@ class OrbitalPropertyRelationship:
             right_symbol = chemical_symbols[self.types[right.pindex]]
             left_position = np.dot(self.cell.T, self.positions[left.pindex] + left.translation)
             right_position = np.dot(self.cell.T, self.positions[right.pindex] + right.translation)
-            result = f"{i+1:>3d} > Pair: "
+            result = f"  {i+1:>3d} > Pair: "
             rij = right_position - left_position
             result += f"{left_symbol:>2s}-{left.pindex:0>2d} " 
             result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "

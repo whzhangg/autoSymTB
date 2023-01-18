@@ -7,9 +7,12 @@ from ..SALCs import IrrepSymbol
 
 __all__ = ["AOSubspace", "InteractingAOSubspace", "InteractingAOSubspaceList"]
 
-
 @dataclasses.dataclass
 class AOSubspace:
+    """Defines AOs and a list of their linear combination with different representation
+    
+    this object is simply a container of a set of named linear combinations with basis specified by aos
+    """
     aos: typing.List[AO]
     namedlcs: typing.List[NamedLC] # only the components belonging to the AOs
 
@@ -25,6 +28,7 @@ class AOSubspace:
 
 class FullLinearEquation:
     """
+
     This class contain the matrix equation of the given set of interaction
     """
     _forbidden = 0
@@ -123,6 +127,7 @@ class FullLinearEquation:
 
 @dataclasses.dataclass
 class InteractingAOSubspaceList:
+    """Just a list of InteractingAOSubspace object for printing logs"""
     subspaceslist: typing.List["InteractingAOSubspace"]
 
     def print_log(self) -> None:
@@ -179,6 +184,7 @@ class InteractingAOSubspaceList:
             if subspace.free_AOpairs:
                 for i, f in enumerate(subspace.free_AOpairs):
                     print(f"  {i+1:>3d} " + str(f))
+
 
 class InteractingAOSubspace:
     """

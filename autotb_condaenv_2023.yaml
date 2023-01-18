@@ -1,4 +1,4 @@
-name: autoTB
+name: autotb
 channels:
   - pyg
   - pytorch
@@ -21,4 +21,4 @@ dependencies:
   - jupyter
   - pytest
   - snakeviz
-prefix: /Users/wenhao/Applications/miniconda3/envs/autoTB
+prefix: /Users/wenhao/Applications/miniconda3/envs/autotb

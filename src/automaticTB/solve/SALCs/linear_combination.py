@@ -16,7 +16,7 @@ class LinearCombination:
     @property
     def norm(self) -> float:
         return np.linalg.norm(self.coefficients)
-
+    
     @property
     def is_normalized(self) -> bool:
         return np.isclose(self.norm, 1.0, atol = zero_tolerance)

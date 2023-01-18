@@ -2,7 +2,7 @@
 This script is an experimental self-containing solver for the interactions, 
 given the so called AOsubspace pair
 """
-import typing, dataclasses
+import typing, dataclasses, abc
 import numpy as np
 from .interaction_pairs import AOPair, AOPairWithValue
 from ...tools import LinearEquation
@@ -11,9 +11,98 @@ from ...parameters import zero_tolerance
 
 __all__ = [
     "CombinedAOSubspaceInteraction", 
-    "CombinedAOSubspaceInteraction2"
+    "CombinedAOSubspaceInteraction2",
+    "CombinedInteractionBase"
 ]
 
+class CombinedInteractionBase(abc.ABC):
+    """\
+    defines a InteractionSubspace interface which can be created by different ways depending on 
+    system treated (molecular, crystal etc)
+    """
+    
+    @property
+    @abc.abstractmethod
+    def homogeneous_equation(self) -> LinearEquation:
+        raise NotImplementedError()
+
+    @property
+    @abc.abstractmethod
+    def non_homogeneous(self) -> np.ndarray:
+        raise NotImplementedError()
+
+    @property
+    @abc.abstractmethod
+    def all_AOpairs(self) -> typing.List[AOPair]:
+        raise NotImplementedError()
+
+    @property
+    def free_AOpairs(self) -> typing.List[AOPair]:
+        return [
+            self.all_AOpairs[i] for i in self.homogeneous_equation.free_variables_index
+        ]
+
+    def print_free_AOpairs(self) -> None:
+        for i, f in enumerate(self.free_AOpairs):
+            print(f"{i+1:>3d} " + str(f))
+
+
+    def print_log(self) -> None:
+        print( "## Global free interaction of combined orbital space")
+        print(f"  (free/total) interactions: {len(self.free_AOpairs)}/{len(self.all_AOpairs)}")
+        if self.free_AOpairs:
+            for i, f in enumerate(self.free_AOpairs):
+                print(f"  {i+1:>3d} " + str(f))
+
+
+    def solve_interactions_to_InteractionPairs(
+        self, values: typing.List[float]
+    ) -> typing.List[AOPairWithValue]:
+        values = np.array(values)
+        all_solved_values = self.homogeneous_equation.solve_providing_values(values)
+        assert len(all_solved_values) == len(self.all_AOpairs)
+        aopairs_withvalue = []
+        for pair, value in zip(self.all_AOpairs, all_solved_values):
+            aopairs_withvalue.append(
+                AOPairWithValue(pair.l_AO, pair.r_AO, value)
+            )
+
+        return aopairs_withvalue
+
+
+    def print_debug_info(self,
+        print_free: bool = False,
+        print_all: bool = False,
+    ) -> None:
+        print("*" * 60)
+        print(f"total number of AO pairs needed: {len(self.all_AOpairs)}")
+        print("")
+        homo_size = self.homogeneous_part.shape
+        homo_rank = np.linalg.matrix_rank(
+            self.homogeneous_equation.homogeneous_equation, tol = zero_tolerance)
+        print(f"Homogeneous part size: ({homo_size[0]},{homo_size[1]})")
+        print(f"                 rank: {homo_rank}")
+        print("")
+        nh_size = self.non_homogeneous.shape
+        nh_rank = np.linalg.matrix_rank(self.non_homogeneous, tol = zero_tolerance)
+        print(f"Non Homogen part size: ({nh_size[0]},{nh_size[1]})")
+        print(f"                 rank: {nh_rank}")
+        print("")
+        if print_free:
+            print(f"Number of free parameter: {len(self.free_AOpairs)}")
+            for i, pair in enumerate(self.free_AOpairs):
+                print(f"{i+1:>2d} " + str(pair))
+        print("*" * 60)
+        if print_all:
+            print(f"The considered pairs: ")
+            for i, pair in enumerate(self.all_AOpairs):
+                print(f"{i+1:>2d} " + str(pair))
+
+
+class CombinedInteractionFromNonequivalentAtoms(CombinedInteractionBase):
+
+    def __init__(self, ) -> None:
+        pass
 
 class CombinedAOSubspaceInteraction:
     """
@@ -107,6 +196,7 @@ class CombinedAOSubspaceInteraction:
             dtype = non_homogeneous.dtype
         )
         new_nonhomogeneous[:, 0:len(considered_ao_pairs)] = non_homogeneous
+        return new_nonhomogeneous
             
 
     def __init__(self, subspace_interactions: typing.List[InteractingAOSubspace]) -> None:
@@ -141,15 +231,18 @@ class CombinedAOSubspaceInteraction:
             subspace_interactions, considered_ao_pairs, additional_pair
         )
 
+
     @property
     def free_AOpairs(self) -> typing.List[AOPair]:
         return [
             self.all_AOpairs[i] for i in self.homogeneous_equation.free_variables_index
         ]
 
+
     def print_free_AOpairs(self) -> None:
         for i, f in enumerate(self.free_AOpairs):
             print(f"{i+1:>3d} " + str(f))
+
 
     def print_log(self) -> None:
         print( "## Global free interaction of combined orbital space")
@@ -157,6 +250,7 @@ class CombinedAOSubspaceInteraction:
         if self.free_AOpairs:
             for i, f in enumerate(self.free_AOpairs):
                 print(f"  {i+1:>3d} " + str(f))
+
 
     def solve_interactions_to_InteractionPairs(
         self, values: typing.List[float]

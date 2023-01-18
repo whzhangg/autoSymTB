@@ -66,7 +66,6 @@ class SupercellTransformation:
         )[0]
         
         return AO(
-            cluster_index= ao_in.cluster_index,
             equivalent_index= ao_in.equivalent_index,
             primitive_index= s_index,
             absolute_position= new_abs_position,

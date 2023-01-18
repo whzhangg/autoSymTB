@@ -16,11 +16,22 @@ from .pymatgen_sym import symOperations_from_pos_types
 
 
 __all__ = ["Structure", "CenteredCluster", "CenteredEquivalentCluster"]
+__doc__ = r"""\
+This Module deal with input crystal structures.
 
+A Structure object stores the following properties:
+- cell, types, positions
+- responsible for discovering the atomic centered cluster
+
+A CenteredCluster describes a local set of atoms. It stores symmetry operations and are responsible for extracting the sitesymmetry group and separating the subspace of atoms.
+
+A CenteredEquivalentCluster is the finest geometry units which can be transformed to itself under rotations. It's basically a CenteredCluster but stores the group
+"""
 
 def get_absolute_pos_from_cell_fractional_pos_translation(
     cell: np.ndarray, x: np.ndarray, t: np.ndarray
 ) -> np.ndarray:
+    """return the absolute position using fractional position and translation vector"""
     return cell.T.dot(x + t)
 
 
@@ -102,6 +113,9 @@ class Structure:
         )
         self._eq_indices = self.sym_data["equivalent_atoms"]
 
+    @property
+    def cartesian_rotations(self) -> np.ndarray:
+        return self._cartesian_rotations
 
     @property
     def centered_clusters(self) -> typing.List["CenteredCluster"]:
@@ -110,6 +124,15 @@ class Structure:
         else:
             return self._get_centered_cluster_voronoi()
 
+    @property
+    def equivalent_clusters(self) -> typing.Dict[int, typing.List["CenteredCluster"]]:
+        centered_clusters = self.centered_clusters
+
+        equivalent_clusters = {}
+        for clusters, eqi in zip(centered_clusters, self._eq_indices):
+            equivalent_clusters.setdefault(eqi, []).append(clusters)
+
+        return equivalent_clusters
 
     def _get_centered_cluster_rcut(self) -> typing.List["CenteredCluster"]:
         """
@@ -327,6 +350,20 @@ class CenteredCluster:
             distance_string += f"[{sd}A]-> (" + ",".join(distances[sd]) + ") "
         print("  "+distance_string)
 
+    @property
+    def sitesymgroup(self) -> SiteSymmetryGroup:
+        baresites = [ csite.site for csite in self.neighbor_sites ]
+        symmetries: list = []
+        for sym in self.cart_rotations:
+            is_symmetry = True
+            for site in baresites:
+                newsite = site.rotate(sym)
+                if not newsite in baresites: 
+                    is_symmetry = False
+                    break
+            if is_symmetry:
+                symmetries.append(sym)
+        return SiteSymmetryGroup.from_cartesian_matrices(symmetries)
 
     @staticmethod
     def _get_siteSym_eqGroup_from_sites_and_rots(
@@ -363,7 +400,6 @@ class CenteredCluster:
             equivalent_result[k] = list(v)
 
         return group, equivalent_result
-
 
 
 @dataclasses.dataclass

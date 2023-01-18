@@ -7,11 +7,9 @@ from ...tools import atomic_numbers, parse_orbital
 __all__ = ["AO", "AOPair", "AOPairWithValue"]
 
 
-
 @dataclasses.dataclass
 class AO:
     """defines an atomic orbital in a molecular"""
-    cluster_index: int
     equivalent_index: int
     primitive_index: int
     absolute_position: np.ndarray
@@ -110,6 +108,7 @@ class AOPair:
         result += "r = ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
         #result += " t = ({:>3d}{:>3d}{:>3d})".format(*np.array(right.translation, dtype=int))
         return result
+
 
 @dataclasses.dataclass
 class AOPairWithValue(AOPair):
