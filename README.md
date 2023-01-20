@@ -128,8 +128,6 @@ given in the github project ([GitHub - mcodev31/libmsym: molecular point group s
 
 It is necessary that we symmetrize the Hamiltonian `(h + np.conjugate(h.T)) / 2.0`, it's not yet added.
 
-
-
 Bug:
 
 the issue that cause the problem of Si in 2nn case is the identification of bond at the second neighbor. It should be noticed that for the secondary neighbor there is a rotational relationship of the local environment. 

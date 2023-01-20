@@ -1,10 +1,11 @@
 import typing, dataclasses
 import numpy as np
-from ...tools import Pair
-from ...parameters import zero_tolerance
-from ...tools import atomic_numbers, parse_orbital
 
-__all__ = ["AO", "AOPair", "AOPairWithValue"]
+from automaticTB.tools import Pair, atomic_numbers, parse_orbital
+from automaticTB.parameters import zero_tolerance
+from automaticTB.solve.SALCs import NamedLC
+
+__all__ = ["AO", "AOPair", "AOPairWithValue", "AOSubspace"]
 
 
 @dataclasses.dataclass
@@ -35,6 +36,18 @@ class AO:
         result+= f" n ={self.n:>2d}; l ={self.l:>2d}; m ={self.m:>2d}"
         result+=  " @({:>5.1f},{:>5.1f},{:>5.1f})".format(*self.translation)
         return result
+
+    def as_tuple(self) -> tuple:
+        t1 = int(self.translation[0])
+        t2 = int(self.translation[1])
+        t3 = int(self.translation[2])
+        return (self.primitive_index, t1, t2, t3, self.n, self.l, self.m)
+
+
+    def __hash__(self) -> int:
+        return hash(
+            self.as_tuple()
+        )
 
 
 @dataclasses.dataclass
@@ -68,7 +81,7 @@ class AOPair:
         return  self.l_AO == o.l_AO and self.r_AO == o.r_AO
 
     def __eq__(self, o: "AOPair") -> bool:
-
+        return self.l_AO == o.l_AO and self.r_AO == o.r_AO
         #return  (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
         #        (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
 
@@ -109,6 +122,10 @@ class AOPair:
         #result += " t = ({:>3d}{:>3d}{:>3d})".format(*np.array(right.translation, dtype=int))
         return result
 
+    def __hash__(self) -> int:
+        return hash(
+            self.l_AO.as_tuple() + self.r_AO.as_tuple()
+        )
 
 @dataclasses.dataclass
 class AOPairWithValue(AOPair):
@@ -134,3 +151,23 @@ class AOPairWithValue(AOPair):
         result += "@ ({:>6.2f},{:>6.2f},{:>6.2f}) ".format(*rij)
         result += f"Hij = {self.value:>.4f}"
         return result
+
+    
+@dataclasses.dataclass
+class AOSubspace:
+    """Defines AOs and a list of their linear combination with different representation
+    
+    this object is simply a container of a set of named linear combinations with basis specified by aos
+    """
+    aos: typing.List[AO]
+    namedlcs: typing.List[NamedLC] # only the components belonging to the AOs
+
+    def __repr__(self) -> str:
+        result = ["subspace consists of:"]
+        for ao in self.aos:
+            result.append(f" {str(ao)}")
+        result.append("With linear combinations")
+        for nlc in self.namedlcs:
+            result.append(f" {str(nlc.name)}")
+        return "\n".join(result)
+

@@ -4,19 +4,81 @@ given the so called AOsubspace pair
 """
 import typing
 import numpy as np
-from .interaction_pairs import AOPair
-from ...tools import LinearEquation
-from .interaction_base import InteractionBase, InteractingAOSubspace
-from ..structure import CenteredCluster
-from ._ao_rotation_tools import AOpairRotater
-from automaticTB.solve.interaction.interface import (
-    _get_orbital_ln_from_string, _get_AO_from_CrystalSites_OrbitalList
-)
+
+from automaticTB.tools import LinearEquation
+from automaticTB.parameters import tolerance_structure, complex_coefficient_type
+from automaticTB.solve.structure import CenteredCluster
 from automaticTB.solve.SALCs import VectorSpace
 from automaticTB.solve.atomic_orbitals import OrbitalsList, Orbitals
-from automaticTB.parameters import tolerance_structure
+from ._ao_rotation_tools import AOpairRotater
+from .interface import _get_orbital_ln_from_string, _get_AO_from_CrystalSites_OrbitalList
+from .interaction_pairs import AOPair
+from .interaction_base import InteractionBase, InteractingAOSubspace
 
-__all__ = ["CombinedInteractingAO", "CombinedEquivalentInteractingAO"]
+
+__all__ = ["BlockInteractions", "CombinedInteractingAO", "CombinedEquivalentInteractingAO"]
+
+
+class BlockInteractions(InteractionBase):
+    """r
+    This class combineds the block diagonal form 
+    """
+    def __init__(self, interactions: typing.List[InteractionBase]) -> None:
+        self._all_aopairs = []
+
+        self._block_diagonal_size = []
+        for interaction in interactions:
+            self._all_aopairs += interaction.all_AOpairs
+            homo_nrow = 0
+            if interaction.homogeneous_equation is not None:
+                homo_nrow = len(interaction.homogeneous_matrix)
+            self._block_diagonal_size.append(
+                (
+                    len(interaction.all_AOpairs), 
+                    homo_nrow
+                )
+            )
+
+        nao = len(self._all_aopairs)
+        nrow_homo = sum(n for _,n in self._block_diagonal_size)
+
+        homo_matrix = np.zeros((nrow_homo, nao), dtype=complex_coefficient_type)
+
+        nr1_start = 0 # homogeneous matrix
+        col_start = 0
+        for (ncol, nr1), interaction in zip(self._block_diagonal_size, interactions):
+                
+            nr1_end = nr1_start + nr1
+            col_end = col_start + ncol
+
+            if nr1 > 0:
+                homo_matrix[nr1_start:nr1_end, col_start:col_end] \
+                    = interaction.homogeneous_matrix
+
+            col_start = col_end
+            nr1_start = nr1_end
+            
+        self._homogeneous_equation = LinearEquation(homo_matrix)
+
+    @property
+    def homogeneous_equation(self) -> LinearEquation:
+        return self._homogeneous_equation
+
+
+    @property
+    def all_AOpairs(self) -> typing.List[AOPair]:
+        return self._all_aopairs
+
+
+    def print_log(self) -> None:
+        print( '## Block Diagonal Interaction matrix')
+        print( '  Homogeneous matrix is direct sum of:')
+        tmp_out = []
+        for ncol, nr1 in self._block_diagonal_size:
+            tmp_out.append(f"({nr1:3>d} x {ncol:3>d})")
+        print('  ' + " + ".join(tmp_out))
+        print("")
+        super().print_log()
 
 
 class CombinedInteractingAO(InteractionBase):
@@ -50,14 +112,14 @@ class CombinedInteractingAO(InteractionBase):
 
         homogeneous_part = np.zeros(
             (total_row, len(considered_ao_pairs)), 
-            dtype = subspace_interactions[0].homogeneous_equation.row_echelon_form.dtype
+            dtype = subspace_interactions[0].homogeneous_matrix.dtype
         )
 
         row_homo_start = 0
         for subspace in subspace_interactions:
             all_index = [considered_ao_pairs.index(aop) for aop in subspace.all_AOpairs]
             if subspace.homogeneous_equation is not None:
-                row_homo_end = row_homo_start + len(subspace.homogeneous_equation.row_echelon_form)
+                row_homo_end = row_homo_start + len(subspace.homogeneous_matrix)
                 for i_org, i_new in enumerate(all_index):
                     homogeneous_part[row_homo_start:row_homo_end, i_new] \
                         += subspace.linear_equation.homogeneous_equation[:, i_org]
@@ -182,20 +244,20 @@ class CombinedEquivalentInteractingAO(InteractionBase):
                 + "something is wrong, maybe the aotms are not equivalent")
 
         known_number_of_homogeneous = \
-            self.original_interaction.homogeneous_equation.row_echelon_form.shape[0]
+            self.original_interaction.homogeneous_matrix.shape[0]
 
         new_homogeneous = np.zeros(
             (
                 known_number_of_homogeneous + len(all_other_aopairs), 
                 len(self._all_AOpairs)
             ), 
-            dtype=self.original_interaction.homogeneous_equation.row_echelon_form.dtype
+            dtype=self.original_interaction.homogeneous_matrix.dtype
         )
         
         new_homogeneous[
             0:known_number_of_homogeneous, 
             0:len(self.original_interaction.all_AOpairs)
-        ] = self.original_interaction.homogeneous_equation.row_echelon_form
+        ] = self.original_interaction.homogeneous_matrix
         
         rotater = AOpairRotater(self._all_AOpairs)
         counter = known_number_of_homogeneous
@@ -225,6 +287,8 @@ class CombinedEquivalentInteractingAO(InteractionBase):
                 new_homogeneous[counter, :] = rotated_coefficient
                 counter += 1
 
+        additional = self.additional_equivalence(self._all_AOpairs)
+        new_homogeneous = np.vstack([new_homogeneous, additional])
         self._homogeneous_equation = LinearEquation(new_homogeneous)
 
     @property
@@ -283,3 +347,21 @@ class CombinedEquivalentInteractingAO(InteractionBase):
             array2_copy.pop(found2)
         
         return True
+
+    @staticmethod
+    def additional_equivalence(ao_pairs: typing.List[AOPair]) -> np.ndarray:
+        """"""
+        additional_row = []
+        npairs = len(ao_pairs)
+        for ipair, ao_pair in enumerate(ao_pairs):
+            reverse_aopair = AOPair(ao_pair.r_AO, ao_pair.l_AO)
+            for jpair in range(ipair+1, npairs):
+                if reverse_aopair.strict_match(ao_pairs[jpair]):
+                    coefficients = np.zeros(npairs, dtype=complex_coefficient_type)
+                    coefficients[ipair] =  1.0
+                    coefficients[jpair] = -1.0
+                    additional_row.append(coefficients)
+                    break
+        
+        return np.array(additional_row)
+

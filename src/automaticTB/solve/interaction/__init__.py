@@ -1,4 +1,4 @@
 from .interaction_pairs import *
-from .subspace_interaction import *
-from .subspaces import *
+from .interaction_base import *
 from .interface import *
+from .combined_interaction import *

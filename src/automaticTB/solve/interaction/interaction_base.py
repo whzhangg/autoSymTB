@@ -1,16 +1,14 @@
-"""
-This script defines basic object for interaction
-"""
-import typing, abc
+import typing, abc, dataclasses, copy
 import numpy as np
-from .interaction_pairs import AOPair, AOPairWithValue
-from ...tools import LinearEquation, tensor_dot
-from ...parameters import zero_tolerance, complex_coefficient_type
 
-from .subspaces import AOSubspace
-from ..SALCs import IrrepSymbol
+from automaticTB.tools import LinearEquation, tensor_dot
+from automaticTB.parameters import zero_tolerance
+from automaticTB.solve.SALCs import IrrepSymbol
+from automaticTB.solve.structure import CenteredCluster
+from .interaction_pairs import AO, AOPair, AOPairWithValue, AOSubspace
 
-__all__ = ["InteractionBase", "BlockInteractions", "InteractingAOSubspace"]
+
+__all__ = ["InteractionBase", "InteractingAOSubspace", "InteractingAOSubspaceTranslation"]
 
 
 class InteractionBase(abc.ABC):
@@ -28,6 +26,10 @@ class InteractionBase(abc.ABC):
     @abc.abstractmethod
     def all_AOpairs(self) -> typing.List[AOPair]:
         raise NotImplementedError()
+
+    @property
+    def homogeneous_matrix(self) -> np.ndarray:
+        return self.homogeneous_equation.row_echelon_form
 
     @property
     def free_AOpairs(self) -> typing.List[AOPair]:
@@ -106,68 +108,6 @@ class InteractionBase(abc.ABC):
             print(f"The considered pairs: ")
             for i, pair in enumerate(self.all_AOpairs):
                 print(f"{i+1:>2d} " + str(pair))
-
-
-class BlockInteractions(InteractionBase):
-    """r
-    This class combineds the block diagonal form 
-    """
-    def __init__(self, interactions: typing.List[InteractionBase]) -> None:
-        self._all_aopairs = []
-
-        self._block_diagonal_size = []
-        for interaction in interactions:
-            self._all_aopairs += interaction.all_AOpairs
-            homo_nrow = 0
-            if interaction.homogeneous_equation is not None:
-                homo_nrow = len(interaction.homogeneous_equation.row_echelon_form)
-            self._block_diagonal_size.append(
-                (
-                    len(interaction.all_AOpairs), 
-                    homo_nrow
-                )
-            )
-
-        nao = len(self._all_aopairs)
-        nrow_homo = sum(n for _,n in self._block_diagonal_size)
-
-        homo_matrix = np.zeros((nrow_homo, nao), dtype=complex_coefficient_type)
-
-        nr1_start = 0 # homogeneous matrix
-        col_start = 0
-        for (ncol, nr1), interaction in zip(self._block_diagonal_size, interactions):
-                
-            nr1_end = nr1_start + nr1
-            col_end = col_start + ncol
-
-            if nr1 > 0:
-                homo_matrix[nr1_start:nr1_end, col_start:col_end] \
-                    = interaction.homogeneous_equation.row_echelon_form
-
-            col_start = col_end
-            nr1_start = nr1_end
-            
-        self._homogeneous_equation = LinearEquation(homo_matrix)
-
-    @property
-    def homogeneous_equation(self) -> LinearEquation:
-        return self._homogeneous_equation
-
-
-    @property
-    def all_AOpairs(self) -> typing.List[AOPair]:
-        return self._all_aopairs
-
-
-    def print_log(self) -> None:
-        print( '## Block Diagonal Interaction matrix')
-        print( '  Homogeneous matrix is direct sum of:')
-        tmp_out = []
-        for ncol, nr1 in self._block_diagonal_size:
-            tmp_out.append(f"({nr1:3>d} x {ncol:3>d})")
-        print('  ' + " + ".join(tmp_out))
-        print("")
-        super().print_log()
 
 
 class InteractingAOSubspace(InteractionBase):
@@ -253,3 +193,105 @@ class InteractingAOSubspace(InteractionBase):
     def all_AOpairs(self) -> typing.List[AOPair]:
         return self._all_aopairs
 
+
+class InteractingAOSubspaceTranslation(InteractionBase):
+    def __init__(self, solved_subspace: InteractingAOSubspace) -> None:
+
+        self._all_aopairs = solved_subspace.all_AOpairs
+        if solved_subspace.homogeneous_equation is None:
+            self._homogeneous_equation = solved_subspace.homogeneous_equation
+            return 
+        know_homogeneous = solved_subspace.homogeneous_matrix
+
+        all_sites = set()
+        for aopair in self._all_aopairs:
+            all_sites.add(Site.from_AO(aopair.l_AO))
+            all_sites.add(Site.from_AO(aopair.r_AO))
+        all_sites: typing.List[Site] = list(all_sites)
+
+        rows = []
+        pair_index = {aopair: ipair for ipair, aopair in enumerate(self._all_aopairs)}
+        print("-----")
+        for ipair, pair in enumerate(self._all_aopairs):
+            print(f"{ipair+1:>2d}" + str(pair))
+        for ipair, aopair in enumerate(self._all_aopairs):
+            l_ao = aopair.l_AO # inside unit cell
+            r_ao = aopair.r_AO # 
+
+            if r_ao.primitive_index == l_ao.primitive_index \
+                and np.linalg.norm(r_ao.translation) > zero_tolerance:
+                print(aopair)
+                reverse_pair = get_translated_AO(AOPair(r_ao, l_ao))
+                print(reverse_pair)
+                index = pair_index[reverse_pair]
+                new_row = np.zeros(len(self._all_aopairs), dtype=know_homogeneous.dtype)
+                new_row[ipair] += 1.0
+                new_row[index] -= 1.0
+                rows.append(new_row)
+        
+        if len(rows) > 0:
+            self._homogeneous_equation = LinearEquation(
+                np.vstack([know_homogeneous, np.array(rows)])
+            )
+        else:
+            self._homogeneous_equation = LinearEquation(know_homogeneous)
+    
+    @property
+    def all_AOpairs(self) -> typing.List[AOPair]:
+        return self._all_aopairs
+
+    @property
+    def homogeneous_equation(self) -> typing.Optional[LinearEquation]:
+        return self._homogeneous_equation
+
+@dataclasses.dataclass(eq=True)
+class Site:
+    pindex: int
+    eqindex: int
+    t1: int 
+    t2: int
+    t3: int
+    abs_pos: np.ndarray
+    symbol: str
+
+    @classmethod
+    def from_AO(cls, ao: AO) -> "Site":
+        return cls(
+            pindex = ao.primitive_index,
+            eqindex = ao.equivalent_index,
+            t1 = int(ao.translation[0]),
+            t2 = int(ao.translation[1]),
+            t3 = int(ao.translation[2]),
+            abs_pos = ao.absolute_position,
+            symbol = ao.chemical_symbol
+        )
+
+    @classmethod
+    def from_cluster(cls, cluster: CenteredCluster) -> "Site":
+        center = cluster.center_site
+        return cls(
+            pindex = center.index_pcell,
+            eqindex = center.equivalent_index,
+            t1 = int(center.translation[0]),
+            t2 = int(center.translation[1]),
+            t3 = int(center.translation[2]),
+            abs_pos = center.absolute_position,
+            symbol = center.site.chemical_symbol
+        )
+
+    def as_tuple(self) -> tuple:
+        return (self.pindex, self.t1, self.t2, self.t3)
+
+    def __eq__(self, o: "Site") -> bool:
+        return self.as_tuple() == o.as_tuple()
+
+    def __hash__(self) -> int:
+        return hash(self.as_tuple())
+
+
+def get_translated_AO(aopair: AOPair) -> AOPair:
+    l_ao = copy.deepcopy(aopair.l_AO)
+    r_ao = copy.deepcopy(aopair.r_AO)
+    r_ao.translation -= l_ao.translation
+    l_ao.translation = np.zeros(3)
+    return AOPair(l_ao, r_ao)

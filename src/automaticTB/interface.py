@@ -1,10 +1,9 @@
 import numpy as np, typing, dataclasses
 
-from .solve.structure import Structure
-from .solve.interaction import CombinedAOSubspaceInteraction
 from .parameters import tolerance_structure
 from .properties import ElectronicModel
 from .tools import atomic_numbers, chemical_symbols, parse_orbital, timefn
+from .solve.interaction import InteractionBase
 
 @dataclasses.dataclass
 class AtomicOrbital:
@@ -52,7 +51,6 @@ class AtomicOrbital:
             parts[3], 
             np.array([parts[4],parts[5],parts[6]], dtype = int)
         )
-
 
 
 @dataclasses.dataclass
@@ -116,7 +114,7 @@ class OrbitalPropertyRelationship:
     @classmethod
     def from_structure_combinedInteraction(
         cls, cell: np.ndarray, positions: np.ndarray, types: np.ndarray,
-        equation: CombinedAOSubspaceInteraction
+        equation: InteractionBase
     ) -> "OrbitalPropertyRelationship":
         from .solve.interaction import AO
 

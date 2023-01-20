@@ -1,9 +1,10 @@
-import typing, numpy as np
+import typing
+import numpy as np
 
-from automaticTB.solve.interaction import AO, AOPair
+from automaticTB.parameters import complex_coefficient_type, tolerance_structure
 from automaticTB.solve.atomic_orbitals import Orbitals
 from automaticTB.solve.rotation import orbital_rotation_from_symmetry_matrix
-from automaticTB.parameters import complex_coefficient_type, tolerance_structure
+from .interaction_pairs import AO, AOPair
 
 class Position:
     """Position info. for AO

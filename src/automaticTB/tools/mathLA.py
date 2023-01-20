@@ -96,7 +96,12 @@ def find_free_variable_indices_by_row_echelon(A:np.ndarray) -> typing.Set[int]:
 
 def _first_non_zero(row: np.ndarray) -> int:
     close_to_zero = np.argwhere(np.abs(row) > zero_tolerance)
-    return int(close_to_zero[0])
+    try:
+        result = int(close_to_zero[0])
+    except IndexError:
+        print(row)
+        print("Zero not found")
+    return result
 
 
 def _row_echelon(A):
@@ -147,6 +152,7 @@ class LinearEquation:
         self.row_echelon_form = remove_zero_vector_from_coefficients(
             _row_echelon(homogeneous_equation)
         )
+        print(self.row_echelon_form.shape)
         leading_variables_index: typing.Set[int] \
             = {_first_non_zero(row) for row in self.row_echelon_form}
 

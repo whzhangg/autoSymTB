@@ -1,9 +1,9 @@
-import typing, dataclasses, re, numpy as np
-from .interaction_pairs import AO
-from ..structure import CrystalSite, CenteredEquivalentCluster
-from ..SALCs import VectorSpace, decompose_vectorspace_to_namedLC
-from ..atomic_orbitals import Orbitals, OrbitalsList
-from .subspaces import AOSubspace
+import typing, re
+
+from automaticTB.solve.structure import CrystalSite, CenteredEquivalentCluster
+from automaticTB.solve.SALCs import VectorSpace, decompose_vectorspace_to_namedLC
+from automaticTB.solve.atomic_orbitals import Orbitals, OrbitalsList
+from .interaction_pairs import AO, AOSubspace
 from .interaction_base import InteractingAOSubspace
 
 __all__ = ["get_InteractingAOSubspaces_from_cluster"]

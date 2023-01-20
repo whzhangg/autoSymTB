@@ -2,7 +2,7 @@ import numpy as np
 import torch
 # how small we consider to be zero
 
-zero_tolerance = 1e-4
+zero_tolerance = 1e-3
 precision_decimal = 10
 # spg
 tolerance_structure = 1e-4 # Ang. for use in crystals structure related comparsion
