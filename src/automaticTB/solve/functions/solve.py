@@ -39,7 +39,8 @@ def solve_interaction(
     structure.print_log()
     print("")
 
-    combined_equivalents = []
+    gathered_solution = []
+    gathered_clusters = []
     for eq_index, eq_clusters in structure.equivalent_clusters.items():
 
         print(f"# Solving interaction for non-eq cluster with p-index {eq_index+1}")
@@ -56,24 +57,22 @@ def solve_interaction(
             aosubs += subspaces
         combined_interaction = BlockInteractions(aosubs)
         combined_interaction.print_log()
-        print("")
-        print(f"# Use it to generate other positions")
-        print("")
-        generated = eq_clusters[1:]
-        combined_equivalent = CombinedEquivalentInteractingAO(
-            selected, combined_interaction,
-            generated, structure.cartesian_rotations
-        )
-        combined_equivalent.print_log()
-        print("")
-        combined_equivalents.append(combined_equivalent)
+        gathered_solution.append(combined_interaction)
+        gathered_clusters.append(eq_clusters)
 
-    combined_system = BlockInteractions(combined_equivalents)
-    #combined_system.print_log()
-    #print("")
+    print("")
+    print(f"# Use it to generate other positions")
+    print("")
 
+    combined_equivalent = CombinedEquivalentInteractingAO(
+            gathered_solution, gathered_clusters, structure.cartesian_rotations, 
+            reverse_equivalence=True
+    )
+    combined_equivalent.print_log()
+    print("")
+    
     relationship = OrbitalPropertyRelationship.from_structure_combinedInteraction(
-        structure.cell, structure.positions, structure.types, combined_system
+        structure.cell, structure.positions, structure.types, combined_equivalent
     )
 
     print("# The final free interaction pairs are:")

@@ -1,17 +1,6 @@
-import numpy as np
-import typing
-from ..parameters import zero_tolerance
+import typing, numpy as np
 
-__all__ = [
-    "get_distinct_nonzero_vector_from_coefficients",
-    "remove_zero_vector_from_coefficients", 
-    "find_linearly_independent_rows",
-    "remove_parallel_vectors",
-    "find_free_variable_indices_by_row_echelon",
-    "_row_echelon",
-    "_first_non_zero", 
-    "LinearEquation"
-]
+from automaticTB.parameters import zero_tolerance
 
 
 def get_distinct_nonzero_vector_from_coefficients(coeff_matrix: np.ndarray) \
@@ -30,10 +19,9 @@ def get_distinct_nonzero_vector_from_coefficients(coeff_matrix: np.ndarray) \
 
 
 def remove_zero_vector_from_coefficients(coeff_matrix: np.ndarray) -> np.ndarray:
-    """
-    This function remove rows of zero from an array
-    """
-    is_zero = np.isclose(np.linalg.norm(coeff_matrix, axis = 1), 0.0, atol = zero_tolerance)
+    """This function remove rows of zero from an array"""
+    #is_zero = np.isclose(np.linalg.norm(coeff_matrix, axis = 1), 0.0, atol = zero_tolerance)
+    is_zero = np.all(np.isclose(coeff_matrix, 0.0, atol=zero_tolerance), axis=1)
     not_zero = np.invert(is_zero)
     return coeff_matrix[not_zero, :]
 
@@ -85,44 +73,45 @@ def find_free_variable_indices_by_row_echelon(A:np.ndarray) -> typing.Set[int]:
     See Page 13. Nicholson, 2020, Linear Algebra with Applications
     Note that we also removed the rows with all zeros
     """
-    echelon = _row_echelon(A)
+    echelon = row_echelon(A)
     reduced_echelon = remove_zero_vector_from_coefficients(echelon)
 
-    leading_variables = {_first_non_zero(row) for row in reduced_echelon}
+    leading_variables = {first_non_zero(row) for row in reduced_echelon}
     free_variables = set(range(reduced_echelon.shape[1])) - leading_variables
     
     return free_variables
 
 
-def _first_non_zero(row: np.ndarray) -> int:
+def first_non_zero(row: np.ndarray) -> int:
+    """first non zero element """
     close_to_zero = np.argwhere(np.abs(row) > zero_tolerance)
     try:
-        result = int(close_to_zero[0])
-    except IndexError:
+        return int(close_to_zero[0])
+    except IndexError as error:
         print(row)
         print("Zero not found")
-    return result
+        raise error
 
 
-def _row_echelon(A):
-    """ 
-    Return Row Echelon Form of matrix A 
-    https://math.stackexchange.com/questions/3073083/how-to-reduce-matrix-into-row-echelon-form-in-numpy
+def row_echelon(A):
+    """Return Row Echelon Form of matrix A 
+    
+    reference: https://math.stackexchange.com/questions/3073083/how-to-reduce-matrix-into-row-echelon-form-in-numpy
     """
     # if matrix A has no columns or rows,
     # it is already in REF, so we return itself
     r, c = A.shape
+    #A[np.abs(A) < zero_tolerance] = 0.0
     if r == 0 or c == 0:
         return A
 
     # we search for non-zero element in the first column
     for i in range(len(A)):
-        if np.abs(A[i,0]) > zero_tolerance:
-            break
+        if np.abs(A[i,0]) > zero_tolerance: break
     else:
         # if all elements in the first column is zero,
         # we perform REF on matrix from second column
-        B = _row_echelon(A[:,1:])
+        B = row_echelon(A[:,1:])
         # and then add the first zero-column back
         return np.hstack([A[:,:1], B])
 
@@ -140,21 +129,28 @@ def _row_echelon(A):
     A[1:] -= A[0] * A[1:,0:1]
 
     # we perform REF on matrix from second row, from second column
-    B = _row_echelon(A[1:,1:])
+    B = row_echelon(A[1:,1:])
 
     # we add first row and first (zero) column, and return
     return np.vstack([A[:1], np.hstack([A[1:,:1], B]) ])
 
 
+def row_echelon_sympy(A):
+    """reduced row echelon form using sympy"""
+    import sympy as sp
+    matrix = sp.Matrix(A)
+    ref, _ = matrix.rref()
+    return np.array(ref, dtype=A.dtype)
+
+
 class LinearEquation:
     def __init__(self, homogeneous_equation: np.ndarray) -> None:
-        self.homogeneous_equation = homogeneous_equation
+        self.homogeneous_equation = homogeneous_equation.copy() # original equation
         self.row_echelon_form = remove_zero_vector_from_coefficients(
-            _row_echelon(homogeneous_equation)
+            row_echelon(homogeneous_equation)
         )
-        print(self.row_echelon_form.shape)
         leading_variables_index: typing.Set[int] \
-            = {_first_non_zero(row) for row in self.row_echelon_form}
+            = {first_non_zero(row) for row in self.row_echelon_form}
 
         # free variable as sorted list of index
         self.free_variables_index: typing.List[int] \

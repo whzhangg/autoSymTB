@@ -1,12 +1,8 @@
 import numpy as np
 import typing
 from .pair import Pair
+from ..parameters import zero_tolerance
 
-__all__ = [
-    "tensor_dot",
-    "random_rotation_matrix",
-    "get_cell_from_origin_centered_positions"
-]
 
 def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) -> np.ndarray:
     rmax = -1.0
@@ -39,3 +35,23 @@ def random_rotation_matrix() -> np.ndarray:
     return yaw.dot(pitch).dot(roll)
 
 
+def plot_value_distribution(data: np.ndarray, filename : str) -> None:
+    """write to file (.dat/.pdf) the distribution of values in an array"""
+    flattened = np.sort(np.abs(data.flatten()))
+    if filename.endswith(".dat"):
+        with open(filename, 'w') as f:
+            for i, d in enumerate(flattened):
+                f.write(f"{i+1:>10d} {d:>12.6e}")
+    else:
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        axes = fig.add_subplot()
+        axes.set_xlabel("Num. points")
+        axes.set_ylabel("Values abs()")
+        maximum = np.max(flattened) * 10
+        min_range = zero_tolerance ** 2 / maximum
+        axes.set_ylim(min_range, maximum)
+        axes.set_yscale('log')
+        x = np.arange(len(flattened))
+        axes.plot(x, flattened, 'o')
+        fig.savefig(filename)

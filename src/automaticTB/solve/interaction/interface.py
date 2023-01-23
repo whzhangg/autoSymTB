@@ -1,20 +1,20 @@
 import typing, re
 
-from automaticTB.solve.structure import CrystalSite, CenteredEquivalentCluster
-from automaticTB.solve.SALCs import VectorSpace, decompose_vectorspace_to_namedLC
+from automaticTB.solve.structure import CrystalSite, CenteredEquivalentCluster, CenteredCluster
+from automaticTB.solve.SALCs import VectorSpace, decompose_vectorspace_to_namedLC, NamedLC
 from automaticTB.solve.atomic_orbitals import Orbitals, OrbitalsList
-from .interaction_pairs import AO, AOSubspace
+from .interaction_pairs import AO, AOPair, AOSubspace
 from .interaction_base import InteractingAOSubspace
 
-__all__ = ["get_InteractingAOSubspaces_from_cluster"]
 
 def get_InteractingAOSubspaces_from_cluster(
-    cluster: CenteredEquivalentCluster,
+    cluster: CenteredEquivalentCluster
 ) -> typing.List[InteractingAOSubspace]:
+    """solved a centered equivalent cluster into a set of interacting subspaces"""
 
     center_vectorspace: typing.List[VectorSpace] = []
-    center_namedLCs = []
-    center_nls = _get_orbital_ln_from_string(cluster.center_site.orbitals)
+    center_namedLCs: typing.List[typing.List[NamedLC]] = []
+    center_nls = get_orbital_ln_from_string(cluster.center_site.orbitals)
     for cnl in center_nls:
         vs = VectorSpace.from_sites_and_orbitals(
                 [cluster.center_site.site], 
@@ -28,8 +28,8 @@ def get_InteractingAOSubspaces_from_cluster(
         )
 
     neighbor_vectorspace: typing.List[VectorSpace] = []
-    neighbor_namedLCs = []
-    neighbor_nls = _get_orbital_ln_from_string(cluster.neighbor_sites[0].orbitals)
+    neighbor_namedLCs: typing.List[typing.List[NamedLC]] = []
+    neighbor_nls = get_orbital_ln_from_string(cluster.neighbor_sites[0].orbitals)
     neighborsites = [csite.site for csite in cluster.neighbor_sites]
     for nnl in neighbor_nls:
         vs = VectorSpace.from_sites_and_orbitals(
@@ -47,7 +47,7 @@ def get_InteractingAOSubspaces_from_cluster(
     for left_vs, left_nlc in zip(center_vectorspace, center_namedLCs):
         left_subspace = \
             AOSubspace(
-                _get_AO_from_CrystalSites_OrbitalList(
+                get_AO_from_CrystalSites_OrbitalList(
                     [cluster.center_site], left_vs.orbital_list
                 ),
                 left_nlc
@@ -56,7 +56,7 @@ def get_InteractingAOSubspaces_from_cluster(
         for right_vs, right_nlc in zip(neighbor_vectorspace, neighbor_namedLCs):
             right_subspace = \
                 AOSubspace(
-                    _get_AO_from_CrystalSites_OrbitalList(
+                    get_AO_from_CrystalSites_OrbitalList(
                         cluster.neighbor_sites, right_vs.orbital_list
                     ),
                     right_nlc
@@ -68,10 +68,11 @@ def get_InteractingAOSubspaces_from_cluster(
     return subspaces_pairs
 
 
-def _get_AO_from_CrystalSites_OrbitalList(
-    crystalsites: typing.List[CrystalSite],
-    orbitallist: OrbitalsList
+def get_AO_from_CrystalSites_OrbitalList(
+    crystalsites: typing.List[CrystalSite],orbitallist: OrbitalsList
 ) -> typing.List[AO]:
+    """given a list of atomic position and orbitals, convernt them to a list of AO"""
+
     aos = []
     all_sh = orbitallist.sh_list
     i_cluster = 0
@@ -94,10 +95,8 @@ def _get_AO_from_CrystalSites_OrbitalList(
     return aos
 
 
-def _get_orbital_ln_from_string(orbital: str) -> typing.List[typing.Tuple[int, int]]:
-    """
-    example "3s3p4s" -> [(3,0),(3,1),(4,0)]
-    """
+def get_orbital_ln_from_string(orbital: str) -> typing.List[typing.Tuple[int, int]]:
+    """convert string to dict: example "3s3p4s" -> [(3,0),(3,1),(4,0)]"""
     l_dict = {
         "s": 0, "p": 1, "d": 2, "f": 3
     }
@@ -108,3 +107,34 @@ def _get_orbital_ln_from_string(orbital: str) -> typing.List[typing.Tuple[int, i
     return [
         (int(n),l_dict[lsym]) for n,lsym in zip(numbers, symbols)
     ]
+
+
+def generate_aopair_from_cluster(cluster: CenteredCluster) -> typing.List[AOPair]:
+    """generate all AOPair on the given centeredCluster"""
+    all_aopairs_on_cluster = []
+    center_nls = get_orbital_ln_from_string(cluster.center_site.orbitals)
+    center_vs = VectorSpace.from_sites_and_orbitals(
+                [cluster.center_site.site], OrbitalsList([Orbitals(center_nls)])
+            )
+
+    neighbor_nls = get_orbital_ln_from_string(cluster.neighbor_sites[0].orbitals)
+    neighbor_sites = \
+                [cluster.center_site.site] + [csite.site for csite in cluster.neighbor_sites]
+    neighbor_vs = VectorSpace.from_sites_and_orbitals(
+                    neighbor_sites, 
+                    OrbitalsList([Orbitals(center_nls)] + [Orbitals(neighbor_nls)]*len(neighbor_sites))
+                )
+
+    center_aos = get_AO_from_CrystalSites_OrbitalList(
+                    [cluster.center_site], center_vs.orbital_list
+                )
+    neighbor_aos = get_AO_from_CrystalSites_OrbitalList(
+                    [cluster.center_site] + cluster.neighbor_sites, neighbor_vs.orbital_list
+                ) 
+
+    for cao in center_aos:
+        for nao in neighbor_aos:
+            pair = AOPair(cao, nao)
+            all_aopairs_on_cluster.append(pair)
+
+    return all_aopairs_on_cluster 
