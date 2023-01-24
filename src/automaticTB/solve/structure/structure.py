@@ -241,7 +241,7 @@ class Structure:
 
     def print_log(self) -> None:
         print(f"## Crystal structure used in the calculation")
-        print("---")
+        print("-"*75)
         print(f"### SPGlib symmetry info (tolerance = {tolerance_structure:>.2e}):")
         print( "  space group: {:s} {:s} ({:0>d})".format(
                 self.sym_data['international'],
@@ -263,7 +263,7 @@ class Structure:
             print("  {:0>d} {:>2s} : ({:>10.6f},{:>10.6f},{:>10.6f}) eq_index = {:d}, orb = {:s}".format(
                 i+1, symbol, *pos, self._eq_indices[i] + 1, self._atomic_orbital_dict[symbol]
             ))
-        print(f"---")
+        print("-"*75)
 
 
 @dataclasses.dataclass

@@ -4,68 +4,7 @@ from automaticTB.solve.structure import CrystalSite, CenteredEquivalentCluster, 
 from automaticTB.solve.SALCs import VectorSpace, decompose_vectorspace_to_namedLC, NamedLC
 from automaticTB.solve.atomic_orbitals import Orbitals, OrbitalsList
 from .interaction_pairs import AO, AOPair, AOSubspace
-from .interaction_base import InteractingAOSubspace
 
-
-def get_InteractingAOSubspaces_from_cluster(
-    cluster: CenteredEquivalentCluster
-) -> typing.List[InteractingAOSubspace]:
-    """solved a centered equivalent cluster into a set of interacting subspaces"""
-
-    center_vectorspace: typing.List[VectorSpace] = []
-    center_namedLCs: typing.List[typing.List[NamedLC]] = []
-    center_nls = get_orbital_ln_from_string(cluster.center_site.orbitals)
-    for cnl in center_nls:
-        vs = VectorSpace.from_sites_and_orbitals(
-                [cluster.center_site.site], 
-                OrbitalsList(
-                    [Orbitals([cnl])]
-                )
-            )
-        center_vectorspace.append(vs)
-        center_namedLCs.append(
-            decompose_vectorspace_to_namedLC(vs, cluster.sitesymmetrygroup)
-        )
-
-    neighbor_vectorspace: typing.List[VectorSpace] = []
-    neighbor_namedLCs: typing.List[typing.List[NamedLC]] = []
-    neighbor_nls = get_orbital_ln_from_string(cluster.neighbor_sites[0].orbitals)
-    neighborsites = [csite.site for csite in cluster.neighbor_sites]
-    for nnl in neighbor_nls:
-        vs = VectorSpace.from_sites_and_orbitals(
-                neighborsites, 
-                OrbitalsList(
-                    [Orbitals([nnl])] * len(neighborsites)
-                )
-            )
-        neighbor_vectorspace.append(vs)
-        neighbor_namedLCs.append(
-            decompose_vectorspace_to_namedLC(vs, cluster.sitesymmetrygroup)
-        )
-    
-    subspaces_pairs = []
-    for left_vs, left_nlc in zip(center_vectorspace, center_namedLCs):
-        left_subspace = \
-            AOSubspace(
-                get_AO_from_CrystalSites_OrbitalList(
-                    [cluster.center_site], left_vs.orbital_list
-                ),
-                left_nlc
-            )
-            
-        for right_vs, right_nlc in zip(neighbor_vectorspace, neighbor_namedLCs):
-            right_subspace = \
-                AOSubspace(
-                    get_AO_from_CrystalSites_OrbitalList(
-                        cluster.neighbor_sites, right_vs.orbital_list
-                    ),
-                    right_nlc
-                )
-            subspaces_pairs.append(
-                InteractingAOSubspace(left_subspace, right_subspace)
-            )
-
-    return subspaces_pairs
 
 
 def get_AO_from_CrystalSites_OrbitalList(

@@ -124,6 +124,8 @@ class AOpairRotater:
     
     it returns complex coefficient of rotated AO
     """
+    identity_op = np.eye(3)
+    zero_translation = np.zeros(3)
     def __init__(self, all_ao_pairs: typing.List[AOPair]) -> None:
         self.num_aopairs = len(all_ao_pairs)
         self.all_ao_pairs_index = {aopair: ipair for ipair, aopair in enumerate(all_ao_pairs)}
@@ -144,6 +146,38 @@ class AOpairRotater:
 
         l_ao = ao_pair.l_AO
         r_ao = ao_pair.r_AO
+
+
+        result_coefficients = np.zeros(self.num_aopairs, dtype=complex_coefficient_type)
+        result_coefficients[self.all_ao_pairs_index[ao_pair]] -= 1.0
+        reversecoefficients = np.zeros(self.num_aopairs, dtype=complex_coefficient_type)
+        reversecoefficients[self.all_ao_pairs_index[ao_pair]] -= 1.0
+
+        
+        if np.allclose(rotation, self.identity_op, zero_tolerance) \
+        and np.allclose(translation, self.zero_translation, zero_tolerance):
+            # quickly return for identity
+            lr_pair = ao_pair
+            rl_pair = get_translated_AO(AOPair(r_ao, l_ao)) # reverse pair
+            ipair = self.all_ao_pairs_index.get(lr_pair, -1)
+            ipair_reversed = self.all_ao_pairs_index.get(rl_pair, -1)
+            if print_debug:
+                print("> equivalent pair 1: ", lr_pair, 
+                        f" coeff = {np.conjugate(lcoe) * rcoe:>.3f}")
+                print("> equivalent pair 2: ", rl_pair, 
+                        f" coeff = {np.conjugate(lcoe) * rcoe:>.3f}")
+            
+            if ipair == -1 or ipair_reversed == -1:
+                print("> equivalent pair 1: ", lr_pair, 
+                            f" coeff = {np.conjugate(lcoe) * rcoe:>.3f}")
+                print("> equivalent pair 2: ", rl_pair, 
+                            f" coeff = {np.conjugate(lcoe) * rcoe:>.3f}")
+                raise RuntimeError("rotated pairs not found")
+                    
+            result_coefficients[ipair] += 1.0
+            reversecoefficients[ipair_reversed] += 1.0
+            return (result_coefficients, reversecoefficients)
+
         
         new_l_absolute_position = l_ao.absolute_position + translation
         dr = r_ao.absolute_position - l_ao.absolute_position
@@ -167,11 +201,6 @@ class AOpairRotater:
         
         l_rotated_results = self._rotate_ao_simple(l_ao, rotation)
         r_rotated_results = self._rotate_ao_simple(r_ao, rotation)
-
-        result_coefficients = np.zeros(self.num_aopairs, dtype=complex_coefficient_type)
-        result_coefficients[self.all_ao_pairs_index[ao_pair]] -= 1.0
-        reversecoefficients = np.zeros(self.num_aopairs, dtype=complex_coefficient_type)
-        reversecoefficients[self.all_ao_pairs_index[ao_pair]] -= 1.0
 
         for ln,ll,lm,lcoe in l_rotated_results:
             if np.abs(lcoe) < zero_tolerance: continue

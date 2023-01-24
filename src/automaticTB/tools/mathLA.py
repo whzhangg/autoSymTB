@@ -1,4 +1,4 @@
-import typing, numpy as np
+import typing, numpy as np, dataclasses
 
 from automaticTB.parameters import zero_tolerance
 
@@ -143,7 +143,86 @@ def row_echelon_sympy(A):
     return np.array(ref, dtype=A.dtype)
 
 
+def solve_matrix(
+    A: np.ndarray, indices: typing.List[int], values: typing.List[float]
+) -> np.ndarray:
+    nrow, ncol = A.shape
+    nfree = len(values)
+    new_rows = np.zeros((nfree, ncol), dtype=A.dtype)
+    for i, fi in enumerate(indices):
+        new_rows[i, fi] = 1.0
+
+    stacked_left = np.vstack([A, new_rows])
+    stacked_right= np.hstack(
+        [ np.zeros(nrow, dtype=A.dtype), np.array(values, dtype=A.dtype) ]
+    )
+
+    return np.dot(np.linalg.inv(stacked_left), stacked_right)
+
+@dataclasses.dataclass
 class LinearEquation:
+    input_equation: np.ndarray
+    row_echelon_form: np.ndarray
+    free_variable_indices: typing.List[int]  # could be empty
+
+    @classmethod
+    def from_equation(cls, equation: np.ndarray) -> "LinearEquation":
+        input_equation = equation.copy()
+        processed_equation = remove_zero_vector_from_coefficients(row_echelon(equation))
+        leading_varaibles_indices = {first_non_zero(row) for row in processed_equation}
+        free_variable_indices = list(
+            set(range(processed_equation.shape[1])) - leading_varaibles_indices
+        )
+
+        nrow, ncol = processed_equation.shape
+        if nrow + len(free_variable_indices) != ncol:
+            print(f"{cls.__name__}: finding free variable indices not successful")
+            print(
+                "echelon form shape: ", processed_equation.shape, 
+                f" found free indices: {len(free_variable_indices)}"
+            )
+            raise RuntimeError
+
+        return cls(
+            input_equation, processed_equation, sorted(free_variable_indices)
+        )
+
+    def solve_with_values(self, input_values: typing.List[float]) -> np.ndarray:
+        """this functionality solve the all the interactions from the free ones"""
+
+        nrow, ncol = self.row_echelon_form.shape
+        nfree = ncol - nrow
+        if len(self.free_variable_indices) != len(input_values):
+            raise RuntimeError(
+                "the input values do not fit with row_echelon_form with shape {:d},{:d}".format\
+                (*self.row_echelon_form.shape)
+            )
+
+        return solve_matrix(self.row_echelon_form, self.free_variable_indices, input_values)
+        data_type = self.row_echelon_form.dtype
+        new_rows = np.zeros((nfree, ncol), dtype=data_type)
+        for i, fi in enumerate(self.free_variable_indices):
+            new_rows[i, fi] = 1.0
+
+        stacked_left = np.vstack([self.row_echelon_form, new_rows])
+        stacked_right= np.hstack(
+            [ np.zeros(nrow, dtype=data_type),
+              np.array(input_values, dtype=data_type) ]
+        )
+
+        return np.dot(np.linalg.inv(stacked_left), stacked_right)
+
+'''
+class LinearEquation:
+    """providing row echelon form and corresponding solver
+    
+    it automatically reduce the input linear equation to row echelon form, providing the
+    free variable index.
+
+    It also provide the values 
+    1. row_echelon_form, and 
+    2. free_variables_index
+    """
     def __init__(self, homogeneous_equation: np.ndarray) -> None:
         self.homogeneous_equation = homogeneous_equation.copy() # original equation
         self.row_echelon_form = remove_zero_vector_from_coefficients(
@@ -157,7 +236,7 @@ class LinearEquation:
             = list(set(range(self.row_echelon_form.shape[1])) - leading_variables_index)
         self.free_variables_index.sort()
 
-    def solve_providing_values(
+    def solve_with_values(
         self, free_interaction_values: typing.List[float]
     ) -> np.ndarray:
         """this functionality solve the all the interactions from the free ones"""
@@ -183,3 +262,4 @@ class LinearEquation:
         assert stacked_left.shape[0] == stacked_left.shape[1]
         assert len(stacked_left) == len(stacked_right)
         return np.dot(np.linalg.inv(stacked_left), stacked_right)
+'''

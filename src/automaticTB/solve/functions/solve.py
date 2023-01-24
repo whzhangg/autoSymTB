@@ -4,13 +4,11 @@ import numpy as np
 from automaticTB.tools import read_cif_to_cpt, format_lines_into_two_columns
 from automaticTB.solve.structure import Structure
 from automaticTB.solve.interaction import (
-    InteractingAOSubspace,
+    AOSubspace,
+    InteractionSpace,
     get_InteractingAOSubspaces_from_cluster,
-    BlockInteractions,
-    CombinedEquivalentInteractingAO
 )
 from automaticTB.interface import OrbitalPropertyRelationship
-
 
 def solve_interaction(
     structure: typing.Union[str, typing.Tuple[np.ndarray, np.ndarray, np.ndarray]],
@@ -18,7 +16,9 @@ def solve_interaction(
     rcut: typing.Optional[float] = None,
     standardize: bool = True,
     find_additional_symmetry: bool = False,
-    save_filename: str = None
+    save_filename: str = None, 
+    return_type: typing.Literal["OrbitalPropertyRelationship", "CombinedInteraction"] \
+        = "CombinedInteraction"
 ) -> OrbitalPropertyRelationship:
     """
     this function wraps the process of finding the unique interaction parameter. It return `None` but will print the output log information in a similar fashion of traditional calculation 
@@ -44,33 +44,41 @@ def solve_interaction(
     for eq_index, eq_clusters in structure.equivalent_clusters.items():
 
         print(f"# Solving interaction for non-eq cluster with p-index {eq_index+1}")
-        print("")
+        print("-"*75)
         selected = eq_clusters[0]
         selected.print_log()
         print("")
-        aosubs = []
+        blocks = []
         for ceq_cluster in selected.centered_equivalent_clusters:
             ceq_cluster.set_symmetry(find_additional_symmetry = find_additional_symmetry)
-            subspaces = get_InteractingAOSubspaces_from_cluster(ceq_cluster)
-            print_log_for_InteractingAOSubspaces(subspaces)
+            subspace_pairs = get_InteractingAOSubspaces_from_cluster(ceq_cluster)
+            print_log_for_InteractingAOSubspaces(subspace_pairs)
             print("")
-            aosubs += subspaces
-        combined_interaction = BlockInteractions(aosubs)
-        combined_interaction.print_log()
+            print("## Solutions")
+            total_number_pairs = 0
+            for l_sub, r_sub in subspace_pairs:
+                subspace = InteractionSpace.from_AOSubspace(l_sub, r_sub, verbose=True)
+                total_number_pairs += len(subspace.free_indices)
+                blocks.append(subspace)
+            print("")
+            print(f'## Total number of free interactions = {total_number_pairs}')
+            print("")
+        combined_interaction = InteractionSpace.from_Blocks(blocks)
         gathered_solution.append(combined_interaction)
         gathered_clusters.append(eq_clusters)
+        print("-"*75)
 
     print("")
     print(f"# Use it to generate other positions")
     print("")
 
-    combined_equivalent = CombinedEquivalentInteractingAO(
-            gathered_solution, gathered_clusters, structure.cartesian_rotations, 
-            reverse_equivalence=True
+    combined_equivalent = InteractionSpace.from_solvedInteraction_and_symmetry(
+            gathered_solution, gathered_clusters, structure.cartesian_rotations, verbose=True
     )
-    combined_equivalent.print_log()
     print("")
-    
+    print("# Interaction Treatment Finished ! @ ", 
+            time.strftime(r"%Y/%m/%d %H:%M:%S", time.localtime()))
+    print("")
     relationship = OrbitalPropertyRelationship.from_structure_combinedInteraction(
         structure.cell, structure.positions, structure.types, combined_equivalent
     )
@@ -84,10 +92,14 @@ def solve_interaction(
         print("")
     print(f"Job Done @ "+ time.strftime(r"%Y/%m/%d %H:%M:%S", time.localtime()))
 
-    return relationship
+    if return_type == "OrbitalPropertyRelationship":
+        return relationship
+    else:
+        return combined_equivalent
+
 
 def print_log_for_InteractingAOSubspaces(
-    subspaceslist: typing.List["InteractingAOSubspace"]
+    subspaceslist: typing.List[typing.Tuple[AOSubspace, AOSubspace]]
 ) -> None:
     print(f"## Orbital interaction subspace")
     l_str = {0:"s", 1:"p", 2:"d", 3:"f"}
@@ -95,15 +107,15 @@ def print_log_for_InteractingAOSubspaces(
     r_orbitals: typing.Dict[str, typing.List[str]] = {}
         
     for subspace in subspaceslist:
-        tmp = subspace.l_subspace.aos[0]
+        tmp = subspace[0].aos[0]
         l_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
-        l_orbitals[l_orb] = [str(nlc.name) for nlc in subspace.l_subspace.namedlcs]
+        l_orbitals[l_orb] = [str(nlc.name) for nlc in subspace[0].namedlcs]
 
-        tmp = subspace.r_subspace.aos[0]
+        tmp = subspace[1].aos[0]
         r_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
-        r_orbitals[r_orb] = [str(nlc.name) for nlc in subspace.r_subspace.namedlcs]
+        r_orbitals[r_orb] = [str(nlc.name) for nlc in subspace[1].namedlcs]
 
-    max_length = -1
+    max_length = 25
     for vs in l_orbitals.values():
         max_length = max(max_length, max(len(v) for v in vs))
     for vs in r_orbitals.values():
@@ -127,19 +139,3 @@ def print_log_for_InteractingAOSubspaces(
     formatted = format_lines_into_two_columns(l_lines, r_lines)
     for f in formatted:
         print(f"  {f}")
-    print("")
-    print(f"## Detailed orbital interactions for each subspace")
-    for subspace in subspaceslist:
-        tmp = subspace.l_subspace.aos[0]
-        l_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
-
-        tmp = subspace.r_subspace.aos[0]
-        r_orb = f"{tmp.chemical_symbol:>2s}({tmp.n:>2d}{l_str[tmp.l]})"
-        print(
-            f"### {l_orb} -> {r_orb} (free/total) orb. interactions:" + 
-            f" ({len(subspace.free_AOpairs)}/{len(subspace.all_AOpairs)})"
-        )
-        if subspace.free_AOpairs:
-            for i, f in enumerate(subspace.free_AOpairs):
-                print(f"  {i+1:>3d} " + str(f))
-

@@ -34,7 +34,7 @@ class InteractionBase(abc.ABC):
         else:
             # indices are sorted by LinearEquation
             return [
-                self.all_AOpairs[i] for i in self.homogeneous_equation.free_variables_index
+                self.all_AOpairs[i] for i in self.homogeneous_equation.free_variable_indices
             ]
 
 
@@ -65,7 +65,7 @@ class InteractionBase(abc.ABC):
             all_solved_values = values
         else:
             values = np.array(values)
-            all_solved_values = self.homogeneous_equation.solve_providing_values(values)
+            all_solved_values = self.homogeneous_equation.solve_with_values(values)
             
         if len(all_solved_values) == len(self.all_AOpairs):
             raise RuntimeError(
@@ -105,6 +105,22 @@ class InteractionBase(abc.ABC):
                 print(f"{i+1:>2d} " + str(pair))
 
 
+
+class SimpleInteraction(InteractionBase):
+    def __init__(self, allpairs: typing.List[AOPair], matrix: np.ndarray) -> None:
+        self._allpairs = allpairs
+        self._linear = LinearEquation.from_equation(matrix)
+
+    @property
+    def homogeneous_equation(self) -> LinearEquation:
+        return self._linear
+
+
+    @property
+    def all_AOpairs(self) -> typing.List[AOPair]:
+        return self._allpairs
+    
+
 class InteractingAOSubspace(InteractionBase):
     _forbidden_symbol = 0
 
@@ -133,6 +149,7 @@ class InteractingAOSubspace(InteractionBase):
         self._homogeneous_equation, self._nonhomogeneous = \
             self.obtain_homogeneous_nonhomogeneous_equation(reps_tp_list)
         
+
     def obtain_homogeneous_nonhomogeneous_equation(self, 
         reps_tp_list: typing.List[typing.Tuple[IrrepSymbol, IrrepSymbol, np.ndarray]]
     ) -> typing.Tuple[LinearEquation, np.ndarray]:
@@ -176,7 +193,7 @@ class InteractingAOSubspace(InteractionBase):
 
         linear_equation = None
         if homogeneous_part.size > 0:
-            linear_equation = LinearEquation(homogeneous_part)
+            linear_equation = LinearEquation.from_equation(homogeneous_part)
 
         return linear_equation, non_homogeneous
 
@@ -226,7 +243,7 @@ class BlockInteractions(InteractionBase):
             col_start = col_end
             nr1_start = nr1_end
             
-        self._homogeneous_equation = LinearEquation(homo_matrix)
+        self._homogeneous_equation = LinearEquation.from_equation(homo_matrix)
 
     @property
     def homogeneous_equation(self) -> LinearEquation:
