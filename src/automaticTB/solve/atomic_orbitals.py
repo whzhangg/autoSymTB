@@ -1,12 +1,4 @@
 import typing, dataclasses
-import numpy as np
-
-__all__ = ["nSpHar", "NL", "Orbitals", "OrbitalsList"]
-
-
-class _SpHar(typing.NamedTuple):
-    l: int
-    m: int
 
 
 class nSpHar(typing.NamedTuple):
@@ -31,9 +23,9 @@ class Orbitals:
     _ao_symbol = {0: "s", 1: "p", 2: "d", 3: "f"}
     _aolists = {
         # this is used to generate a list of nSpHars from a list of NLs
-        0 : [_SpHar(0, 0)], 
-        1 : [_SpHar(1,-1), _SpHar(1, 0), _SpHar(1, 1)],
-        2 : [_SpHar(2,-2), _SpHar(2,-1), _SpHar(2, 0), _SpHar(2, 1), _SpHar(2, 2)]
+        0 : [(0, 0)], 
+        1 : [(1,-1), (1, 0), (1, 1)],
+        2 : [(2,-2), (2,-1), (2, 0), (2, 1), (2, 2)]
     }
 
     def __init__(self, nl_list: typing.List[typing.Tuple[int,int]]) -> None:
@@ -57,7 +49,7 @@ class Orbitals:
         """
         result = []
         for nl in self._nl_list:
-            result += [ nSpHar(nl.n, sh.l, sh.m) for sh in self._aolists[nl.l] ]
+            result += [ nSpHar(nl.n, l, m) for l,m in self._aolists[nl.l] ]
         return result
 
     @property

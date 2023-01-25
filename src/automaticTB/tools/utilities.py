@@ -1,7 +1,6 @@
-import numpy as np
-import typing
-from .pair import Pair
-from ..parameters import zero_tolerance
+import typing, numpy as np
+
+from automaticTB.parameters import zero_tolerance
 
 
 def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) -> np.ndarray:
@@ -10,13 +9,6 @@ def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) 
         rmax = max(rmax, np.linalg.norm(pos))
     cell = 4.0 * rmax * np.eye(3)
     return cell
-
-def tensor_dot(list_left, list_right) -> typing.List[Pair]:
-    r = []
-    for item1 in list_left:
-        for item2 in list_right:
-            r.append(Pair(item1, item2))
-    return r
 
 
 def random_rotation_matrix() -> np.ndarray:
@@ -55,3 +47,14 @@ def plot_value_distribution(data: np.ndarray, filename : str) -> None:
         x = np.arange(len(flattened))
         axes.plot(x, flattened, 'o')
         fig.savefig(filename)
+
+
+def print_np_matrix(m: np.ndarray, format:str = "{:>6.2f}"):
+    # print an matrix using the given string format
+    assert len(m.shape) == 2
+    result = ""
+    for row in m:
+        for cell in row:
+            result += " " + format.format(cell)
+        result += "\n"
+    print(result)

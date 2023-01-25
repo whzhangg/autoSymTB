@@ -2,20 +2,18 @@ import typing, numpy as np, dataclasses
 
 from automaticTB.tools import LinearEquation, tensor_dot, solve_matrix
 from automaticTB.parameters import zero_tolerance, complex_coefficient_type
-from automaticTB.solve.structure import CenteredCluster
-from .interaction_pairs import AOPair, AOSubspace
-from .ao_rotation_tools import AOpairRotater, find_rotation_between_two_clusters, get_translated_AO
-from .interface import (
-    generate_aopair_from_cluster, get_AO_from_CrystalSites_OrbitalList, get_orbital_ln_from_string)
-from automaticTB.solve.structure import CrystalSite, CenteredEquivalentCluster, CenteredCluster
-from automaticTB.solve.SALCs import VectorSpace, decompose_vectorspace_to_namedLC, NamedLC
 from automaticTB.solve.atomic_orbitals import Orbitals, OrbitalsList
-from .interaction_pairs import AO, AOPair, AOSubspace
-
+from automaticTB.solve.structure import CenteredCluster
+from automaticTB.solve.SALCs import VectorSpace, decompose_vectorspace_to_namedLC, NamedLC
+from .ao_rotation_tools import AOpairRotater, find_rotation_between_two_clusters, get_translated_AO
+from .interaction_pairs import (
+    AOPair, AOSubspace, get_orbital_ln_from_string,
+    generate_aopair_from_cluster, get_AO_from_CrystalSites_OrbitalList,
+)
 
 
 def get_InteractingAOSubspaces_from_cluster(
-    cluster: CenteredEquivalentCluster
+    cluster: CenteredCluster
 ) -> typing.List[typing.Tuple[AOSubspace, AOSubspace]]:
     """solved a centered equivalent cluster into a set of interacting subspaces"""
 
@@ -333,6 +331,10 @@ class InteractionSpace:
             ao: iao for iao, ao in enumerate(all_aopairs)
         }
 
+        #print(f"number of all aopairs: {num_aopairs}")
+        #for i, pair in enumerate(all_aopairs):
+        #    print(f"{i+1:>3d} " + repr(pair))
+        #print("")
         # generate the known homogeneous matrix by stacking them
         homogeneous_relationship: typing.List[np.ndarray] = []
         for interaction in solved_interactions:

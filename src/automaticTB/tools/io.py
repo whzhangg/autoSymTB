@@ -1,5 +1,6 @@
 import yaml, json, typing, os
-from ase import io, Atoms
+
+import ase
 
 _print_lm = {
     (0, 0): "s",
@@ -26,8 +27,9 @@ def parse_orbital(n: int, l: int, m: int) -> str:
         formatted = _print_lm[(l,m)]
         return f"{n}{formatted}"
 
-def atom_from_cpt(lattice, positions, types) -> Atoms:
-    result = Atoms(cell = lattice, scaled_positions = positions)
+def atom_from_cpt(lattice, positions, types) -> ase.Atoms:
+    
+    result = ase.Atoms(cell = lattice, scaled_positions = positions)
     if type(types[0]) == str:
         result.set_chemical_symbols(types)
     else:
@@ -67,7 +69,7 @@ def read_cif_to_cpt(filename: str) -> tuple:
     elif not os.path.exists(filename):
         raise RuntimeError(f"Structure file {filename} cannot be found !")
     else:
-        struct: Atoms = io.read(filename,format='cif')
+        struct: ase.Atoms = ase.io.read(filename,format='cif')
         return struct.get_cell(), struct.get_scaled_positions(), struct.get_atomic_numbers()
 
 
