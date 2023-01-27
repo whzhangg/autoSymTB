@@ -3,7 +3,7 @@ import typing
 from .wavefunctions import wavefunction, xyz_to_r_theta_phi, radial_function, sh_functions
 from .molecular_wavefunction import \
     (MolecularWavefunction, Wavefunction, WavefunctionsOnSite)
-from ...parameters import zero_tolerance
+from ...parameters import ztol
 from scipy.constants import physical_constants
 
 
@@ -113,7 +113,7 @@ class DensityCubePlot:
                     sph_part = np.zeros_like(theta)
                     for wf in aw.wfs:
                         if ( wf.n != n_comp or wf.l != l_comp ) or \
-                           ( np.abs(wf.coeff) <= zero_tolerance) : continue
+                           ( np.abs(wf.coeff) <= ztol) : continue
                         sph_part += wf.coeff.real * sh_functions(wf.l, wf.m, theta, phi)
 
                     result += radial_part * sph_part

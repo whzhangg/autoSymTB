@@ -21,8 +21,11 @@ def solve_interaction(
         = "CombinedInteraction"
 ) -> OrbitalPropertyRelationship:
     """
-    this function wraps the process of finding the unique interaction parameter. It return `None` but will print the output log information in a similar fashion of traditional calculation 
-    program. It will write a file which can be read to perform extra operation/property extraction. 
+    this function wraps the process of finding the unique interaction 
+    parameter. It return `None` but will print the output log 
+    information in a similar fashion of traditional calculation program.
+    It will write a file which can be read to perform extra 
+    operation/property extraction. 
     """
 
     print(f"Program start @ " + time.strftime(r"%Y/%m/%d %H:%M:%S", time.localtime()))
@@ -98,7 +101,7 @@ def solve_interaction(
         return combined_equivalent
 
 
-def print_log_for_InteractingAOSubspaces(
+def print_log_for_InteractingAOSubspaces(                                                          
     subspaceslist: typing.List[typing.Tuple[AOSubspace, AOSubspace]]
 ) -> None:
     print(f"## Orbital interaction subspace")

@@ -1,7 +1,11 @@
-import dataclasses, typing
-from ..sitesymmetry import SiteSymmetryGroup, subduction_data
-from ..rotation import orbital_rotation_from_symmetry_matrix
+import typing
+import dataclasses
+
 import numpy as np
+
+from automaticTB.solve import sitesymmetry as ssym
+from automaticTB.solve import rotation
+
 
 @dataclasses.dataclass
 class CartesianOrbitalRotation:
@@ -19,19 +23,21 @@ class IrreducibleRep:
 
 @dataclasses.dataclass
 class SiteSymmetryGroupwithOrbital:
-    """
-    This class define a wrapper that store the rotation matrix in the orbital space  so we don't need to calculate it again
+    """A wrapper that store the rotation matrix in the orbital space
+    
+    This interface with the `SiteSymmetryGroup` so that we don't need 
+    to calculate it again
     """
     groupname: str
     irreps: typing.List[IrreducibleRep]
     operations: typing.List[CartesianOrbitalRotation]
     irrep_str: str
-    #
-    sitesymmetrygroup: SiteSymmetryGroup 
+    sitesymmetrygroup: ssym.SiteSymmetryGroup 
 
     @classmethod
-    def from_sitesymmetrygroup_irreps(cls, sitesymmetrygroup: SiteSymmetryGroup, irrep_str: str) \
-    -> "SiteSymmetryGroupwithOrbital":
+    def from_sitesymmetrygroup_irreps(
+        cls, sitesymmetrygroup: ssym.SiteSymmetryGroup, irrep_str: str
+    ) -> "SiteSymmetryGroupwithOrbital":
         irreducible_reps = []
         for irrep_name in sitesymmetrygroup.irreps.keys():
             irreducible_reps.append(
@@ -42,7 +48,7 @@ class SiteSymmetryGroupwithOrbital:
             )
         cartesian_and_orbital = []
         for op in sitesymmetrygroup.operations:
-            orbital_rotation = orbital_rotation_from_symmetry_matrix(op, irrep_str)
+            orbital_rotation = rotation.orbital_rotation_from_symmetry_matrix(op, irrep_str)
             cartesian_and_orbital.append(
                 CartesianOrbitalRotation(irrep_str, op, orbital_rotation)
             )
@@ -57,7 +63,7 @@ class SiteSymmetryGroupwithOrbital:
  
     def get_subduction(self) \
     -> "SiteSymmetryGroupwithOrbital":
-        subduction = subduction_data[self.groupname]
+        subduction = ssym.subduction_data[self.groupname]
         subgroup = self.sitesymmetrygroup.get_subgroup_from_subgroup_and_seitz_map(
                         subduction["sub"], subduction["seitz_map"]
                     )

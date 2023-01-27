@@ -1,7 +1,7 @@
 from ..interaction import AO, InteractingAOSubspace, AOSubspace
 import dataclasses, numpy as np, typing
 from .sc_tools import make_supercell_using_ase
-from ...parameters import precision_decimal, tolerance_structure
+from ...parameters import stol
 
 
 def get_index_translation_for_positions(
@@ -19,7 +19,7 @@ def get_index_translation_for_positions(
         # the point is the same if their difference is almost int
         fractional_part = difference - np.rint(difference)
         for iref, frac in enumerate(fractional_part):
-            if np.allclose(frac, zero3, atol=tolerance_structure):
+            if np.allclose(frac, zero3, atol=stol):
                 found = True
                 p_index.append(iref)
                 break
@@ -89,12 +89,13 @@ class StructureAndEquation:
         s_cell, s_positions, s_types = make_supercell_using_ase(
             (self.cell, self.positions, self.types), supercell_matrix
         )
-        s_positions = np.around(s_positions, decimals = precision_decimal)
+        round_decimal = int(-1 * np.log10(stol))
+        s_positions = np.around(s_positions, decimals = round_decimal)
         s_positions = s_positions - np.floor(s_positions)
         # now the s_cell, s_positions should not be changed
         
         # sanity check
-        if not np.allclose(s_cell, np.dot(supercell_matrix, self.cell), atol=tolerance_structure):
+        if not np.allclose(s_cell, np.dot(supercell_matrix, self.cell), atol=stol):
             raise RuntimeError("supercell transformation in ase is wrong")
 
         # the primitive index and primitive translation of atoms in the supercell

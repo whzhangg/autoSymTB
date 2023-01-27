@@ -1,6 +1,6 @@
 import numpy as np, typing, dataclasses, copy
 
-from .parameters import zero_tolerance
+from .parameters import ztol
 from .tools import atomic_numbers, chemical_symbols, parse_orbital, timefn, LinearEquation, solve_matrix
 
 @dataclasses.dataclass(eq=True)
@@ -123,10 +123,10 @@ class OrbitalPropertyRelationship:
             related_indices = set()
             indices = np.array(additional_required_indices)
             for row in self.homogeneous_equation:
-                if np.all(np.isclose(row[indices], 0.0, atol = zero_tolerance)):
+                if np.all(np.isclose(row[indices], 0.0, atol = ztol)):
                     continue
                 related_indices |= set(
-                    np.argwhere(np.invert(np.isclose(row, 0.0, atol=zero_tolerance))).flatten()
+                    np.argwhere(np.invert(np.isclose(row, 0.0, atol=ztol))).flatten()
                 )
             # AOs that depend on the selected additional_required_index
 

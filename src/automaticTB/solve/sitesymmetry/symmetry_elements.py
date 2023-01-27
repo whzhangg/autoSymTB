@@ -1,15 +1,19 @@
 # We attempt to detemint the seitz symbol for the operation and dress them
+import typing
+import dataclasses
+
 import numpy as np
-import dataclasses, typing
-from ..utilities import operation_type_from_rotation_matrix
-from ....parameters import tolerance_structure
+
+from automaticTB import parameters as params
+from .utilities import operation_type_from_rotation_matrix
+
 
 class SymDirection:
     # a normalized vector presenting a direction
     def __init__(self, vector: np.ndarray, label: str = "") -> None:
         self.label = label
         self._is_zero:bool = False
-        close_to_zero = np.isclose(vector, np.zeros(3), atol = tolerance_structure)
+        close_to_zero = np.isclose(vector, np.zeros(3), atol = params.stol)
         if all(close_to_zero):
             self._is_zero:bool = True
             self._vector: np.ndarray = vector
@@ -42,7 +46,7 @@ class SymDirection:
                 return False
             
         cos_theta = np.dot(self.vector, other.vector) / np.linalg.norm(self.vector) / np.linalg.norm(other.vector)
-        return np.isclose(np.abs(cos_theta), 1.0, atol = tolerance_structure)
+        return np.isclose(np.abs(cos_theta), 1.0, atol = params.stol)
 
     def __repr__(self) -> str:
         return "({:>7.3f}{:>7.3f}{:>7.3f})".format(*self._vector)
@@ -56,7 +60,7 @@ class SymDirection:
                 return False
 
         cos_theta = np.dot(self.vector, input_d) / np.linalg.norm(self.vector) / np.linalg.norm(input_d)
-        return np.isclose(np.abs(cos_theta), 1.0, atol = tolerance_structure)
+        return np.isclose(np.abs(cos_theta), 1.0, atol = params.stol)
 
 
 class SymDirection_Set:
@@ -119,11 +123,11 @@ class SymOp_on_Direction:
         operation_name = operation_type_from_rotation_matrix(matrix)
         rotation = matrix
         det = round(np.linalg.det(matrix))
-        if np.isclose(det, -1.0, atol = tolerance_structure):
+        if np.isclose(det, -1.0, atol = params.stol):
             rotation = np.matmul(rotation, np.eye(3) * -1.0)
         
         w, v = np.linalg.eig(rotation)
-        vector_index = np.argwhere(np.isclose(w.real, 1.0, atol = tolerance_structure))[0]
+        vector_index = np.argwhere(np.isclose(w.real, 1.0, atol = params.stol))[0]
         selected_eigenvector = v[:,vector_index].real.reshape((3,))
         direction = SymDirection(selected_eigenvector)
 
@@ -184,3 +188,134 @@ class Symmetries_on_Direction_Set:
         operations = " ".join(self.SymOnDirections[0].op_set)
         directions = ", ".join([str(direct.direction) for direct in self.SymOnDirections])
         return operations + " @ " + directions
+
+
+CrystalAxes: typing.Dict[str, typing.Dict[str, typing.Set[str]]] = {
+    "1": {
+     },
+    "-1": {
+     },
+    "2": {
+        "primiary" : {"2"}
+     },
+    "m": {
+        "primiary" : {"m"}
+     },
+    "2/m": {
+        "primiary" : {"m", "2"}
+     },
+    "222": {
+        "primiary" : {"2"},
+        "secondary": {"2"},
+        "tertiary" : {"2"},
+     },
+    "mm2": {
+        "primiary" : {"m"},
+        "secondary": {"m"},
+        "tertiary" : {"2"},
+     },
+    "mmm": {
+        "primiary" : {"m", "2"},
+        "secondary": {"m", "2"},
+        "tertiary" : {"m", "2"},
+     },
+    "4": {
+        "primiary" : {"2", "4"}
+     },
+    "-4": {
+        "primiary" : {"2", "-4"}
+     },
+    "4/m": {
+        "primiary" : {"m","2","-4","4"}
+     },
+    "422": {
+        "primiary" : {"2","4"},
+        "secondary": {"2"},
+        "tertiary" : {"2"},
+     },
+    "4mm": {
+        "primiary" : {"2", "4"},
+        "secondary": {"m"},
+        "tertiary" : {"m"},
+     },
+    "-42m": {
+        "primiary" : {"-4","2"},
+        "secondary": {"2"},
+        "tertiary" : {"m"},
+     },
+    "4/mmm": {
+        "primiary" : {"m", "2", "-4", "4"},
+        "secondary": {"m","2"},
+        "tertiary" : {"m","2"},
+     },
+    "3": {
+        "primiary" : {"3"}
+     },
+    "-3": {
+        "primiary" : {"-3", "3"}
+     },
+    "32": {
+        "primiary" : {"3"},
+        "secondary": {"2"}
+     },
+    "3m": {
+        "primiary" : {"3"},
+        "secondary": {"m"}
+     },
+    "-3m": {
+        "primiary" : {"-3","3"},
+        "secondary": {"m", "2"}
+     },
+    "6": {
+        "primiary" : {"6","2","3"}
+     },
+    "-6": {
+        "primiary" : {"m","3","-6"}
+     },
+    "6/m": {
+        "primiary" : {"6", "-3", "-6", "m", "2", "3"}
+     },
+    "622": {
+        "primiary" : {"6","2","3"},
+        "secondary": {"2"},
+        "tertiary" : {"2"},
+     },
+    "6mm": {
+        "primiary" : {"6","2","3"},
+        "secondary": {"m"},
+        "tertiary" : {"m"},
+     },
+    "-6m2": {
+        "primiary" : {"m", "3", "-6"},
+        "secondary": {"m"},
+        "tertiary" : {"2"},
+     },
+    "6/mmm": {
+        "primiary" : {"6", "-3", "-6", "m", "2", "3"},
+        "secondary": {"m", "2"},
+        "tertiary" : {"m", "2"},
+     },
+    "23": {
+        "primiary" : {"2"},
+        "secondary": {"3"},
+     },
+    "m-3": {
+        "primiary" : {"m", "2"},
+        "secondary": {"-3", "3"}
+     },
+    "432": {
+        "primiary" : {"2", "4"},
+        "secondary": {"3"},
+        "tertiary" : {"2"},
+     },
+    "-43m": {
+        "primiary" : {"-4","2"},
+        "secondary": {"3"},
+        "tertiary" : {"m"},
+     },
+    "m-3m": {
+        "primiary" : {"m","2","-4","4"},
+        "secondary": {"-3", "3"},
+        "tertiary" : {"m", "2"},
+     }
+}

@@ -1,7 +1,8 @@
-import dataclasses, typing, numpy as np
-from ...tools import chemical_symbols
+import dataclasses
+import numpy as np
 
-__all__ = ["LocalSite", "CrystalSite"]
+from automaticTB import tools
+
 
 @dataclasses.dataclass
 class LocalSite:
@@ -10,7 +11,7 @@ class LocalSite:
 
     @property
     def chemical_symbol(self) -> str:
-        return chemical_symbols[self.atomic_number]
+        return tools.chemical_symbols[self.atomic_number]
 
     def __eq__(self, other) -> bool:
         return self.atomic_number == other.atomic_number and np.allclose(self.pos, other.pos)

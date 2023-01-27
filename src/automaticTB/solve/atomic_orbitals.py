@@ -1,4 +1,5 @@
-import typing, dataclasses
+import typing
+import dataclasses
 
 
 class nSpHar(typing.NamedTuple):

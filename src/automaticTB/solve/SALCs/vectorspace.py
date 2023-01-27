@@ -1,9 +1,12 @@
-import typing, dataclasses
+import typing
+import dataclasses
+
 import numpy as np
-from ..structure import LocalSite
-from .linear_combination import LinearCombination, OrbitalsList
-from ...parameters import zero_tolerance, LC_coefficients_dtype
-from ...tools import get_distinct_nonzero_vector_from_coefficients
+from automaticTB import tools
+from automaticTB import parameters as params
+from automaticTB.solve import structure
+from automaticTB.solve import atomic_orbitals
+from .linear_combination import LinearCombination
 
 
 def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearCombination]) \
@@ -18,25 +21,24 @@ def get_nonzero_independent_linear_combinations(inputLCs: typing.List[LinearComb
     orbital_list = inputLCs[0].orbital_list
 
     result = []
-    distinct = get_distinct_nonzero_vector_from_coefficients(coefficient_matrix)
+    distinct = tools.get_distinct_nonzero_vector_from_coefficients(coefficient_matrix)
     for row in distinct:
         result.append(
             LinearCombination(sites, orbital_list, row)
         )
-    
     return result
 
 
 @dataclasses.dataclass
 class VectorSpace:
-    sites: typing.List[LocalSite]
-    orbital_list: OrbitalsList
+    sites: typing.List[structure.LocalSite]
+    orbital_list: atomic_orbitals.OrbitalsList
     coefficients_matrix: np.ndarray  # dtype = complex
 
     @classmethod
-    def from_sites_and_orbitals(cls, sites: typing.List[LocalSite], orbital_list: OrbitalsList):
+    def from_sites_and_orbitals(cls, sites: typing.List[structure.LocalSite], orbital_list: atomic_orbitals.OrbitalsList):
         nbasis = orbital_list.num_orb
-        coefficients = np.eye(nbasis, dtype=LC_coefficients_dtype)
+        coefficients = np.eye(nbasis, dtype=params.COMPLEX_TYPE)
         return cls(sites, orbital_list, coefficients)
 
     @classmethod
@@ -52,7 +54,7 @@ class VectorSpace:
 
     @property
     def rank(self):
-        return np.linalg.matrix_rank(self.coefficients_matrix, tol = zero_tolerance)
+        return np.linalg.matrix_rank(self.coefficients_matrix, tol = params.ztol)
 
 
     def __repr__(self) -> str:
@@ -64,7 +66,7 @@ class VectorSpace:
         return a list on non-zero linear combinations in this vector space
         """
         result = []
-        distinct = get_distinct_nonzero_vector_from_coefficients(self.coefficients_matrix)
+        distinct = tools.get_distinct_nonzero_vector_from_coefficients(self.coefficients_matrix)
         for row in distinct:
             result.append(
                 LinearCombination(self.sites, self.orbital_list, row)

@@ -1,10 +1,14 @@
-import re, typing, dataclasses, numpy as np
+import re
+import typing
+import dataclasses
 
-from automaticTB.tools import Pair, atomic_numbers, parse_orbital
-from automaticTB.parameters import zero_tolerance
-from automaticTB.solve.SALCs import NamedLC, VectorSpace
-from automaticTB.solve.structure import CrystalSite, CenteredCluster
-from automaticTB.solve.atomic_orbitals import Orbitals, OrbitalsList
+import numpy as np
+
+from automaticTB import tools
+from automaticTB import parameters as params
+from automaticTB.solve import SALCs
+from automaticTB.solve import structure
+from automaticTB.solve import atomic_orbitals
 
 @dataclasses.dataclass
 class AO:
@@ -20,14 +24,14 @@ class AO:
 
     @property
     def atomic_number(self) -> int:
-        return atomic_numbers[self.chemical_symbol]
+        return tools.atomic_numbers[self.chemical_symbol]
 
     def __eq__(self, o: "AO") -> bool:
         return  self.primitive_index == o.primitive_index and \
                 self.l == o.l and \
                 self.m == o.m and \
                 self.n == o.n and \
-                np.allclose(self.translation, o.translation, zero_tolerance)
+                np.allclose(self.translation, o.translation, params.ztol)
 
     def __repr__(self) -> str:
         result = f"{self.chemical_symbol:>2s} (i_p={self.primitive_index:>2d})"
@@ -69,43 +73,18 @@ class AOPair:
         return self.l_AO.absolute_position - self.r_AO.absolute_position
 
     @classmethod
-    def from_pair(cls, aopair: Pair) -> "AOPair":
+    def from_pair(cls, aopair: tools.Pair) -> "AOPair":
         return cls(aopair.left, aopair.right)
 
-    def as_pair(self) -> Pair:
-        return Pair(self.l_AO, self.r_AO)
+    def as_pair(self) -> tools.Pair:
+        return tools.Pair(self.l_AO, self.r_AO)
 
     def strict_match(self, o: "AOPair") -> bool:
         return  self.l_AO == o.l_AO and self.r_AO == o.r_AO
 
     def __eq__(self, o: "AOPair") -> bool:
         return self.l_AO == o.l_AO and self.r_AO == o.r_AO
-        #return  (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
-        #        (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
-
-        def check_ao(ao1: AO, ao2: AO) -> bool:
-            """
-            the same ao if orbital is the same and both belong to the same equivalent atoms
-            """
-            return ao1.equivalent_index == ao2.equivalent_index and \
-                   ao1.l == ao2.l and ao1.m == ao2.m and ao1.n == ao2.n
-
-        # case 1: the same sequence
-        vector_same = np.allclose(
-            self.vector_right_to_left, o.vector_right_to_left, 
-            atol = zero_tolerance
-        )
-        ao_same = check_ao(self.l_AO, o.l_AO) and check_ao(self.r_AO, o.r_AO)
-        if vector_same and ao_same: return True
-
-        vector_reverse = np.allclose(
-            self.vector_right_to_left, -1.0 * o.vector_right_to_left, 
-            atol = zero_tolerance
-        )
-        ao_reverse = check_ao(self.l_AO, o.r_AO) and check_ao(self.r_AO, o.l_AO)
-        if vector_reverse and ao_reverse: return True
-
-        return False
+        
 
 
     def __str__(self) -> str:
@@ -113,9 +92,9 @@ class AOPair:
         left = self.l_AO; right = self.r_AO
         rij = right.absolute_position - left.absolute_position
         result += f"{left.chemical_symbol:>2s}-{left.primitive_index:0>2d} " 
-        result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
+        result += f"{tools.parse_orbital(left.n, left.l, left.m):>7s} -> "
         result += f"{right.chemical_symbol:>2s}-{right.primitive_index:0>2d} "
-        result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
+        result += f"{tools.parse_orbital(right.n, right.l, right.m):>7s} "
         result += "r = ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
         #result += " t = ({:>3d}{:>3d}{:>3d})".format(*np.array(right.translation, dtype=int))
         return result
@@ -133,7 +112,7 @@ class AOPairWithValue(AOPair):
 
     def __eq__(self, o: "AOPairWithValue") -> bool:
         pair_OK = super()
-        valueOK = np.isclose(self.value, o.value, atol = zero_tolerance)
+        valueOK = np.isclose(self.value, o.value, atol = params.ztol)
         pair_OK = (self.l_AO == o.l_AO and self.r_AO == o.r_AO) or \
                   (self.l_AO == o.r_AO and self.r_AO == o.l_AO)
         
@@ -144,9 +123,9 @@ class AOPairWithValue(AOPair):
         left = self.l_AO; right = self.r_AO
         rij = right.absolute_position - left.absolute_position
         result += f"{left.chemical_symbol:>2s}-{left.primitive_index:0>2d} " 
-        result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
+        result += f"{tools.parse_orbital(left.n, left.l, left.m):>7s} -> "
         result += f"{right.chemical_symbol:>2s}-{right.primitive_index:0>2d} "
-        result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
+        result += f"{tools.parse_orbital(right.n, right.l, right.m):>7s} "
         result += "@ ({:>6.2f},{:>6.2f},{:>6.2f}) ".format(*rij)
         result += f"Hij = {self.value:>.4f}"
         return result
@@ -160,7 +139,7 @@ class AOSubspace:
     specified by aos
     """
     aos: typing.List[AO]
-    namedlcs: typing.List[NamedLC] # only the components belonging to the AOs
+    namedlcs: typing.List[SALCs.NamedLC] # only the components belonging to the AOs
 
     def __repr__(self) -> str:
         result = ["subspace consists of:"]
@@ -174,7 +153,7 @@ class AOSubspace:
 
 
 def get_AO_from_CrystalSites_OrbitalList(
-    crystalsites: typing.List[CrystalSite],orbitallist: OrbitalsList
+    crystalsites: typing.List[structure.CrystalSite],orbitallist: atomic_orbitals.OrbitalsList
 ) -> typing.List[AO]:
     """given a list of atomic position and orbitals, convernt them to a list of AO"""
 
@@ -214,20 +193,20 @@ def get_orbital_ln_from_string(orbital: str) -> typing.List[typing.Tuple[int, in
     ]
 
 
-def generate_aopair_from_cluster(cluster: CenteredCluster) -> typing.List[AOPair]:
+def generate_aopair_from_cluster(cluster: structure.CenteredCluster) -> typing.List[AOPair]:
     """generate all AOPair on the given centeredCluster"""
     all_aopairs_on_cluster = []
     center_nls = get_orbital_ln_from_string(cluster.center_site.orbitals)
-    center_vs = VectorSpace.from_sites_and_orbitals(
-                [cluster.center_site.site], OrbitalsList([Orbitals(center_nls)])
+    center_vs = SALCs.VectorSpace.from_sites_and_orbitals(
+                [cluster.center_site.site], atomic_orbitals.OrbitalsList([atomic_orbitals.Orbitals(center_nls)])
             )
 
     neighbor_nls = [get_orbital_ln_from_string(nsite.orbitals) for nsite in cluster.neighbor_sites]
     neighbor_sites = \
                 [cluster.center_site.site] + [csite.site for csite in cluster.neighbor_sites]
-    neighbor_vs = VectorSpace.from_sites_and_orbitals(
+    neighbor_vs = SALCs.VectorSpace.from_sites_and_orbitals(
                     neighbor_sites, 
-                    OrbitalsList([Orbitals(center_nls)] + [Orbitals(nl) for nl in neighbor_nls])
+                    atomic_orbitals.OrbitalsList([atomic_orbitals.Orbitals(center_nls)] + [atomic_orbitals.Orbitals(nl) for nl in neighbor_nls])
                 )
 
     center_aos = get_AO_from_CrystalSites_OrbitalList(

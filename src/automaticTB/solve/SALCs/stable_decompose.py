@@ -1,16 +1,18 @@
 import typing
+
 import numpy as np
-from ..sitesymmetry import SiteSymmetryGroup
+
+from automaticTB import parameters as params
+from automaticTB.solve import sitesymmetry as ssym
+
 from .vectorspace import VectorSpace, get_nonzero_independent_linear_combinations
-from .linear_combination import LinearCombination
-from automaticTB.parameters import zero_tolerance
-from .named_lc import IrrepSymbol, NamedLC
+from .linear_combination import LinearCombination, IrrepSymbol, NamedLC
 from .symmetrygroup import SiteSymmetryGroupwithOrbital, CartesianOrbitalRotation, IrreducibleRep
 
 __all__ = ["decompose_vectorspace_to_namedLC"]
 
 
-def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: SiteSymmetryGroup) \
+def decompose_vectorspace_to_namedLC(vectorspace: VectorSpace, group: ssym.SiteSymmetryGroup) \
 -> typing.List[NamedLC]:
     if group.is_spherical_symmetry:
         return decompose_vectorspace_to_namedLC_sphericalsymmetric(vectorspace)
@@ -41,7 +43,7 @@ def decompose_vectorspace_to_namedLC_sphericalsymmetric(
 
 
 def decompose_vectorspace_to_namedLC_not_sphericalsymmetric(
-    vectorspace: VectorSpace, group: SiteSymmetryGroup
+    vectorspace: VectorSpace, group: ssym.SiteSymmetryGroup
 ) -> typing.List[NamedLC]:
     """
     This function recursively decompose vector space so that the input vector space is decomposed entirely into one-dimensional 
@@ -159,7 +161,7 @@ def _get_orbital(lc: LinearCombination, rotations: typing.List[CartesianOrbitalR
     for rot in rotations:
         rotated = lc.symmetry_rotate_CartesianOrbital(rot)
         matrix.append(rotated.coefficients)
-        new_rank = np.linalg.matrix_rank(np.vstack(matrix), tol = zero_tolerance)
+        new_rank = np.linalg.matrix_rank(np.vstack(matrix), tol = params.ztol)
         if new_rank > rank:
             result.append(rotated)
             rank = new_rank

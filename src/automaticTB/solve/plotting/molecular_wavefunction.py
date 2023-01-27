@@ -1,6 +1,6 @@
 import typing, dataclasses
 import numpy as np
-from ...parameters import zero_tolerance
+from ...parameters import ztol
 from ...tools import chemical_symbols
 
 __all__ = ["Wavefunction", "WavefunctionsOnSite", "MolecularWavefunction"]
@@ -34,7 +34,7 @@ class WavefunctionsOnSite:
                 )
         
         for wf in self.wfs:
-            if np.abs(wf.coeff) <= zero_tolerance: continue
+            if np.abs(wf.coeff) <= ztol: continue
             main += "n={:d} l={:d} m={:d} coeff = {:>6.2f}".format(
                     wf.n, wf.l,wf.m,wf.coeff.real
                 )

@@ -3,7 +3,7 @@ from e3nn import o3
 from e3nn.o3 import FullyConnectedTensorProduct, FullTensorProduct
 from e3nn.nn import Gate, FullyConnectedNet, NormActivation
 from e3nn.math import soft_one_hot_linspace, soft_unit_step
-from ..parameters import torch_float
+from .torch_parameters import torch_float
 from torch_geometric.data import Data
 from .MOadoptor import embed_atomic_orbital_coefficients
 

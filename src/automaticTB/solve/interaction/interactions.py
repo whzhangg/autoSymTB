@@ -1,11 +1,14 @@
-import typing, numpy as np, dataclasses
+import typing
+import dataclasses
 
-from automaticTB.tools import LinearEquation, tensor_dot, solve_matrix
-from automaticTB.parameters import zero_tolerance, complex_coefficient_type
-from automaticTB.solve.atomic_orbitals import Orbitals, OrbitalsList
-from automaticTB.solve.structure import CenteredCluster
-from automaticTB.solve.SALCs import VectorSpace, decompose_vectorspace_to_namedLC, NamedLC
-from .ao_rotation_tools import AOpairRotater, find_rotation_between_two_clusters, get_translated_AO
+import numpy as np
+
+from automaticTB import tools
+from automaticTB import parameters as params
+from automaticTB.solve import atomic_orbitals
+from automaticTB.solve import structure
+from automaticTB.solve import SALCs
+from .ao_rotation_tools import AOpairRotater, find_rotation_btw_clusters, get_translated_AO
 from .interaction_pairs import (
     AOPair, AOSubspace, get_orbital_ln_from_string,
     generate_aopair_from_cluster, get_AO_from_CrystalSites_OrbitalList,
@@ -13,39 +16,39 @@ from .interaction_pairs import (
 
 
 def get_InteractingAOSubspaces_from_cluster(
-    cluster: CenteredCluster
+    cluster: structure.CenteredCluster
 ) -> typing.List[typing.Tuple[AOSubspace, AOSubspace]]:
     """solved a centered equivalent cluster into a set of interacting subspaces"""
 
-    center_vectorspace: typing.List[VectorSpace] = []
-    center_namedLCs: typing.List[typing.List[NamedLC]] = []
+    center_vectorspace: typing.List[SALCs.VectorSpace] = []
+    center_namedLCs: typing.List[typing.List[SALCs.NamedLC]] = []
     center_nls = get_orbital_ln_from_string(cluster.center_site.orbitals)
     for cnl in center_nls:
-        vs = VectorSpace.from_sites_and_orbitals(
+        vs = SALCs.VectorSpace.from_sites_and_orbitals(
                 [cluster.center_site.site], 
-                OrbitalsList(
-                    [Orbitals([cnl])]
+                atomic_orbitals.OrbitalsList(
+                    [atomic_orbitals.Orbitals([cnl])]
                 )
             )
         center_vectorspace.append(vs)
         center_namedLCs.append(
-            decompose_vectorspace_to_namedLC(vs, cluster.sitesymmetrygroup)
+            SALCs.decompose_vectorspace_to_namedLC(vs, cluster.sitesymmetrygroup)
         )
 
-    neighbor_vectorspace: typing.List[VectorSpace] = []
-    neighbor_namedLCs: typing.List[typing.List[NamedLC]] = []
+    neighbor_vectorspace: typing.List[SALCs.VectorSpace] = []
+    neighbor_namedLCs: typing.List[typing.List[SALCs.NamedLC]] = []
     neighbor_nls = get_orbital_ln_from_string(cluster.neighbor_sites[0].orbitals)
     neighborsites = [csite.site for csite in cluster.neighbor_sites]
     for nnl in neighbor_nls:
-        vs = VectorSpace.from_sites_and_orbitals(
+        vs = SALCs.VectorSpace.from_sites_and_orbitals(
                 neighborsites, 
-                OrbitalsList(
-                    [Orbitals([nnl])] * len(neighborsites)
+                atomic_orbitals.OrbitalsList(
+                    [atomic_orbitals.Orbitals([nnl])] * len(neighborsites)
                 )
             )
         neighbor_vectorspace.append(vs)
         neighbor_namedLCs.append(
-            decompose_vectorspace_to_namedLC(vs, cluster.sitesymmetrygroup)
+            SALCs.decompose_vectorspace_to_namedLC(vs, cluster.sitesymmetrygroup)
         )
     
     subspaces_pairs = []
@@ -99,19 +102,19 @@ class InteractionSpace:
             )
     
         if not self.free_indices:
-            return np.zeros(len(self.all_AOPairs), dtype=complex_coefficient_type)
+            return np.zeros(len(self.all_AOPairs), dtype=params.COMPLEX_TYPE)
         elif set(self.free_indices) == set(all_indices):
             indices_list = { f:i for i, f in enumerate(self.free_indices)}
             return [values[indices_list[i]] for i in range(len(self.all_AOPairs))]
         
         # obtain values for additional_required_indices
         new_rows = np.zeros(
-            (len(self.free_indices), len(self.all_AOPairs)), dtype=complex_coefficient_type)
+            (len(self.free_indices), len(self.all_AOPairs)), dtype=params.COMPLEX_TYPE)
 
         for i, ipair in enumerate(self.free_indices):
             new_rows[i, ipair] = 1.0
 
-        tmp = LinearEquation.from_equation(np.vstack([self.homogeneous_equation, new_rows]))
+        tmp = tools.LinearEquation.from_equation(np.vstack([self.homogeneous_equation, new_rows]))
         # additional required index
         additional_required_indices = tmp.free_variable_indices
 
@@ -120,22 +123,22 @@ class InteractionSpace:
             related_indices = set()
             indices = np.array(additional_required_indices)
             for row in self.homogeneous_equation:
-                if np.all(np.isclose(row[indices], 0.0, atol = zero_tolerance)):
+                if np.all(np.isclose(row[indices], 0.0, atol = params.ztol)):
                     continue
                 related_indices |= set(
-                    np.argwhere(np.invert(np.isclose(row, 0.0, atol=zero_tolerance))).flatten()
+                    np.argwhere(np.invert(np.isclose(row, 0.0, atol=params.ztol))).flatten()
                 )
             # AOs that depend on the selected additional_required_index
 
             solvable_indices = list(set(range(len(self.all_AOPairs))) - related_indices).sort()
             map_from_old_indices = {old: new for new, old in enumerate(solvable_indices)}
 
-            solvable_parts = LinearEquation.from_equation(
+            solvable_parts = tools.LinearEquation.from_equation(
                 self.homogeneous_equation[:, np.array(solvable_indices)]
             )
             free_indices_for_solvable_part = [map_from_old_indices[i] for i in self.free_indices]
 
-            solved_values = solve_matrix(solvable_parts, free_indices_for_solvable_part, values)
+            solved_values = tools.solve_matrix(solvable_parts, free_indices_for_solvable_part, values)
             solved_aopair_values = {
                 self.all_AOPairs[si]:solved_values[i] for i, si in enumerate(solvable_indices)
             } 
@@ -157,7 +160,7 @@ class InteractionSpace:
         all_required_indices = self.free_indices + self.additional_required_indices
         all_required_values = np.hstack([values, np.array(additional_values)])
 
-        return solve_matrix(self.homogeneous_equation, all_required_indices, all_required_values)
+        return tools.solve_matrix(self.homogeneous_equation, all_required_indices, all_required_values)
 
 
     def print_log(self) -> None:
@@ -178,7 +181,7 @@ class InteractionSpace:
         cls, allpairs: typing.List[AOPair], matrix: np.ndarray, verbose: bool = False
     ) -> "InteractionSpace":
         if len(matrix) > 0:
-            linear = LinearEquation.from_equation(matrix)
+            linear = tools.LinearEquation.from_equation(matrix)
             return cls(
                 allpairs, linear.free_variable_indices, linear.row_echelon_form
             )
@@ -207,7 +210,7 @@ class InteractionSpace:
 
         nao = len(all_aopairs)
         nrow_homo = sum(n for _,n in block_diagonal_size)
-        homo_matrix = np.zeros((nrow_homo, nao), dtype=complex_coefficient_type)
+        homo_matrix = np.zeros((nrow_homo, nao), dtype=params.COMPLEX_TYPE)
 
         nr1_start = 0 # homogeneous matrix
         col_start = 0
@@ -236,7 +239,7 @@ class InteractionSpace:
         _forbidden_symbol = 0
 
         all_aopairs = [ 
-            AOPair.from_pair(p) for p in tensor_dot(l_subspace.aos, r_subspace.aos) 
+            AOPair.from_pair(p) for p in tools.tensor_dot(l_subspace.aos, r_subspace.aos) 
         ]
         
         reps_tp_list = []
@@ -310,7 +313,7 @@ class InteractionSpace:
     @classmethod
     def from_solvedInteraction_and_symmetry(cls, 
         solved_interactions: typing.List["InteractionSpace"],
-        nonequivalent_clustersets: typing.List[typing.List[CenteredCluster]],
+        nonequivalent_clustersets: typing.List[typing.List[structure.CenteredCluster]],
         possible_rotations: np.ndarray,
         verbose: bool = False
     ) -> "InteractionSpace":
@@ -340,7 +343,7 @@ class InteractionSpace:
         for interaction in solved_interactions:
             _block = np.zeros(
                 (len(interaction.homogeneous_equation), num_aopairs), 
-                dtype=complex_coefficient_type
+                dtype=params.COMPLEX_TYPE
             )
             for ip, pair in enumerate(interaction.all_AOPairs):
                 new_index = aopair_index[pair]
@@ -357,7 +360,7 @@ class InteractionSpace:
             # each of the cluster in the unit cell
             operations = []
             for cluster in eq_clusters:
-                rotation = find_rotation_between_two_clusters(
+                rotation = find_rotation_btw_clusters(
                     eq_clusters[0], cluster, possible_rotations
                 )
                 frac_translation = cluster.center_site.absolute_position \
@@ -368,19 +371,19 @@ class InteractionSpace:
                     sym_relation, sym_rev_relation = rotator.rotate(
                         aopair, rotation, frac_translation, print_debug=False
                     )
-                    if not np.all(np.isclose(sym_relation, 0.0, atol=zero_tolerance)):
+                    if not np.all(np.isclose(sym_relation, 0.0, atol=params.ztol)):
                         symmetry_relationships.append(sym_relation)
-                    if not np.all(np.isclose(sym_rev_relation, 0.0, atol=zero_tolerance)):
+                    if not np.all(np.isclose(sym_rev_relation, 0.0, atol=params.ztol)):
                         symmetry_reverse_relationships.append(sym_rev_relation)
             
             symmetry_operations.append(operations)
                 
-        homogeneous_equation = LinearEquation.from_equation(np.vstack(
+        homogeneous_equation = tools.LinearEquation.from_equation(np.vstack(
                 homogeneous_relationship + \
                 symmetry_relationships
             ))
 
-        equation_with_additional_relationship = LinearEquation.from_equation(np.vstack(
+        equation_with_additional_relationship = tools.LinearEquation.from_equation(np.vstack(
             homogeneous_relationship + \
             symmetry_relationships + \
             symmetry_reverse_relationships

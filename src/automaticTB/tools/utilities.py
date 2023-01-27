@@ -1,6 +1,46 @@
-import typing, numpy as np
+import typing
+import functools
+import time
 
-from automaticTB.parameters import zero_tolerance
+import numpy as np
+
+
+def rotation_fraction_to_cartesian(input_rotations: np.ndarray, cell: np.ndarray) -> np.ndarray:
+    """accept single rotation as (3,3) or rotations as (n,3,3)"""
+    cellT = cell.transpose()
+    cellT_inv = np.linalg.inv(cellT)
+    if input_rotations.shape == (3,3):
+        step1 = np.matmul(cellT, input_rotations)
+        return np.matmul(step1, cellT_inv)
+    else:
+        step1 = np.einsum("ij, njk -> nik", cellT, input_rotations)
+        return np.einsum("nik, kj -> nij", step1, cellT_inv)
+
+
+def rotation_cartesian_to_fraction(input_rotations: np.ndarray, cell: np.ndarray) -> np.ndarray:
+    """accept single rotation as (3,3) or rotations as (n,3,3)"""
+    cellT = cell.transpose()
+    cellT_inv = np.linalg.inv(cellT)
+    if input_rotations.shape == (3,3):
+        step1 = np.matmul(cellT_inv, input_rotations)
+        return np.matmul(step1, cellT)
+    else:
+        step1 = np.einsum("ij, njk -> nik", cellT_inv, input_rotations)
+        return np.einsum("nik, kj -> nij", step1, cellT)
+
+
+def timefn(fn):
+    """print the execution time in second for a given function"""
+    @functools.wraps(fn)
+    
+    def measure_time(*args, **kwargs):
+        t1 = time.time()
+        result = fn(*args, **kwargs)
+        t2 = time.time()
+        print(f"@timefn: {fn.__name__} took {t2 - t1:>.8f} seconds")
+        return result
+
+    return measure_time
 
 
 def get_cell_from_origin_centered_positions(positions: typing.List[np.ndarray]) -> np.ndarray:
@@ -41,7 +81,7 @@ def plot_value_distribution(data: np.ndarray, filename : str) -> None:
         axes.set_xlabel("Num. points")
         axes.set_ylabel("Values abs()")
         maximum = np.max(flattened) * 10
-        min_range = zero_tolerance ** 2 / maximum
+        min_range = 1e-10 ** 2 / maximum
         axes.set_ylim(min_range, maximum)
         axes.set_yscale('log')
         x = np.arange(len(flattened))

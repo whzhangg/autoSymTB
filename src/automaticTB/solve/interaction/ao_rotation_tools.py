@@ -1,9 +1,13 @@
-import typing, dataclasses, copy, numpy as np
+import typing
+import copy
+import dataclasses
 
-from automaticTB.parameters import complex_coefficient_type, tolerance_structure, zero_tolerance
-from automaticTB.solve.atomic_orbitals import Orbitals
-from automaticTB.solve.structure import CenteredCluster
-from automaticTB.solve.rotation import orbital_rotation_from_symmetry_matrix
+import numpy as np
+
+from automaticTB import parameters as params
+from automaticTB.solve import rotation
+from automaticTB.solve import atomic_orbitals
+from automaticTB.solve import structure
 from .interaction_pairs import AO, AOPair
 
 
@@ -31,12 +35,12 @@ def unordered_list_equivalent(array1: np.ndarray, array2: np.ndarray, eps: float
     return True
 
 
-def find_rotation_between_two_clusters(
-    cluster1: CenteredCluster, cluster2: CenteredCluster, possible_rotations: np.ndarray
+def find_rotation_btw_clusters(
+    cluster1: structure.CenteredCluster, cluster2: structure.CenteredCluster, possible_rotations: np.ndarray
 ) -> np.ndarray:
     """return the rotation between two clusters, raise error if not found"""
 
-    def _get_array_representation(cluster: CenteredCluster):
+    def _get_array_representation(cluster: structure.CenteredCluster):
         """add atomic number as the additional coordinats"""
         result = np.empty((len(cluster.neighbor_sites), 4), dtype=float)
         for i, nsite in enumerate(cluster.neighbor_sites):
@@ -51,7 +55,7 @@ def find_rotation_between_two_clusters(
     for rot33 in possible_rotations:
         rot44[1:4, 1:4] = rot33
         rotated_array1 = np.einsum("ij,zj->zi", rot44, set1)
-        if unordered_list_equivalent(rotated_array1, set2, tolerance_structure):
+        if unordered_list_equivalent(rotated_array1, set2, params.stol):
             return rot33
     else:
         print("=" * 60)
@@ -77,7 +81,7 @@ class Site:
 
     @property
     def rounded_position(self) -> typing.Tuple[float, float,float]:
-        digit = np.log10(1 / zero_tolerance)
+        digit = np.log10(1 / params.ztol)
         return (
             round(self.abs_pos[0], digit),
             round(self.abs_pos[1], digit),
@@ -97,7 +101,7 @@ class Site:
         )
 
     @classmethod
-    def from_cluster(cls, cluster: CenteredCluster) -> "Site":
+    def from_cluster(cls, cluster: structure.CenteredCluster) -> "Site":
         center = cluster.center_site
         return cls(
             pindex = center.index_pcell,
@@ -148,14 +152,14 @@ class AOpairRotater:
         r_ao = ao_pair.r_AO
 
 
-        result_coefficients = np.zeros(self.num_aopairs, dtype=complex_coefficient_type)
+        result_coefficients = np.zeros(self.num_aopairs, dtype=params.COMPLEX_TYPE)
         result_coefficients[self.all_ao_pairs_index[ao_pair]] -= 1.0
-        reversecoefficients = np.zeros(self.num_aopairs, dtype=complex_coefficient_type)
+        reversecoefficients = np.zeros(self.num_aopairs, dtype=params.COMPLEX_TYPE)
         reversecoefficients[self.all_ao_pairs_index[ao_pair]] -= 1.0
 
         
-        if np.allclose(rotation, self.identity_op, zero_tolerance) \
-        and np.allclose(translation, self.zero_translation, zero_tolerance):
+        if np.allclose(rotation, self.identity_op, params.ztol) \
+        and np.allclose(translation, self.zero_translation, params.ztol):
             # quickly return for identity
             lr_pair = ao_pair
             rl_pair = get_translated_AO(AOPair(r_ao, l_ao)) # reverse pair
@@ -185,7 +189,7 @@ class AOpairRotater:
 
         new_l_site = None
         for upos in self.unique_sites:
-            if np.allclose(new_l_absolute_position, upos.abs_pos, atol = tolerance_structure):
+            if np.allclose(new_l_absolute_position, upos.abs_pos, atol = params.stol):
                 new_l_site = upos
                 break
         else:
@@ -193,7 +197,7 @@ class AOpairRotater:
 
         new_r_site = None
         for upos in self.unique_sites:
-            if np.allclose(new_r_absolute_position, upos.abs_pos, atol=tolerance_structure):
+            if np.allclose(new_r_absolute_position, upos.abs_pos, atol=params.stol):
                 new_r_site = upos
                 break
         else:
@@ -203,7 +207,7 @@ class AOpairRotater:
         r_rotated_results = self._rotate_ao_simple(r_ao, rotation)
 
         for ln,ll,lm,lcoe in l_rotated_results:
-            if np.abs(lcoe) < zero_tolerance: continue
+            if np.abs(lcoe) < params.ztol: continue
 
             l_ao = AO(
                 equivalent_index=new_l_site.eqindex,
@@ -214,7 +218,7 @@ class AOpairRotater:
                 n = ln, l = ll, m = lm
             )
             for rn,rl,rm,rcoe in r_rotated_results:
-                if np.abs(rcoe) < zero_tolerance: continue
+                if np.abs(rcoe) < params.ztol: continue
 
                 r_ao = AO(
                     equivalent_index=new_r_site.eqindex,
@@ -250,24 +254,24 @@ class AOpairRotater:
         return (result_coefficients, reversecoefficients)
         zeros = np.zeros_like(result_coefficients)
         resulting_pairs = []
-        if not np.allclose(result_coefficients, zeros, atol=zero_tolerance):
+        if not np.allclose(result_coefficients, zeros, atol=params.ztol):
             resulting_pairs.append(result_coefficients)
         if self.use_reverse_equivalence and \
-            not np.allclose(reversecoefficients, zeros, atol=zero_tolerance):
+            not np.allclose(reversecoefficients, zeros, atol=params.ztol):
             resulting_pairs.append(reversecoefficients)
         return resulting_pairs
 
 
     @staticmethod
     def _rotate_ao_simple(ao, cartesian_rotation):
-        orbitals = Orbitals([(ao.n,ao.l)])
-        coefficient = np.zeros(len(orbitals.sh_list), dtype = complex_coefficient_type)
+        orbitals = atomic_orbitals.Orbitals([(ao.n,ao.l)])
+        coefficient = np.zeros(len(orbitals.sh_list), dtype = params.COMPLEX_TYPE)
         for i, sh in enumerate(orbitals.sh_list):
             if sh.n == ao.n and sh.l == ao.l and sh.m == ao.m:
                 coefficient[i] = 1.0
                 break
         
-        orb_rotation = orbital_rotation_from_symmetry_matrix(
+        orb_rotation = rotation.orbital_rotation_from_symmetry_matrix(
             cartesian_rotation, orbitals.irreps_str
         )
         rotated_coefficient = np.dot(orb_rotation, coefficient)

@@ -1,17 +1,17 @@
+"""this package find the the set of symmetry operation"""
 
-import copy, itertools, typing, numpy as np
-from collections import defaultdict
+import copy
+import itertools
+import typing
+import collections
+
+import numpy as np
 
 from pymatgen.core.operations import SymmOp
 from pymatgen.core.structure import Molecule
 from pymatgen.util.coord import find_in_coord_list
 from pymatgen.symmetry.analyzer import cluster_sites, PointGroupOperations, generate_full_symmops
 
-__all__ = ["PointGroupAnalyzer", "get_schSymbol_symOperations_from_pos_types"]
-
-"""
-this package find the the set of symmetry operation
-"""
 
 def symOperations_from_pos_types(
     cart_positions: np.ndarray, types: typing.List[int], tolerance: float = 0.05
@@ -350,7 +350,7 @@ class PointGroupAnalyzer:
         axis. O molecules have one unique 4, 3 and 2-fold axes. I molecules
         have a unique 5-fold axis.
         """
-        rot_present = defaultdict(bool)
+        rot_present = collections.defaultdict(bool)
         origin_site, dist_el_sites = cluster_sites(self.centered_mol, self.tol)
         test_set = min(dist_el_sites.values(), key=lambda s: len(s))
         coords = [s.coords for s in test_set]
@@ -447,7 +447,7 @@ class PointGroupAnalyzer:
             that maps atom ``i`` unto ``j``.
         """
         UNIT = np.eye(3)
-        eq_sets, operations = defaultdict(set), defaultdict(dict)
+        eq_sets, operations = collections.defaultdict(set), collections.defaultdict(dict)
         symm_ops = [op.rotation_matrix for op in generate_full_symmops(self.symmops, self.tol)]
 
         def get_clustered_indices():

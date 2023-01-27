@@ -1,6 +1,7 @@
-import yaml, json, typing, os
+import typing
+import json
+import yaml
 
-import ase
 
 _print_lm = {
     (0, 0): "s",
@@ -27,15 +28,6 @@ def parse_orbital(n: int, l: int, m: int) -> str:
         formatted = _print_lm[(l,m)]
         return f"{n}{formatted}"
 
-def atom_from_cpt(lattice, positions, types) -> ase.Atoms:
-    
-    result = ase.Atoms(cell = lattice, scaled_positions = positions)
-    if type(types[0]) == str:
-        result.set_chemical_symbols(types)
-    else:
-        result.set_atomic_numbers(types)
-    return result
-    
 
 def write_json(dictionary, filename):
     f=open(filename,'w')
@@ -61,16 +53,6 @@ def read_yaml(filename: str):
     with open(filename, 'r') as f:
         groupdata = yaml.load(f, Loader=yaml.Loader)
     return groupdata
-
-
-def read_cif_to_cpt(filename: str) -> tuple:
-    if not filename.endswith("cif"):
-        raise RuntimeError(f"Structure file {filename} is not a .cif file !")
-    elif not os.path.exists(filename):
-        raise RuntimeError(f"Structure file {filename} cannot be found !")
-    else:
-        struct: ase.Atoms = ase.io.read(filename,format='cif')
-        return struct.get_cell(), struct.get_scaled_positions(), struct.get_atomic_numbers()
 
 
 def format_lines_into_two_columns(

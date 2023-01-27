@@ -1,14 +1,65 @@
-from .symmetry_elements import SymDirection, Symmetries_on_Direction_Set
-import typing, abc, re
+import typing
+import abc
+import re
+
 import numpy as np
 
-def get_vector_from_hkl(hkl: str) -> np.ndarray:
-    parts = re.findall(r"-?\d", hkl)
-    return np.array(parts, dtype=float)
+from .symmetry_elements import SymDirection, Symmetries_on_Direction_Set
 
-def is_righthand(x, y, z) -> bool:
-    cross = np.cross(x, y)
-    return np.dot(cross, z) > 0.0
+
+def get_finder(
+    groupname: str, 
+    directions: typing.Dict[str, Symmetries_on_Direction_Set]
+) -> "AxisFinder":
+    if groupname in ["1", "-1"]:
+        return OriginFinder()
+
+    elif groupname in ["2", "m", "2/m", "4", "-4", "4/m", "3", "-3", "6", "-6", "6/m"]:
+        z = directions["primiary"].directions[0].vector
+        return ZAxisFinder(z)
+
+    elif groupname in ["222", "mm2", "mmm"]:
+        x = directions["primiary"].directions[0].vector
+        y = directions["secondary"].directions[0].vector
+        z = directions["tertiary"].directions[0].vector
+        if not _is_righthand(x, y, z):
+            z = -1 * z
+        return CubicFinder(x, y, z)
+
+    elif groupname in ["422", "4mm", "-42m", "4/mmm"]:
+        #tetragonal
+        z = directions["primiary"].directions[0].vector
+        x = directions["secondary"].directions[0].vector
+        y = directions["secondary"].directions[1].vector
+        if not _is_righthand(x, y, z):
+            z = -1 * z
+        return CubicFinder(x, y, z)
+
+    elif groupname in ["32", "3m", "-3m", "622", "6mm", "-6m2", "6/mmm"]:
+        # hexagonal
+        z = directions["primiary"].directions[0].vector
+        x = directions["secondary"].directions[0].vector
+        y = directions["secondary"].directions[1].vector
+        # make sure that x, y axis have angle 120 degree
+        if np.dot(x, y) > 0:
+            y = -1 * y
+        if not _is_righthand(x, y, z):
+            z = -1 * z
+        return HexagonalFinder(x, y, z)
+
+    elif groupname in ["23", "m-3", "432", "-43m", "m-3m"]:
+        #cubic
+        x = directions["primiary"].directions[0].vector
+        y = directions["primiary"].directions[1].vector
+        z = directions["primiary"].directions[2].vector
+        if not _is_righthand(x, y, z):
+            z = -1 * z
+        return CubicFinder(x, y, z)
+
+    else:
+        # this cannot happen
+        raise ValueError("get_finder, groupname is not included")
+
 
 class AxisFinder(abc.ABC):
 
@@ -72,7 +123,7 @@ class CubicFinder(AxisFinder):
         self._xyz = np.vstack([x, y, z]).T
         self._directions = []
         for hkl in self.possible_value:
-            v = get_vector_from_hkl(hkl)
+            v = _get_vector_from_hkl(hkl)
             self._directions.append(np.dot(self._xyz, v))
     
     def find_hkl_from_direction(self, input_direction: SymDirection) -> str:
@@ -97,7 +148,7 @@ class HexagonalFinder(AxisFinder):
         self._xyz = np.vstack([x, y, z]).T
         self._directions = []
         for hkl in self.possible_value:
-            v = get_vector_from_hkl(hkl)
+            v = _get_vector_from_hkl(hkl)
             self._directions.append(np.dot(self._xyz, v))
     
     def find_hkl_from_direction(self, input_direction: SymDirection) -> str:
@@ -114,60 +165,17 @@ class HexagonalFinder(AxisFinder):
             raise ValueError(f"HexagonalFinder, input hkl {hkl} is problematic")
 
 
-def get_finder(
-    groupname: str, 
-    directions: typing.Dict[str, Symmetries_on_Direction_Set]
-) -> AxisFinder:
-    if groupname in ["1", "-1"]:
-        return OriginFinder()
+def _get_vector_from_hkl(hkl: str) -> np.ndarray:
+    parts = re.findall(r"-?\d", hkl)
+    return np.array(parts, dtype=float)
 
-    elif groupname in ["2", "m", "2/m", "4", "-4", "4/m", "3", "-3", "6", "-6", "6/m"]:
-        z = directions["primiary"].directions[0].vector
-        return ZAxisFinder(z)
 
-    elif groupname in ["222", "mm2", "mmm"]:
-        x = directions["primiary"].directions[0].vector
-        y = directions["secondary"].directions[0].vector
-        z = directions["tertiary"].directions[0].vector
-        if not is_righthand(x, y, z):
-            z = -1 * z
-        return CubicFinder(x, y, z)
+def _is_righthand(x, y, z) -> bool:
+    cross = np.cross(x, y)
+    return np.dot(cross, z) > 0.0
 
-    elif groupname in ["422", "4mm", "-42m", "4/mmm"]:
-        #tetragonal
-        z = directions["primiary"].directions[0].vector
-        x = directions["secondary"].directions[0].vector
-        y = directions["secondary"].directions[1].vector
-        if not is_righthand(x, y, z):
-            z = -1 * z
-        return CubicFinder(x, y, z)
 
-    elif groupname in ["32", "3m", "-3m", "622", "6mm", "-6m2", "6/mmm"]:
-        # hexagonal
-        z = directions["primiary"].directions[0].vector
-        x = directions["secondary"].directions[0].vector
-        y = directions["secondary"].directions[1].vector
-        # make sure that x, y axis have angle 120 degree
-        if np.dot(x, y) > 0:
-            y = -1 * y
-        if not is_righthand(x, y, z):
-            z = -1 * z
-        return HexagonalFinder(x, y, z)
-
-    elif groupname in ["23", "m-3", "432", "-43m", "m-3m"]:
-        #cubic
-        x = directions["primiary"].directions[0].vector
-        y = directions["primiary"].directions[1].vector
-        z = directions["primiary"].directions[2].vector
-        if not is_righthand(x, y, z):
-            z = -1 * z
-        return CubicFinder(x, y, z)
-
-    else:
-        # this cannot happen
-        raise ValueError("get_finder, groupname is not included")
-
-reference = """
+"""
 # origin only -----------------------------------
        1 : 000
       -1 : 000
