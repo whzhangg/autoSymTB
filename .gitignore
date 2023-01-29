@@ -11,5 +11,8 @@ examples/**/*.pdf
 examples/**/*.yaml
 examples/_*
 
+tests/**/*.*
+!tests/run_*
+
 src/*.egg-info
 src/automaticTB/solve/sitesymmetry/Bilbao/local
