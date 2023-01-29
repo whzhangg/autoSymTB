@@ -6,7 +6,9 @@
 docs/
 tmp/
 examples/
-tests/
+
+/tests/**/*.*
+!tests/run_*.py
 
 src/*.egg-info
 src/automaticTB/solve/sitesymmetry/Bilbao/local
