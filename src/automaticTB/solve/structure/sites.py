@@ -3,7 +3,7 @@ import numpy as np
 
 from automaticTB import tools
 
-
+'''
 @dataclasses.dataclass
 class LocalSite:
     atomic_number: int
@@ -23,11 +23,11 @@ class LocalSite:
     def __repr__(self) -> str:
         atom = self.chemical_symbol
         return "{:>2s} @ ({:> 6.2f},{:> 6.2f},{:> 6.2f})".format(atom, *self.pos)
-
+'''
 
 @dataclasses.dataclass
 class CrystalSite:
-    site: LocalSite # absolute cartesian coordinates
+    atomic_number: int
     absolute_position: np.ndarray
     index_pcell: int
     equivalent_index: int
@@ -47,3 +47,6 @@ class CrystalSite:
                self.index_pcell == other.index_pcell and \
                np.allclose(self.translation, other.translation)
 
+    @property
+    def chemical_symbol(self) -> str:
+        return tools.chemical_symbols[self.atomic_number]

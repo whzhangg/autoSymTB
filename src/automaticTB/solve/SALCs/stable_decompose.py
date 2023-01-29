@@ -137,7 +137,7 @@ def _decompose_onelevel_for_irrep(lcs: typing.List[LinearCombination], operation
         sum_coefficients = np.zeros_like(lc.coefficients)
         for op, chi in zip(operations, characters):
             rotated = lc.symmetry_rotate_CartesianOrbital(op)
-            # rotated.scale_coefficients(chi * irrep_dimension / group_order)
+            # rotated.coefficients *= chi * irrep_dimension / group_order
             sum_coefficients += rotated.coefficients * (chi * irrep.dimension / group_order)
 
         transformed_LCs.append(lc.create_new_with_coefficients(sum_coefficients))

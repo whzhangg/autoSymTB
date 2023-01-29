@@ -119,6 +119,30 @@ As a result of profiling, `TightbindingModel` is re-written as `TightbindingMode
 
 It is found that implementation of multiprocess (using concurrent) does not speed up implementation of the mathematic process in `solve_secular`. It seems that the implementation of numpy and scipy already utilize all the parallel capability of multi-core (vie multi-threading, as discussed [here](https://stackoverflow.com/questions/6941459/is-it-possible-to-know-which-scipy-numpy-functions-run-on-multiple-cores)) so that any additional parallalization will not speed up the process. Therefore, in the implementation of transport property calculation, multiprocessing is not included. 
 
+### Importing
+
+Importing rules:
+
+1. Import as `from module import submodule` and use as `submodule.function()`, 
+
+Testing the speed of importing, the following points are found:
+
+1. Importing numpy took around 0.3 sec,
+
+2. Importing scipy took little time once numpy is imported,
+
+3. Importing torch after numpy require around 0.8 sec,
+
+4. Import `sympy` took around 0.3 sec, independent of  `numpy`
+
+5. Importing `ase` after numpy took little time
+
+6. Importing spglib after numpy took little time
+
+7. Importing `Structure` from pymatgen 0.3 sec
+
+8. importing torch is generally slow: around 0.8 sec, numpy import is around 0.3 sec. scipy does not add overhead upon numpy
+
 ## Appendix
 
 ### installation of libmsym (not needed)

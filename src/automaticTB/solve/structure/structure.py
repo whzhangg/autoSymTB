@@ -9,7 +9,7 @@ from pymatgen.analysis import local_env
 from automaticTB import tools
 from automaticTB import parameters as params
 from automaticTB.solve import sitesymmetry as ssym
-from .sites import LocalSite, CrystalSite
+from .sites import CrystalSite
 
 
 def _get_absolute_pos_from_cell_fractional_pos_translation(
@@ -101,12 +101,14 @@ class Structure:
     def cartesian_rotations(self) -> np.ndarray:
         return self._cartesian_rotations
 
+
     @property
     def centered_clusters(self) -> typing.List["CenteredCluster"]:
         if self._rcut is not None:
             return self._get_centered_cluster_rcut()
         else:
             return self._get_centered_cluster_voronoi()
+
 
     @property
     def equivalent_clusters(self) -> typing.Dict[int, typing.List["CenteredCluster"]]:
@@ -118,10 +120,9 @@ class Structure:
 
         return equivalent_clusters
 
+
     def _get_centered_cluster_rcut(self) -> typing.List["CenteredCluster"]:
-        """
-        get CenteredCluster using rcut method
-        """
+        """get CenteredCluster using rcut method"""
         c, p, t = self.cell, self.positions, self.types
 
         pymatgen_structure = matgenStructure.Structure(lattice = c, species = t, coords = p)
@@ -132,19 +133,19 @@ class Structure:
             neighbor_csites: typing.List[CrystalSite] = []
             for site in sites:
                 relative_cartesian = np.array([site.x, site.y, site.z]) - cpos
-                _localsite = LocalSite(t[site.index], relative_cartesian)
                 tr = np.array(site.image)
+                symbol = tools.chemical_symbols[t[site.index]]
                 _pos = _get_absolute_pos_from_cell_fractional_pos_translation(
                     c, p[site.index], tr
                 )
                 _crystalsite = \
                     CrystalSite(
-                        site = _localsite,
-                        absolute_position = _pos,
-                        index_pcell = site.index, 
-                        equivalent_index = self._eq_indices[site.index],
-                        translation = tr,
-                        orbitals = self._atomic_orbital_dict[_localsite.chemical_symbol]
+                        atomic_number=t[site.index], 
+                        absolute_position= _pos,
+                        index_pcell= site.index, 
+                        equivalent_index= self._eq_indices[site.index],
+                        translation= tr,
+                        orbitals= self._atomic_orbital_dict[symbol]
                     )
 
                 if np.linalg.norm(relative_cartesian) < params.ztol:
@@ -152,11 +153,18 @@ class Structure:
                 else:
                     neighbor_csites.append(_crystalsite)
             
+            neighbor_types = [csite.atomic_number for csite in neighbor_csites]
+            neighbor_pos = np.array([csite.absolute_position for csite in neighbor_csites])
+            neighbor_pos -= center_csite.absolute_position
+            symops = tools.find_all_rotations_btw_clusters(
+                neighbor_types, neighbor_pos, neighbor_types, neighbor_pos, 
+                self._cartesian_rotations, params.stol
+            )
             clusters.append(
                 CenteredCluster(
                     center_site = center_csite,
                     neighbor_sites = neighbor_csites,
-                    cart_rotations = self._cartesian_rotations
+                    sitesymmetrygroup=ssym.SiteSymmetryGroup.from_cartesian_matrices(symops)
                 )
             )
         
@@ -164,9 +172,7 @@ class Structure:
 
 
     def _get_centered_cluster_voronoi(self) -> typing.List["CenteredCluster"]:
-        """
-        get CenteredCluster using voronoi method
-        """
+        """get CenteredCluster using voronoi method"""
         c, p, t = self.cell, self.positions, self.types
         pymatgen_structure = matgenStructure.Structure(lattice = c, species = t, coords = p)
         neighborNN = local_env.VoronoiNN(cutoff = self.voronoi_rcut, compute_adj_neighbors = False)
@@ -176,15 +182,15 @@ class Structure:
             nn_info = neighborNN.get_nn_info(pymatgen_structure, i)
             # since voronoi nn_info does not contain the atom itself, we add it
 
-            _localsite = LocalSite(t[i], np.zeros_like(cpos))
+            symbol = tools.chemical_symbols[t[i]]
             center_csite = \
                 CrystalSite(
-                    site = _localsite,
-                    absolute_position = cpos,
-                    index_pcell = i,
-                    equivalent_index = self._eq_indices[i],
-                    translation = np.zeros_like(cpos),
-                    orbitals = self._atomic_orbital_dict[_localsite.chemical_symbol]
+                    atomic_number=t[i],
+                    absolute_position=cpos,
+                    index_pcell=i,
+                    equivalent_index=self._eq_indices[i],
+                    translation=np.zeros_like(cpos),
+                    orbitals=self._atomic_orbital_dict[symbol]
                 )
             
             # other nnsite
@@ -194,24 +200,32 @@ class Structure:
                 tr = nn["image"]
                 cartesian = self._cartesian_pos[index]
                 relative_cartesian = cartesian + np.dot(c.T, tr) - cpos
-                _localsite = LocalSite(t[index], relative_cartesian)
+
+                symbol = tools.chemical_symbols[t[index]]
                 _pos = _get_absolute_pos_from_cell_fractional_pos_translation(c, p[index], tr)
                 neighbor_csites.append(
                     CrystalSite(
-                        site = _localsite, 
+                        atomic_number=t[index],
                         absolute_position = _pos,
                         index_pcell = index,
                         equivalent_index = self._eq_indices[index],
                         translation = tr, 
-                        orbitals = self._atomic_orbital_dict[_localsite.chemical_symbol]
+                        orbitals = self._atomic_orbital_dict[symbol]
                     )
                 )
-            
+
+            neighbor_types = [csite.atomic_number for csite in neighbor_csites]
+            neighbor_pos = np.array([csite.absolute_position for csite in neighbor_csites])
+            neighbor_pos -= cpos
+            symops = tools.find_all_rotations_btw_clusters(
+                neighbor_types, neighbor_pos, neighbor_types, neighbor_pos, 
+                self._cartesian_rotations, params.stol
+            )
             clusters.append(
                 CenteredCluster(
                     center_site = center_csite,
                     neighbor_sites = neighbor_csites,
-                    cart_rotations = self._cartesian_rotations
+                    sitesymmetrygroup=ssym.SiteSymmetryGroup.from_cartesian_matrices(symops)
                 )
             )
 
@@ -253,38 +267,56 @@ class Structure:
 @dataclasses.dataclass
 class CenteredCluster:
     """
-    Structure -> [CenteredCluster] -> CenteredEquivalentCluster
+    Structure -> [CenteredCluster]
     store all neighbor sites around an atom at the center, as well as 
     """
     center_site: CrystalSite
     neighbor_sites: typing.List[CrystalSite]
-    cart_rotations: typing.List[np.ndarray]
+    sitesymmetrygroup: ssym.SiteSymmetryGroup
 
 
     @property
-    def centered_equivalent_clusters(self) -> typing.List["CenteredEquivalentCluster"]:
+    def centered_equivalent_clusters(self) -> typing.List["CenteredCluster"]:
         """
         get centered equivalent clusters in order of increasing number of neighbors
         """
-        bare_sites = [ csite.site for csite in self.neighbor_sites ]
 
-        group, equivalentset = self._get_siteSym_eqGroup_from_sites_and_rots(
-                                    bare_sites, self.cart_rotations
-                                )
+        type_pos = []
+        for csite in self.neighbor_sites:
+            pos = csite.absolute_position - self.center_site.absolute_position
+            type_pos.append((csite.atomic_number, *pos))
+        type_pos = np.array(type_pos)
+
+        rot44 = np.eye(4, dtype=float)
+        equivalent_result = {}
+        found = []
+        for i, tpos in enumerate(type_pos):
+            if i in found: continue
+            for rot in self.sitesymmetrygroup.operations:
+                rot44[1:,1:] = rot
+                rotated = rot44 @ tpos
+                for j, otherpos in enumerate(type_pos):
+                    if np.allclose(rotated, otherpos, atol=params.stol):
+                        equivalent_result.setdefault(i, set()).add(j)
+                        found.append(j)
+
+        for k, v in equivalent_result.items():
+            equivalent_result[k] = list(v)
+
         
         equivalent_clusters = [
-            CenteredEquivalentCluster(
+            CenteredCluster(
                     center_site = self.center_site, 
                     neighbor_sites = [self.center_site],
-                    sitesymmetrygroup = group
+                    sitesymmetrygroup = self.sitesymmetrygroup
                 )
         ] # add the self-interaction for the center atom
-        for indices in equivalentset.values():
+        for indices in equivalent_result.values():
             equivalent_clusters.append(
-                CenteredEquivalentCluster(
+                CenteredCluster(
                     center_site = self.center_site, 
                     neighbor_sites = [self.neighbor_sites[i] for i in indices],
-                    sitesymmetrygroup = group
+                    sitesymmetrygroup = self.sitesymmetrygroup
                 )
             )
 
@@ -296,7 +328,7 @@ class CenteredCluster:
 
     def __str__(self) -> str:
         results = [f"Centered Cluster "]
-        results.append(f"centered on {self.center_site.site.chemical_symbol} " + \
+        results.append(f"centered on {self.center_site.chemical_symbol} " + \
                    f"(i={self.center_site.index_pcell:>2d})")
         results.append("-"*31)
         for csite in self.neighbor_sites:
@@ -308,9 +340,10 @@ class CenteredCluster:
     def write_to_cif(self, filename: str) -> None:
         all_csites: typing.List[CrystalSite] = [self.center_site] + self.neighbor_sites
         positions = np.array(
-            [s.site.pos for s in all_csites]
+            [s.absolute_position for s in all_csites]
         )
-        types = [s.site.atomic_number for s in all_csites]
+        positions -= self.center_site.absolute_position
+        types = [s.atomic_number for s in all_csites]
 
         cell = tools.get_cell_from_origin_centered_positions(positions)
         shift = np.dot(cell.T, np.array([0.5,0.5,0.5]))
@@ -320,113 +353,31 @@ class CenteredCluster:
 
 
     def print_log(self) -> None:
-        print("## Cluster centered on {:>2s} ({:>d})".format(
-            self.center_site.site.chemical_symbol, self.center_site.index_pcell+1
-        ))
-
-        distances = {}
-        for neisite in self.neighbor_sites:
-            dist = f"{np.linalg.norm(neisite.site.pos):>.2f}"
-            distances.setdefault(dist, []).append(neisite.site.chemical_symbol)
-        sorted_dist = sorted(distances.keys(), key=float)
-        distance_string = ""
-        for sd in sorted_dist:
-            distance_string += f"[{sd}A]-> (" + ",".join(distances[sd]) + ") "
-        print("  "+distance_string)
-
-    @property
-    def sitesymgroup(self) -> ssym.SiteSymmetryGroup:
-        baresites = [ csite.site for csite in self.neighbor_sites ]
-        symmetries: list = []
-        for sym in self.cart_rotations:
-            is_symmetry = True
-            for site in baresites:
-                newsite = site.rotate(sym)
-                if not newsite in baresites: 
-                    is_symmetry = False
-                    break
-            if is_symmetry:
-                symmetries.append(sym)
-        return ssym.SiteSymmetryGroup.from_cartesian_matrices(symmetries)
-
-    @staticmethod
-    def _get_siteSym_eqGroup_from_sites_and_rots(
-        baresites: typing.List[LocalSite], operations: typing.List[np.ndarray]
-    ) -> typing.Tuple[ssym.SiteSymmetryGroup, typing.Dict[int, typing.List[int]]]:
-        """
-        return the site symmetry group, as well as the set of atomic index that are equivalent
-        """
-        symmetries: list = []
-        for sym in operations:
-            is_symmetry = True
-            for site in baresites:
-                newsite = site.rotate(sym)
-                if not newsite in baresites: 
-                    is_symmetry = False
-                    break
-            if is_symmetry:
-                symmetries.append(sym)
-
-        group = ssym.SiteSymmetryGroup.from_cartesian_matrices(symmetries)
-
-        equivalent_result = {}
-        found = []
-        for i, site in enumerate(baresites):
-            if i in found: continue
-            for rot in group.operations:
-                newsite = site.rotate(rot)
-                for j,othersite in enumerate(baresites):
-                    if newsite == othersite:
-                        equivalent_result.setdefault(i, set()).add(j)
-                        found.append(j)
-        
-        for k, v in equivalent_result.items():
-            equivalent_result[k] = list(v)
-
-        return group, equivalent_result
-
-
-@dataclasses.dataclass
-class CenteredEquivalentCluster:
-    """
-    Structure -> CenteredCluster -> [CenteredEquivalentCluster]
-    """
-    center_site: CrystalSite
-    neighbor_sites: typing.List[CrystalSite]
-    sitesymmetrygroup: ssym.SiteSymmetryGroup
-
-    @property
-    def distance(self) -> float:
-        vectors = np.vstack([ ns.site.pos for ns in self.neighbor_sites ])
-        distances = np.linalg.norm(vectors, axis=1)
-        assert np.allclose(distances, np.min(distances), params.ztol)
-        return np.min(distances)
-
-
-    def __str__(self) -> str:
-        results = [f"Centered Equiv. Cluster ({self.sitesymmetrygroup.groupname:>5s}) "]
-        results.append(f"centered on {self.center_site.site.chemical_symbol} " + \
-                   f"(i={self.center_site.index_pcell:>2d})")
-        results.append(f"         -> Distance : {self.distance:>6f}")
-        results.append("-"*31)
-        for csite in self.neighbor_sites:
-            results.append(str(csite))
-        results.append("-"*31)
-        return "\n".join(results)
-
-
-    def write_to_cif(self, filename: str) -> None:
-        all_csites: typing.List[CrystalSite] = [self.center_site] + self.neighbor_sites
-        positions = np.array(
-            [s.site.pos for s in all_csites]
-        )
-        types = [s.site.atomic_number for s in all_csites]
-
-        cell = tools.get_cell_from_origin_centered_positions(positions)
-        shift = np.dot(cell.T, np.array([0.5,0.5,0.5]))
-        positions += shift
-        atom = tools.atom_from_cpt_cartesian(cell, positions, types)
-        tools.write_cif_file(filename, atom)
+        if (len(self.neighbor_sites) == 1 and 
+                np.allclose(
+                    self.neighbor_sites[0].absolute_position,
+                    self.center_site.absolute_position, atol=params.stol)
+                ):
+            print(
+                f"## Centered Equiv. Cluster ({self.sitesymmetrygroup.groupname:>5s})" +
+                f" on {self.center_site.site.chemical_symbol}"
+                f" ({self.center_site.index_pcell+1:>2d}) with itself"
+            )
+        else:
+            print("## Cluster centered on {:>2s} ({:>d})".format(
+                self.center_site.chemical_symbol, self.center_site.index_pcell+1
+            ))
+            distances = {}
+            for neisite in self.neighbor_sites:
+                dist = np.linalg.norm(neisite.absolute_position 
+                                      - self.center_site.absolute_position)
+                distances.setdefault(f"{dist:>.2f}", []).append(neisite.chemical_symbol)
+            
+            sorted_dist = sorted(distances.keys(), key=float)
+            distance_string = ""
+            for sd in sorted_dist:
+                distance_string += f"[{sd}A]-> (" + ",".join(distances[sd]) + ") "
+            print("  "+distance_string)
 
 
     def set_symmetry(self, find_additional_symmetry: bool = False) -> None:
@@ -435,10 +386,11 @@ class CenteredEquivalentCluster:
         if we require to find additional symmetry, it will call the pymatgen method
         """
         from .pymatgen_sym import symOperations_from_pos_types
-        vectors = np.vstack([ns.site.pos for ns in self.neighbor_sites])
-        if len(vectors) == 1 and np.allclose(
-            vectors[0], np.zeros_like(vectors[0]), atol=params.ztol
-        ):
+        vectors = np.vstack([ns.absolute_position for ns in self.neighbor_sites])
+        vectors -= self.center_site.absolute_position
+
+        if (len(vectors) == 1 
+                and np.allclose(vectors[0], np.zeros_like(vectors[0]), atol=params.ztol)):
             self.sitesymmetrygroup = ssym.SiteSymmetryGroup.get_spherical_symmetry_group()
             return
         
@@ -452,23 +404,3 @@ class CenteredEquivalentCluster:
             if sym_sch in ssym.GroupsList_sch:
                 self.sitesymmetrygroup = ssym.SiteSymmetryGroup.from_cartesian_matrices(operations)
 
-    def print_log(self) -> None:
-        if self.distance < 1e-5:
-            print(
-                f"## Centered Equiv. Cluster ({self.sitesymmetrygroup.groupname:>5s})" +
-                f" on {self.center_site.site.chemical_symbol}"
-                f" ({self.center_site.index_pcell+1:>2d}) with itself"
-            )
-        else:
-            print(
-                f"## Centered Equiv. Cluster ({self.sitesymmetrygroup.groupname:>5s})" +
-                f" on {self.center_site.site.chemical_symbol}" + 
-                f" ({self.center_site.index_pcell+1:>2d})" +
-                f" -> Distance : {self.distance:>.4f}A to" + 
-                f" {self.neighbor_sites[0].site.chemical_symbol}"
-            )
-            print("---")
-            for csite in self.neighbor_sites:
-                print("  " + str(csite))
-            print("---")
-            

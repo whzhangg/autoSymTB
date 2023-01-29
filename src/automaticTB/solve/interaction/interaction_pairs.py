@@ -26,18 +26,16 @@ class AO:
     def atomic_number(self) -> int:
         return tools.atomic_numbers[self.chemical_symbol]
 
+
     def __eq__(self, o: "AO") -> bool:
-        return  self.primitive_index == o.primitive_index and \
-                self.l == o.l and \
-                self.m == o.m and \
-                self.n == o.n and \
-                np.allclose(self.translation, o.translation, params.ztol)
+        return  self.as_tuple() == o.as_tuple()
 
     def __repr__(self) -> str:
         result = f"{self.chemical_symbol:>2s} (i_p={self.primitive_index:>2d})"
         result+= f" n ={self.n:>2d}; l ={self.l:>2d}; m ={self.m:>2d}"
         result+=  " @({:>5.1f},{:>5.1f},{:>5.1f})".format(*self.translation)
         return result
+
 
     def as_tuple(self) -> tuple:
         t1 = int(self.translation[0])

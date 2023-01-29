@@ -9,6 +9,31 @@ from automaticTB.solve import structure
 from automaticTB.solve import rotation
 from automaticTB.solve import atomic_orbitals as ao
 from .symmetrygroup import CartesianOrbitalRotation
+from .orbitals import OrbitalsList
+from automaticTB.solve import interaction
+
+
+def symrotate_orbitalvector(
+        lc: "LinearCombination", cart_rot: np.ndarray) -> "LinearCombination":
+    """rotation but with reordered site"""
+    pass
+
+@dataclasses.dataclass
+class OrbitalsVector:
+    """a vector in the vector space for fast operation"""
+    pos: np.ndarray
+    types: np.ndarray
+    coefficients: np.ndarray
+    irreps_str: str
+
+@dataclasses.dataclass
+class LinearCombination:
+    """a vector in the """
+    pos: np.ndarray
+    types: np.ndarray
+    coefficients: np.ndarray
+    irreps_str: str
+
 
 
 @dataclasses.dataclass
@@ -19,9 +44,7 @@ class IrrepSymbol:
 
     @classmethod
     def from_str(cls, input: str):
-        """
-        the main symbol ^ index -> subduction symbol
-        """
+        """the main symbol ^ index -> subduction symbol"""
         parts = input.split("->")
         mains = parts[0].split("^")
         main_irrep = mains[0]
@@ -40,6 +63,7 @@ class NamedLC(typing.NamedTuple):
     def __str__(self) -> str:
         return "\n".join([str(self.name), str(self.lc)])
 
+
 @dataclasses.dataclass
 class LinearCombination:
     """A linear combination of atomic orbitals
@@ -47,51 +71,40 @@ class LinearCombination:
     It should not be created manually, but from vector space or from its
     `get_nonzero_LC` methods
     """
-    sites: typing.List[structure.LocalSite]
-    orbital_list: ao.OrbitalsList
+    crysites: typing.List[structure.CrystalSite]
+    orbital_list: OrbitalsList
     coefficients: np.ndarray
         
     @property
     def norm(self) -> float:
         return np.linalg.norm(self.coefficients)
     
-    @property
-    def is_normalized(self) -> bool:
-        return np.isclose(self.norm, 1.0, atol = params.ztol)
-
+    
     @property
     def nonzero(self) -> bool:
-        return self.norm > params.ztol
+        return np.any(np.abs(self.coefficients) > params.ztol)
 
-    @property
-    def atomic_slice(self) -> typing.List[slice]:
-        result = []
-        start = 0
-        for orbital in self.orbital_list.orbital_list:
-            end = start + orbital.num_orb
-            result.append(slice(start, end))
-            start = end
-        return result
 
-    def create_new_with_coefficients(self, new_coefficients: np.ndarray):
-        assert len(new_coefficients) == len(self.coefficients)
-        assert new_coefficients.dtype == self.coefficients.dtype
-        return LinearCombination(self.sites, self.orbital_list, new_coefficients)
+    def create_new_with_coefficients(self, coefficients: np.ndarray) -> "LinearCombination":
+        """obtain a new LC with the given coefficients"""
+        assert len(coefficients) == len(self.coefficients)
+        assert coefficients.dtype == self.coefficients.dtype
+        return LinearCombination(self.crysites, self.orbital_list, coefficients)
 
-    def scale_coefficients(self, factor: float) -> None:
-        self.coefficients *= factor
 
     def get_normalized(self) -> "LinearCombination":
+        """return a normalized LC"""
         coefficients = self.coefficients
         norm = self.norm
         if norm > params.ztol:
             coefficients /= norm
-        return LinearCombination(self.sites, self.orbital_list, coefficients)
+        return LinearCombination(self.crysites, self.orbital_list, coefficients)
        
-    def __str__(self):
+
+    def __str__(self) -> str:
         to_display: typing.List[str] = []
         for site, orbital, coeff_slice in zip(
-            self.sites, self.orbital_list.orbital_list, self.atomic_slice
+            self.crysites, self.orbital_list.orbital_list, self.orbital_list.atomic_slice_dict
         ):
             sliced_coefficient = self.coefficients[coeff_slice]
             if np.linalg.norm(sliced_coefficient) < params.ztol: continue
@@ -110,6 +123,7 @@ class LinearCombination:
                 result += f"{prefix_last} {aline}"
         return result
     
+    # the following are rotations
 
     def general_rotate(self, cartesian_matrix: np.ndarray) -> "LinearCombination":
         new_sites, new_coefficient = self._rotate_site_and_coefficient(cartesian_matrix)
@@ -193,7 +207,7 @@ def _get_from_which(
 
 
 
-def _site_string(site: structure.LocalSite, orb: ao.Orbitals, coe: np.ndarray) -> str: 
+def _site_string(site: structure.CrystalSite, orb: ao.Orbitals, coe: np.ndarray) -> str: 
     lm_name = {
         (0,  0):  "s",
         (1, -1): "py", (1,  0): "pz", (1,  1): "px",
