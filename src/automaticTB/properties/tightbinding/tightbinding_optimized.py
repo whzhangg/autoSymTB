@@ -9,6 +9,7 @@ __all__ = ["TightBindingModelOptimized"]
 HSijR = namedtuple('HSijR', "i j r H S")
 
 class TightBindingModelOptimized():
+    """faster version of the tightbinding model with some difference"""
     def __init__(self, 
         cell: np.ndarray,
         positions: np.ndarray,
@@ -17,7 +18,8 @@ class TightBindingModelOptimized():
         SijR_list: typing.Optional[typing.List[SijR]] = None
     ) -> None:
         """
-        we assert HijR and SijR are the same list with the same pairs and we put them in tuples with index
+        we assert HijR and SijR are the same list with the same pairs 
+        and we put them in tuples with index
         """
         self._cell = cell
         self._positions = positions

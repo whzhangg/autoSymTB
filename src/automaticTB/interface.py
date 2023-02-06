@@ -124,13 +124,18 @@ class OrbitalPropertyRelationship:
             indices = np.array(additional_required_indices)
             for row in self.homogeneous_equation:
                 if np.all(np.isclose(row[indices], 0.0, atol = ztol)):
+                    # a row does not containing any of the no-solvable indices
                     continue
                 related_indices |= set(
                     np.argwhere(np.invert(np.isclose(row, 0.0, atol=ztol))).flatten()
                 )
+            
             # AOs that depend on the selected additional_required_index
 
             solvable_indices = sorted(list(set(range(len(self.all_pairs))) - related_indices))
+            for i in self.free_pair_indices:
+                assert i in solvable_indices
+
             map_from_old_indices = {old: new for new, old in enumerate(solvable_indices)}
 
             solvable_parts = LinearEquation.from_equation(
@@ -190,7 +195,7 @@ class OrbitalPropertyRelationship:
 
     def get_ElectronicModel_from_free_parameters(self, 
         free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None,
-        print_solved_Hijs: bool = False
+        write_solved_Hijs_filename: typing.Optional[str] = None 
     ):
         from .properties import ElectronicModel
         from .properties.tightbinding.tightbinding_optimized import TightBindingModelOptimized
@@ -217,23 +222,11 @@ class OrbitalPropertyRelationship:
                     value = v
                 )
             )
-            if print_solved_Hijs:
-                left = pair.l_orbital
-                right = pair.r_orbital
-
-                left_symbol = chemical_symbols[self.types[left.pindex]]
-                right_symbol = chemical_symbols[self.types[right.pindex]]
-                left_position = np.dot(self.cell.T, self.positions[left.pindex] + left.translation)
-                right_position = np.dot(self.cell.T, self.positions[right.pindex] + right.translation)
-                result = f"> Pair: "
-                rij = right_position - left_position
-                result += f"{left_symbol:>2s}-{left.pindex:0>2d} " 
-                result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
-                result += f"{right_symbol:>2s}-{right.pindex:0>2d} "
-                result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
-                result += "r = ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
-                result += f" H = {v.real:>10.6f}"
-                print(result)
+            
+        if write_solved_Hijs_filename is not None:
+            with open(write_solved_Hijs_filename, 'w') as f:
+                for v, pair in zip(all_hijs, self.all_pairs):
+                    f.write(str(pair) + f" : {v:>50.15f}\n")
 
         if free_Sijs is None:
             tb = TightBindingModelOptimized(self.cell, self.positions, self.types, HijR_list)
@@ -301,8 +294,12 @@ class OrbitalPropertyRelationship:
             str(self.homogeneous_equation.dtype))
         )
         lines.append("# shape = {:d} {:d}".format(*self.homogeneous_equation.shape))
-        for v in self.homogeneous_equation.flatten():
-            lines.append(f"{v:>40.10f}")
+        # write for sparse matrix
+        for ix, iy in np.argwhere(np.abs(self.homogeneous_equation) > 1e-14):
+            lines.append(
+                "{:>10d}{:>10d}{:>50.15e}".format(ix, iy, self.homogeneous_equation[ix, iy]))
+        #for v in self.homogeneous_equation.flatten():
+        #    lines.append(f"{v:>60.15f}") # double precision gives around 16 digits accuracy
         with open(filename, 'w') as f:
             f.write("\n".join(lines))
         
@@ -343,10 +340,15 @@ class OrbitalPropertyRelationship:
             f.readline()
             dtype = f.readline().split()[-1]
             shape = [int(p) for p in f.readline().split("=")[-1].split() ]
-            list_value = []
-            for _ in range(shape[0] * shape[1]):
-                list_value.append(f.readline().strip())
-            matrix = np.array(list_value, dtype=dtype).reshape(shape)
+            matrix = np.zeros(shape, dtype = dtype)
+
+            while aline := f.readline():
+                ix, iy, value = aline.split()
+                matrix[int(ix), int(iy)] = complex(value)
+            #list_value = []
+            #for _ in range(shape[0] * shape[1]):
+            #    list_value.append(f.readline().strip())
+            #matrix = np.array(list_value, dtype=dtype).reshape(shape)
 
         return cls(
             cell, 

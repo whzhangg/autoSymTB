@@ -1,24 +1,25 @@
 name: autotb
 channels:
-  - pyg
-  - pytorch
-  - conda-forge
-  - anaconda
   - defaults
 dependencies:
-  - python=3.8
-  - prettytable
-  - spglib
-  - matplotlib
-  - beautifulsoup4
-  - numpy
-  - scipy
-  - requests
-  - ase
   - pymatgen
-  - pyg
+  - python=3.8
+  - matplotlib
   - pytorch
+  - scipy
+  - prettytable
+  - snakeviz
+  - beautifulsoup4
+  - spglib
+  - requests
+  - pyg
+  - numpy
   - jupyter
   - pytest
-  - snakeviz
+  - ase
+  - yapf
+  - numba
+  - seaborn
+  - line_profiler
+  - cython
 prefix: /Users/wenhao/Applications/miniconda3/envs/autotb

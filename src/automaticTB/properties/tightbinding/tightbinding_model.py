@@ -194,8 +194,8 @@ class TightBindingModel():
         self, k: np.ndarray
     ) -> typing.Tuple[np.ndarray, np.ndarray]:
         """
-        obtain the band velocity using the equation derived in Lee et al. 2018, without the need
-        for finite difference.
+        obtain the band velocity using the equation derived in Lee et 
+        al. 2018, without the need for finite difference.
         """
         h, dhdk = self.Hijk_and_derivatives(k)
         s, dsdk = self.Sijk_and_derivatives(k)
@@ -218,8 +218,8 @@ class TightBindingModel():
         self, k: np.ndarray
     ) -> typing.Tuple[np.ndarray, np.ndarray]:
         r"""
-        return analytic velocity in SI
-        v_n(k) = \frac{1}{\hbar} \nabla_k e_n(k)
+        return analytic velocity in SI using the relationship
+        $v_n(k) = \frac{1}{\hbar} \nabla_k e_n(k)$
         """
         # a set of K
         delta_k = 0.01

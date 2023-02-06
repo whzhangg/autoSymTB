@@ -5,14 +5,16 @@
 
 docs/
 tmp/
-
-examples/**/*.cube
-examples/**/*.pdf
-examples/**/*.yaml
-examples/_*
+examples/
 
 tests/**/*.*
-!tests/run_*
+!tests/test_*
+!tests/compare_values.py 
+!tests/compare_values/*.*
+!tests/stored_interactions/*.*
 
 src/*.egg-info
 src/automaticTB/solve/sitesymmetry/Bilbao/local
+src/automaticTB/tools/cython/build/*.*
+src/automaticTB/tools/cython/*.c
+src/automaticTB/tools/cython/*.so

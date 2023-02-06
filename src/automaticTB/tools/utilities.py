@@ -89,12 +89,29 @@ def plot_value_distribution(data: np.ndarray, filename : str) -> None:
         fig.savefig(filename)
 
 
-def print_np_matrix(m: np.ndarray, format:str = "{:>6.2f}"):
+def print_np_matrix(m: np.ndarray, format_:str = "{:>6.3f}"):
     # print an matrix using the given string format
     assert len(m.shape) == 2
     result = ""
     for row in m:
         for cell in row:
-            result += " " + format.format(cell)
+            result += " " + format_.format(cell)
         result += "\n"
     print(result)
+
+def print_np_matrix_complex(m: np.ndarray, format_: str = "{:>6.3f}"):
+    import re
+    length = int(re.findall(r'\d+', format_)[0])
+
+
+    nbasis, nbasis = m.shape
+    for i in range(nbasis):
+        for j in range(nbasis):
+            a = m[i,j].real
+            b = m[i,j].imag
+            if np.abs(m[i,j]) < 1e-4:
+                print("[" + " "*(length*2+1) + "]", end=" ")
+            else:
+                formatter = f"[{format_},{format_}]"
+                print("[{:>6.3f},{:>6.3f}]".format(a+1e-6,b+1e-6), end=" ")
+        print("")
