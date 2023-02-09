@@ -1,9 +1,16 @@
-from ..kpoints import Kmesh
-import numpy as np, typing, copy
+import typing
+import copy
+
+import numpy as np
+from automaticTB.properties import kpoints
+from automaticTB import tools
 
 
-class TetraKmesh(Kmesh):
-    # kmesh designed for tetrahedron methods, which generate a set of kpoints as well as tetrahedrons
+class TetraKmesh(kpoints.Kmesh):
+    """kmesh designed for tetrahedron methods
+    
+    It generate a set of kpoints as well as tetrahedrons
+    """
     MESH_SHIFT = ( (0, 0, 0),   # 1 0
                (1, 0, 0),   # 2 1
                (0, 1, 0),   # 3 2
@@ -22,14 +29,8 @@ class TetraKmesh(Kmesh):
     def tetras(self) -> np.ndarray:
         return self._tetras
 
-    
-    def _get_knum(self, xk: np.ndarray) -> int:
-        i = np.rint(xk[0]*self._nks[0] + 2 * self._nks[0]) % self._nks[0] 
-        j = np.rint(xk[1]*self._nks[1] + 2 * self._nks[1]) % self._nks[1] 
-        k = np.rint(xk[2]*self._nks[2] + 2 * self._nks[2]) % self._nks[2] 
-        return int( k + j * self._nks[2] + i * self._nks[1] * self._nks[2] )
 
-
+    @tools.timefn
     def _make_tetrahedron(self) -> np.ndarray:
         # determine how to shuffle the index
         mesh_shape = copy.deepcopy(self._cell)
@@ -38,7 +39,6 @@ class TetraKmesh(Kmesh):
         G_order, G_neg = self._OptimizeGs(mesh_shape)
         G_order_rev = np.argsort(G_order)
 
-        tetra = np.zeros((self.numk * 6, 4), dtype = int)
         subcell_tetras = [(0, 1, 2, 5), (0, 2, 4, 5), (2, 4, 5, 6), 
                           (2, 5, 6, 7), (2, 3, 5, 7), (1, 2, 3, 5)]
 
@@ -46,15 +46,15 @@ class TetraKmesh(Kmesh):
         mesh_shift_permuted = np.zeros(mesh_shift_np.shape, dtype = int)
         for i in range(len(mesh_shift_np)):
             mesh_shift_permuted[i] = G_neg * ( mesh_shift_np[i,G_order_rev] )
-
-        for ik, xk in enumerate(self.kpoints):
-            for it, corner in enumerate(subcell_tetras):
-                c = []
-                for ic in range(4):
-                    xc = xk + mesh_shift_permuted[corner[ic]] * 1.0 / self._nks
-                    c.append(self._get_knum(xc))
-                tetra[ik * 6 + it,:] = c
-        return tetra
+        
+        nks = self._nks.copy()
+        nks.dtype = np.intp
+        return tools.cython_create_tetras(
+            self.kpoints, 
+            np.array(subcell_tetras, dtype = np.intp), 
+            np.array(mesh_shift_permuted, dtype = np.intp), 
+            nks[0], nks[1], nks[2]
+        )
 
 
     def _OptimizeGs(self, v: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:

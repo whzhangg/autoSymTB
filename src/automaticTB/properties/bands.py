@@ -1,21 +1,24 @@
-import typing, dataclasses
+import typing
+import dataclasses
+
 import numpy as np
-from ..kpoints import Kpath, BandPathTick
-from ..tightbinding import TightBindingModel
-from ...tools import chemical_symbols, get_orbital_symbol_from_lm
+
+from automaticTB import tools
+from automaticTB.properties import kpoints
+from automaticTB.properties import tightbinding
 
 
 @dataclasses.dataclass
 class BandStructureResult:
     x: np.ndarray
     E: np.ndarray # [nk, nbnd]
-    ticks: typing.List[BandPathTick]
+    ticks: typing.List[typing.Tuple[str, float]]
 
 
     def write_data_to_file(self, filename: str):
         if len(self.x) != self.E.shape[0]:
             raise "Size of energy not equal to x positions"
-        ticks = [ "{:>s}:{:>10.6f}".format(tick.symbol, tick.xpos) for tick in self.ticks]
+        ticks = [ "{:>s}:{:>10.6f}".format(symbol, xpos) for symbol, xpos in self.ticks]
         results = "# " + " & ".join(ticks) + "\n"
         results += f"# nk   {self.E.shape[0]}\n"
         results += f"# nbnd {self.E.shape[1]}\n"
@@ -37,7 +40,7 @@ class BandStructureResult:
 
     @classmethod
     def from_tightbinding_and_kpath(
-        cls, tb: TightBindingModel, kpath: Kpath
+        cls, tb: tightbinding.TightBindingModel, kpath: kpoints.Kpath
     ) -> "BandStructureResult":
         energies = tb.solveE_at_ks(kpath.kpoints)
         return cls(
@@ -51,7 +54,7 @@ class BandStructureResult:
             aline = f.readline()
             parts = aline.lstrip("#").split("&")
             ticks = [
-                BandPathTick(part.split(":")[0].strip(), float(part.split(":")[1])) for part in parts
+                (part.split(":")[0].strip(), float(part.split(":")[1])) for part in parts
             ]
             nk = int(f.readline().lstrip("#").split()[-1])
             nbnd = int(f.readline().lstrip("#").split()[-1])
@@ -92,12 +95,11 @@ class BandStructureResult:
 
         for ibnd in range(self.E.shape[1]):
             axes.plot(self.x, self.E[:, ibnd])
-        for tick in self.ticks:
-            x = tick.xpos
+        for _, x in self.ticks:
             axes.plot([x,x], [ymin,ymax], color='gray')
 
-        tick_x = [ tick.xpos for tick in self.ticks ]
-        tick_s = [ tick.symbol for tick in self.ticks ]
+        tick_x = [ x for _,x in self.ticks ]
+        tick_s = [ s for s,_ in self.ticks ]
         axes.xaxis.set_major_locator(plt.FixedLocator(tick_x))
         axes.xaxis.set_major_formatter(plt.FixedFormatter(tick_s))
 
@@ -113,7 +115,7 @@ class OrbitName:
 
     @property
     def orbital_symbol(self) -> str:
-        return get_orbital_symbol_from_lm(self.l, self.m)
+        return tools.get_orbital_symbol_from_lm(self.l, self.m)
 
     # eg: "Cl(2) px", "Fe(1) dxy", index (i) start from 1, giving the primitive cell index
     def __repr__(self) -> str:
@@ -126,9 +128,10 @@ class FatBandResult:
     E: np.ndarray  # [nx, nbnd]
     c2: np.ndarray # [nx, nbnd, norb], squared coefficients, 
     orbnames: typing.List[str]
-    ticks: typing.List[BandPathTick]
+    ticks: typing.List[typing.Tuple[str, float]]
 
-    def plot_fatband(self, filename: str, orbitalgroups: typing.Dict[str, typing.List[str]]) -> None:
+    def plot_fatband(
+            self, filename: str, orbitalgroups: typing.Dict[str, typing.List[str]]) -> None:
         """
         orbitalgroups are dictionaries like, 
         where Symbol(primitive index) orbital_symbol give the orbital name
@@ -184,12 +187,11 @@ class FatBandResult:
         for key, state_c in state_c_dict.items():
             axes.scatter(state_x, state_y, s = state_c * 5, marker = 'o', label = f"{key}")
         
-        for tick in self.ticks:
-            x = tick.xpos
+        for _,x in self.ticks:
             axes.plot([x,x], [ymin,ymax], color='gray')
 
-        tick_x = [ tick.xpos for tick in self.ticks ]
-        tick_s = [ tick.symbol for tick in self.ticks ]
+        tick_x = [ x for _,x in self.ticks ]
+        tick_s = [ s for s,_ in self.ticks ]
         axes.xaxis.set_major_locator(plt.FixedLocator(tick_x))
         axes.xaxis.set_major_formatter(plt.FixedFormatter(tick_s))
         axes.legend()
@@ -214,12 +216,13 @@ class FatBandResult:
 
         for ibnd in range(self.E.shape[1]):
             axes.plot(self.x, self.E[:, ibnd])
-        for tick in self.ticks:
-            x = tick.xpos
+        
+        for _,x in self.ticks:
             axes.plot([x,x], [ymin,ymax], color='gray')
 
-        tick_x = [ tick.xpos for tick in self.ticks ]
-        tick_s = [ tick.symbol for tick in self.ticks ]
+        tick_x = [ x for _,x in self.ticks ]
+        tick_s = [ s for s,_ in self.ticks ]
+        
         axes.xaxis.set_major_locator(plt.FixedLocator(tick_x))
         axes.xaxis.set_major_formatter(plt.FixedFormatter(tick_s))
 
@@ -228,7 +231,7 @@ class FatBandResult:
 
     @classmethod
     def from_tightbinding_and_kpath(cls,
-        tb: TightBindingModel, kpath: Kpath
+        tb: tightbinding.TightBindingModel, kpath: kpoints.Kpath
     ) -> "FatBandResult":
         energies, coefficients = tb.solveE_c2_at_ks(kpath.kpoints)
         orbnames = []
@@ -236,7 +239,7 @@ class FatBandResult:
             l = basis.l
             m = basis.m
             primitive_index = basis.pindex
-            sym = chemical_symbols[tb.types[primitive_index]]
+            sym = tools.chemical_symbols[tb.types[primitive_index]]
             orbnames.append(
                 str(OrbitName(sym, primitive_index, l, m))
             )

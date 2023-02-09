@@ -1,7 +1,7 @@
 import os, numpy as np
 
 from automaticTB.solve.functions.solve import solve_interaction
-from automaticTB.properties.transport import BandEffectiveMass
+from automaticTB.properties.transport import BandEffectiveMass, ParabolicBandFitting, TaylorBandFitting
 from automaticTB.interface import OrbitalPropertyRelationship
 from compare_values import compare_stored_values, StoredInteractions
 
@@ -46,17 +46,21 @@ def extract():
         free_Hijs=retrived_values)
     print(f"# Band structure will be plotted with prefix {prefix}")
     print("")
-    model.plot_bandstructure(
-        prefix = prefix,
-        kpaths_str = cubic_band,
-        yminymax = (-4,6)
+    banddata = model.get_bandstructure(
+        prefix, cubic_band, quality = 1, make_folder=False
     )
-
-    print(f"Calculate effective mass at CBM")
-    mass = BandEffectiveMass(model.tb)
-    cb = mass.calc_effective_mass(np.array([0.367, 0.0, 0.367]), ibnd=4)
-    print(cb)
-
+    banddata.plot_data(f"{prefix}.pdf", (-4,6))
+    dos = model.get_dos(prefix, emin=-4.0, emax=6.0)
+    dosy = dos.dos
+    return
+    print(f"Calculate effective mass at CBM (parabolic mode)")
+    for k in np.linspace((0.3,0.0,0.3),(0.5,0.0,0.5),15):
+        parabolic_mass: ParabolicBandFitting = model.get_effectivemass(
+            k, ibnd = 4, mode="parabolic")
+        print("selected k = {:>8.4f}{:>8.4f}{:>8.4f}".format(*k), end = " ")
+        print("k(emin) = {:>8.4f}{:>8.4f}{:>8.4f}".format(*parabolic_mass.kmin), end = " ")
+        print("EM = {:>8.4f}{:>8.4f}{:>8.4f}".format(*(1 / np.diag(parabolic_mass.inv_mass))))
+    
 
 def test_solved_values():
     solve()
@@ -66,18 +70,24 @@ def test_solved_values():
     model = relationship.get_ElectronicModel_from_free_parameters(
         free_Hijs=retrived_values)
     compare_stored_values(prefix, model.tb, cubic_band)
-    model.plot_bandstructure(
-        prefix = prefix,
-        kpaths_str = cubic_band,
-        yminymax = (-4,6)
+    
+    banddata = model.get_bandstructure(
+        prefix, cubic_band, quality = 1, make_folder=False
     )
+    banddata.plot_data(f"{prefix}.pdf", (-4,6))
     os.remove(result_file)
+
+    dos = model.get_dos(prefix, emin=-4.0, emax=6.0)
+    dos.plot_dos("si_2nn.dos.pdf")
+    assert np.isclose(dos.nsum(0.5), 8.0)
+
 
 if __name__ == "__main__":
     #solve()
     #debug()
-    test_solved_values()
-
+    #test_solved_values()
+    extract()
+    pass
 """
 Effective mass results:
 Calculate effective mass at CBM

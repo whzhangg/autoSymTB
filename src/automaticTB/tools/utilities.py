@@ -37,7 +37,7 @@ def timefn(fn):
         t1 = time.time()
         result = fn(*args, **kwargs)
         t2 = time.time()
-        print(f"@timefn: {fn.__name__} took {t2 - t1:>.8f} seconds")
+        print(f"@timefn: {fn.__name__:<40s} took {t2 - t1:>.8f} seconds")
         return result
 
     return measure_time

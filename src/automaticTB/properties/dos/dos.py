@@ -1,83 +1,47 @@
 import numpy as np
-import abc
+
+from automaticTB import tools
 from .tetra_mesh import TetraKmesh
 
-__all__ = ["TetraDOS"]
 
-class SpinDegenerateDOSBase(abc.ABC):
-    """for all the three public methods, should return dict containing dos of each spin"""
+class TetraDOS:
+    """Tetrahedron DOS
 
-    @property
-    @abc.abstractclassmethod
-    def x(self) -> np.ndarray:
-        raise
+    It provide x (eV), dos (1/eV) for plotting the density of state.
+    It can also return DOS at given energy (`single_dos`) or the 
+    sum of number of electrons below the given energy (`nsum)
 
-    @property
-    @abc.abstractclassmethod
-    def dos(self) -> np.ndarray:
-        """this method should give the density of states of the whole materials """
-        raise
+    It require a `TetraKmesh` object and energies calculated for the 
+    kpoints on the mesh. So it's better not to create manually. 
 
-    @abc.abstractclassmethod
-    def single_dos(self, e: float) -> np.ndarray:
-        """this method should give density of states at a specific energy"""
-        raise
-
-    @abc.abstractclassmethod
-    def nsum(self, e: float) -> np.ndarray:
-        """this method should give the electron counts """
-        raise
-
-    def write_data_to_file(self, filename: str):
-        assert self.x.shape == self.dos.shape
-        with open(filename, 'w') as f:
-            f.write("#{:>19s}{:>20s}".format("Energy (eV)", "DOS (1/eV)"))
-            for x, y in zip(self.x, self.dos):
-                f.write("{:>20.12e}{:>20.12e}\n".format(x,y))
-
-    def plot_data(self, filename: str):
-        # plot simple band structure
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        axes = fig.subplots()
-
-        axes.set_xlabel("Energy (eV)")
-        axes.set_ylabel("Density of States (1/eV)")
-
-        ymax = np.max(self.dos) * 1.2
-        ymin = 0
-        axes.set_xlim(min(self.x), max(self.x))
-        axes.set_ylim(ymin, ymax)
-
-        axes.plot(self.x, self.dos)
-
-        fig.savefig(filename)
-
-
-class TetraDOS(SpinDegenerateDOSBase):
-    r"""
-    This tetrahedron method is adopted from https://github.com/tflovorn/tetra
+    This tetrahedron method is adopted from:
+    https://github.com/tflovorn/tetra
     Theory:
-        k point density in the reciprocal space is given by: V / (8 * pi)^3
+        k point density in the reciprocal space is given by: 
+        V / (8 * pi)^3
         where V is the volume of the crystal: V = N * V_cell
 
         The density of state of the whole system is given by:
-            G(E) = weight * [ V / (4 * pi^2 ) ( 2m* / hbar )^{3/2} sqrt(E) ]
+
+        G(E) = weight * [V / (4 * pi^2 ) ( 2m* / hbar )^{3/2} sqrt(E)]
+        
         where weight = 1, 2 the spin degeneracy
 
-        The density of state per unit cell, which is calculated by the dos() method 
-        provided here, is:
-            g(E) = G(E) / N
-                = weight * [ V_cell / (4 * pi^2 ) ( 2m* / hbar )^{3/2} sqrt(E) ]
+        The density of state per unit cell, which is calculated by the 
+        dos() method provided here, is:
 
-        nsum is the summation of number of states in the BZ, per unit cell below a 
-        given energy.
+        g(E) = G(E) / N = 
+        weight * [ V_cell / (4 * pi^2 ) ( 2m* / hbar )^{3/2} sqrt(E) ]
+
+        nsum is the summation of number of states in the BZ, per unit 
+        cell below a given energy.
         nsum is related to the dos calculated here (dos()) by:
             n = int_{-\infty}^{E} g(E') dE'
         it is given by:
             n = weight * [ 1/N \sum_{k; Ek < E} ] 
         which should equal to the number of electrons per unit cell.
     """
+    _dos_weight = 2.0
 
     def __init__(self, 
         kmesh: TetraKmesh, 
@@ -89,32 +53,41 @@ class TetraDOS(SpinDegenerateDOSBase):
             raise "run energies with kmesh!"
 
         self._kmesh = kmesh
-        self._mesh_energies = mesh_energies
-        self._dos_weight = 2.0 # spin nondegenerate
+        self._mesh_energies = mesh_energies.T.copy()
         self._dos_energies = dos_energies
         self._result = {}
+
 
     @property
     def x(self) -> np.ndarray:
         return self._dos_energies
 
+
     @property
     def dos(self) -> np.ndarray:
         if "dos" not in self._result:
-            result = np.zeros_like(self._dos_energies)
-            for ie, e in enumerate(self._dos_energies):
-                result[ie] = self.single_dos(e)
-
-            self._result["dos"] = result
-
+            self._result["dos"] = self._calculate_dos()
         return self._result["dos"]
+
+
+    @tools.timefn
+    def _calculate_dos(self):
+        result = np.zeros_like(self._dos_energies)
+        #for ie, e in enumerate(self._dos_energies):
+        #    result[ie] = self.single_dos(e)
+        for ibnd in range(self._nbnd):
+            result += tools.cython_dos_contribution_multiple(
+                self._mesh_energies[ibnd], self._kmesh.tetras, self._dos_energies)
+        
+        return result
 
     def nsum(self, e: float) -> dict:
         # sum the number of states with energy below E
         nsum = 0.0
 
         for ibnd in range(self._nbnd):
-            nsum += self._sum_contribution(e, ibnd)
+            nsum += tools.cython_nsum_contribution(
+                self._mesh_energies[ibnd], self._kmesh.tetras, e)
             
         nsum *= self._dos_weight
         return nsum
@@ -124,11 +97,13 @@ class TetraDOS(SpinDegenerateDOSBase):
         dos = 0.0
 
         for ibnd in range(self._nbnd):
-            dos += self._dos_contribution(e, ibnd) 
+            dos += tools.cython_dos_contribution(
+                self._mesh_energies[ibnd], self._kmesh.tetras, e)
 
         dos *= self._dos_weight
         return dos
 
+    # not used
     def _dos_contribution(self, e: float, band_index: int) -> float:
         # return the density of state at energy E from ith band 
         # taken from tetra/dos.py/DosContrib()
@@ -171,6 +146,7 @@ class TetraDOS(SpinDegenerateDOSBase):
 
         return sum_dos
 
+    # not used
     def _sum_contribution(self, e: float, band_index: int) -> float:
         assert band_index < self._mesh_energies.shape[1]
 
@@ -209,3 +185,28 @@ class TetraDOS(SpinDegenerateDOSBase):
 
         return nsum
 
+
+    def write_data_to_file(self, filename: str):
+        assert self.x.shape == self.dos.shape
+        with open(filename, 'w') as f:
+            f.write("#{:>19s}{:>20s}".format("Energy (eV)", "DOS (1/eV)"))
+            for x, y in zip(self.x, self.dos):
+                f.write("{:>20.12e}{:>20.12e}\n".format(x,y))
+
+    def plot_dos(self, filename: str):
+        # plot simple band structure
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        axes = fig.subplots()
+
+        axes.set_xlabel("Energy (eV)")
+        axes.set_ylabel("Density of States (1/eV)")
+
+        ymax = np.max(self.dos) * 1.2
+        ymin = 0
+        axes.set_xlim(min(self.x), max(self.x))
+        axes.set_ylim(ymin, ymax)
+
+        axes.plot(self.x, self.dos)
+
+        fig.savefig(filename)

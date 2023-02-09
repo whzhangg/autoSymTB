@@ -43,12 +43,10 @@ def extract():
         free_Hijs=retrived_values)
     print(f"# Band structure will be plotted with prefix {prefix}")
     print("")
-    model.plot_bandstructure(
-        prefix = prefix,
-        kpaths_str = cubic_band,
-        yminymax = (-4,6)
+    banddata = model.get_bandstructure(
+        prefix, cubic_band, make_folder=False
     )
-
+    banddata.plot_data(f"{prefix}.pdf", (-4,6))
 
 def test_solved_values():
     solve()
@@ -58,11 +56,10 @@ def test_solved_values():
     model = relationship.get_ElectronicModel_from_free_parameters(
         free_Hijs=retrived_values)
     compare_stored_values(prefix, model.tb, cubic_band)
-    model.plot_bandstructure(
-        prefix = prefix,
-        kpaths_str = cubic_band,
-        yminymax = (-4,6)
+    banddata = model.get_bandstructure(
+        prefix, cubic_band, quality = 1, make_folder=False
     )
+    banddata.plot_data(f"{prefix}.pdf", (-4,6))
     os.remove(result_file)
 
 if __name__ == "__main__":

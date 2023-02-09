@@ -1,26 +1,27 @@
 """This script provide necessary inputs to initialize a tight-binding model"""
-import numpy as np
 import typing
-from ....solve.interaction import AO, AOPairWithValue
-from ....tools import chemical_symbols
-from ..tightbinding_model import TightBindingModel
-from ..hij import Pindex_lm, HijR, SijR
 
-def convert_AOpair_to_HijR(aos: typing.List[AOPairWithValue]):
+import numpy as np
+
+from automaticTB.solve import interaction
+from automaticTB import tools
+from automaticTB.properties import tightbinding
+
+def convert_AOpair_to_HijR(aos: typing.List[interaction.AOPairWithValue]):
     hijrs = []
     for aopair in aos:
-        p_l = Pindex_lm(
+        p_l = tightbinding.Pindex_lm(
             pindex = aopair.l_AO.primitive_index,
             n = aopair.l_AO.n, l = aopair.l_AO.l, m = aopair.l_AO.m,
             translation = aopair.l_AO.translation
         )
-        p_r = Pindex_lm(
+        p_r = tightbinding.Pindex_lm(
             pindex = aopair.r_AO.primitive_index,
             n = aopair.r_AO.n, l = aopair.r_AO.l, m = aopair.r_AO.m,
             translation = aopair.r_AO.translation
         )
 
-        hijrs.append(HijR(p_l, p_r, aopair.value))
+        hijrs.append(tightbinding.HijR(p_l, p_r, aopair.value))
     return hijrs
 
 __all__ = ["SingleBandInputs", "get_singleband_tightbinding_with_overlap"]
@@ -49,7 +50,7 @@ class SingleBandInputs:
 
 
     @property
-    def interactionPairH(self) -> typing.List[AOPairWithValue]:
+    def interactionPairH(self) -> typing.List[interaction.AOPairWithValue]:
         """
         provide a list of interaction pair Hij
         """
@@ -57,22 +58,22 @@ class SingleBandInputs:
         values = []
         for h_t in self.home_translations:
             for a_t in self.all_translations:
-                home_ao = AO(
+                home_ao = interaction.AO(
                     equivalent_index = 0,
                     primitive_index = 0,
                     absolute_position = self.pos,
                     translation = h_t,
-                    chemical_symbol = chemical_symbols[self.types[0]],
+                    chemical_symbol = tools.chemical_symbols[self.types[0]],
                     n = self.orbitals_nlm[0],
                     l = self.orbitals_nlm[1],
                     m = self.orbitals_nlm[2]
                 )
-                other_ao = AO(
+                other_ao = interaction.AO(
                     equivalent_index = 0,
                     primitive_index = 0,
                     translation = a_t,
                     absolute_position = self.pos + a_t,
-                    chemical_symbol = chemical_symbols[self.types[0]],
+                    chemical_symbol = tools.chemical_symbols[self.types[0]],
                     n = self.orbitals_nlm[0],
                     l = self.orbitals_nlm[1],
                     m = self.orbitals_nlm[2]
@@ -83,14 +84,14 @@ class SingleBandInputs:
                     value = self.b
 
                 pairsvalue.append(
-                    AOPairWithValue(home_ao, other_ao, value)
+                    interaction.AOPairWithValue(home_ao, other_ao, value)
                 )
 
         return pairsvalue
 
 
     @property
-    def overlapPairS(self) -> typing.List[AOPairWithValue]:
+    def overlapPairS(self) -> typing.List[interaction.AOPairWithValue]:
         """
         provide overlap matrix
         """
@@ -98,20 +99,20 @@ class SingleBandInputs:
         overlaps = []
         for ao_pair in H_pairs:
             if ao_pair.l_AO == ao_pair.r_AO:
-                overlaps.append(AOPairWithValue(ao_pair.l_AO, ao_pair.r_AO, 1.0))
+                overlaps.append(interaction.AOPairWithValue(ao_pair.l_AO, ao_pair.r_AO, 1.0))
             else:
-                overlaps.append(AOPairWithValue(ao_pair.l_AO, ao_pair.r_AO, self._overlap))
+                overlaps.append(interaction.AOPairWithValue(ao_pair.l_AO, ao_pair.r_AO, self._overlap))
 
         return overlaps
 
 
-def get_singleband_tightbinding_with_overlap(overlap: float) -> TightBindingModel:
+def get_singleband_tightbinding_with_overlap(overlap: float) -> tightbinding.TightBindingModel:
     """high level function that return a single band tight binding model"""
     singleband_inputs = SingleBandInputs(overlap)
     HijRs = convert_AOpair_to_HijR(singleband_inputs.interactionPairH)
     SijRs = convert_AOpair_to_HijR(singleband_inputs.overlapPairS)
 
-    return TightBindingModel(
+    return tightbinding.TightBindingModel(
         singleband_inputs.cell, singleband_inputs.pos, singleband_inputs.types,
         HijRs, SijRs
     )

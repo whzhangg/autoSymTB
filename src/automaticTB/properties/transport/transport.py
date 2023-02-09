@@ -1,23 +1,12 @@
-import numpy as np, typing, dataclasses
-from ..tightbinding import TightBindingModel
-from ..kpoints import UnitCell
+import typing
+import dataclasses
+
+import numpy as np
 from scipy import constants
 
-def fd(ei,u,T):
-    """
-    calculate fermi-dirac distribution,
-    units of input: ei and u in eV, T in K
-    """
-    nu = (ei-u) * constants.elementary_charge / (constants.Boltzmann*T)
-    return 1/( 1+np.exp( nu ) )
+from automaticTB.properties import tightbinding
+from automaticTB.properties import kpoints
 
-def dfde(ei, u, T):
-    """
-    SI units
-    """
-    kbt = constants.Boltzmann * T
-    nu = (ei-u)* constants.elementary_charge / kbt
-    return  -1.0 * np.exp(nu) / (1.0 + np.exp(nu))**2 / kbt
 
 @dataclasses.dataclass
 class TransportResult:
@@ -29,14 +18,15 @@ class TransportResult:
     ekappa: np.ndarray         # ntemp, n_mu, 3, 3
     tau: float
 
+
     @classmethod
     def calculate_from_tightbinding(cls, 
-        tb: TightBindingModel, t_range: np.arange, mu_range: np.ndarray, 
+        tb: tightbinding.TightBindingModel, t_range: np.ndarray, mu_range: np.ndarray, 
         valence: int, 
         tau: float = 1.0,
         nkgrid: int = 20, weight: float = 2.0
     ) -> "TransportResult":
-        calculator = TransportCalculator(tb, nkgrid, weight)
+        calculator = _TransportCalculator(tb, nkgrid, weight)
         ntemp = len(t_range)
         nmu = len(mu_range)
         ncarrier = np.zeros((ntemp, nmu))
@@ -57,6 +47,7 @@ class TransportResult:
             t_range, mu_range, ncarrier, seebeck, sigma, ekappa, tau
         )
 
+
     def mobility_effective_mass(self) -> np.ndarray:
         inv_mass = np.zeros_like(self.conductivity)
         for itemp, temp in enumerate(self.temperatures):
@@ -64,6 +55,7 @@ class TransportResult:
                 inv_mass[itemp, imu] = self.conductivity[itemp, imu] / self.ncarrier[itemp, imu] / self.tau / constants.elementary_charge ** 2 * constants.electron_mass
         
         return inv_mass
+
 
     def seebeck_effective_mass(self) -> np.ndarray:
         seebeck_mass = np.zeros_like(self.ncarrier)
@@ -86,12 +78,31 @@ class TransportResult:
         
         return seebeck_mass
 
-class TransportCalculator:
+
+def _fd(ei,u,T):
+    """
+    calculate fermi-dirac distribution,
+    units of input: ei and u in eV, T in K
+    """
+    nu = (ei-u) * constants.elementary_charge / (constants.Boltzmann*T)
+    return 1/( 1+np.exp( nu ) )
+
+
+def _dfde(ei, u, T):
+    """
+    SI units
+    """
+    kbt = constants.Boltzmann * T
+    nu = (ei-u)* constants.elementary_charge / kbt
+    return  -1.0 * np.exp(nu) / (1.0 + np.exp(nu))**2 / kbt
+
+
+class _TransportCalculator:
     def __init__(
-        self, tbmodel: TightBindingModel, approximate_k: int, weight: float = 2.0
+        self, tbmodel: tightbinding.TightBindingModel, approximate_k: int, weight: float = 2.0
     ) -> None:
         self.tbmodel = tbmodel
-        unitcell = UnitCell(self.tbmodel.cell)
+        unitcell = kpoints.UnitCell(self.tbmodel.cell)
         grid = unitcell.recommend_kgrid(approximate_k)
         self.kmesh = unitcell.get_Kmesh(grid)
 
@@ -111,11 +122,13 @@ class TransportCalculator:
 
         \frac{1}{N_kV}\sum_{n,k} f(e_{n,k}, \mu, T)
         """
-        summed_carrier = np.sum(fd(self.ek, mu, temp)) * self.weight / self.nk
+        summed_carrier = np.sum(_fd(self.ek, mu, temp)) * self.weight / self.nk
         factor = 1.0 / (self.cell_volume * 1e-30)
         return (summed_carrier - nele) * factor
 
-    def calculate_transport(self, mu: float, temp: float, tau: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def calculate_transport(
+        self, mu: float, temp: float, tau: np.ndarray
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """calculates the electrical conductivity, seebeck and kappa in SI units
         require relaxation time the same size as energy, in unit of sec. """
         if tau.shape != self.ek.shape:
@@ -125,7 +138,7 @@ class TransportCalculator:
 
         vel_tensor = np.einsum("mni, mnj -> mnij", self.vk, self.vk)
         
-        dfde_factor = -1 * dfde(self.ek, mu, temp)
+        dfde_factor = -1 * _dfde(self.ek, mu, temp)
         
         sigma_sum = np.zeros((3,3))
         sigmaSsum = np.zeros((3,3))

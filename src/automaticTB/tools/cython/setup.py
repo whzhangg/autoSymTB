@@ -6,7 +6,7 @@ import os, numpy
 
 os.environ["CC"] = "g++-12"
 setup(
-	ext_modules=cythonize("cpivoting.pyx", compiler_directives={"language_level": "3"}),
+	ext_modules=cythonize("cython_functions.pyx", compiler_directives={"language_level": "3"}),
 	include_dirs=[numpy.get_include()]
 )
 

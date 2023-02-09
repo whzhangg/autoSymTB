@@ -59,11 +59,8 @@ def test_solved_values():
     model = relationship.get_ElectronicModel_from_free_parameters(
         free_Hijs=retrived_values)
     compare_stored_values(prefix, model.tb, pbte_path)
-    model.plot_bandstructure(
-        prefix = prefix,
-        kpaths_str = pbte_path,
-        yminymax=(8,12)
-    )
+    bandresult = model.get_bandstructure(prefix, pbte_path, make_folder=False)
+    bandresult.plot_data(f"{prefix}.pdf", yminymax=(8,12))
     os.remove(result_file)
 
 

@@ -55,10 +55,8 @@ def test_solved_values():
     model = relationship.get_ElectronicModel_from_free_parameters(
         free_Hijs=retrived_values)
     compare_stored_values(prefix, model.tb, cubic_band)
-    model.plot_bandstructure(
-        prefix = prefix,
-        kpaths_str = cubic_band
-    )
+    bandresult = model.get_bandstructure(prefix, cubic_band, make_folder=False)
+    bandresult.plot_data(f"{prefix}.pdf")
     os.remove(result_file)
 
 if __name__ == "__main__":

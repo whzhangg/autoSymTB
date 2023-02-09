@@ -1,19 +1,17 @@
-import numpy as np, typing
-from scipy import constants
-from .hij import Pindex_lm, HijR, SijR
-from ..kpoints import UnitCell
-import numpy as np
 import typing
+
+import numpy as np
+from scipy import constants
+
+from automaticTB.properties import kpoints
+from .hij import Pindex_lm, HijR, SijR
 
 """
 this module defines tight-binding model, the only thing we need is the HijR and SijR, 
 which contain the energy and overlap of atomic orbitals.
 """
 
-__all__ = ["TightBindingModel"]
-
-
-def solve_secular(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+def _solve_secular(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
     #
     import scipy.linalg as scipylinalg
     #
@@ -27,17 +25,16 @@ def solve_secular(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.n
     return w, c
 
 
-def solve_secular_sorted(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
-    w, c = solve_secular(H, S)
+def _solve_secular_sorted(H: np.ndarray, S: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+    w, c = _solve_secular(H, S)
     sort_index = np.argsort(w.real)
     return w[sort_index], c[:,sort_index]
 
 
-class TightBindingModel():
+class TightBindingModelLegacy:
+    """the old tightbinding model, should not be used"""
     def __init__(self, 
-        cell: np.ndarray,
-        positions: np.ndarray,
-        types: typing.List[int],
+        cell: np.ndarray, positions: np.ndarray, types: typing.List[int],
         HijR_list: typing.List[HijR],
         SijR_list: typing.Optional[typing.List[SijR]] = None
     ) -> None:
@@ -59,7 +56,7 @@ class TightBindingModel():
 
     @property
     def reciprocal_cell(self) -> np.ndarray:
-        return UnitCell.find_RCL(self.cell)
+        return kpoints.find_RCL(self.cell)
 
     @property
     def basis(self) -> typing.List[Pindex_lm]:
@@ -77,7 +74,8 @@ class TightBindingModel():
     def types(self) -> typing.List[int]:
         return self._types
 
-    def Hijk_and_derivatives(self, k: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+
+    def _Hijk_and_derivatives(self, k: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
         """
         it returns the H matrix and its derivative with respect to k
         H matrix is in unit eV and its derivative has unit eV * angstrom
@@ -107,10 +105,11 @@ class TightBindingModel():
         return ham, ham_derv
 
 
-    def Sijk_and_derivatives(self, k: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+    def _Sijk_and_derivatives(self, k: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
         """
-        it returns the overlap matrix S and its derivative with respect to k.
-        S matrix is unitless while the derivative has unit angstrom
+        it returns the overlap matrix S and its derivative with respect 
+        to k. S matrix is unitless while the derivative has unit 
+        angstrom
         """
         k = np.array(k)
         nbasis = len(self._basis)
@@ -187,8 +186,9 @@ class TightBindingModel():
         h = self.Hijk(k)
         #w, v = np.linalg.eig(h)
         s = self.Sijk(k)
-        w, c = solve_secular_sorted(h, s)
+        w, c = _solve_secular_sorted(h, s)
         return w.real, c
+
 
     def calculate_e_velocity_lee(
         self, k: np.ndarray
@@ -197,9 +197,9 @@ class TightBindingModel():
         obtain the band velocity using the equation derived in Lee et 
         al. 2018, without the need for finite difference.
         """
-        h, dhdk = self.Hijk_and_derivatives(k)
-        s, dsdk = self.Sijk_and_derivatives(k)
-        w, cT = solve_secular(h, s) # it has shape
+        h, dhdk = self._Hijk_and_derivatives(k)
+        s, dsdk = self._Sijk_and_derivatives(k)
+        w, cT = _solve_secular(h, s) # it has shape
         cs = cT.T
 
         derivative = []
@@ -213,6 +213,7 @@ class TightBindingModel():
         sort_index = np.argsort(w.real)
         
         return w.real[sort_index], veloc.real[sort_index, :]
+
 
     def calculate_e_velocity_finite_diff(
         self, k: np.ndarray
@@ -266,10 +267,12 @@ class TightBindingModel():
         assert coeff.shape[0] == ek.shape[0]
         return ek, coeff
 
+
     def solveE_at_ks(self, ks: np.ndarray) -> np.ndarray:
         return np.vstack(
             [ self.solveE_at_k(k)[0] for k in ks ]
         )
+
 
     def solveE_V_at_ks(self, ks: np.ndarray) -> np.ndarray:
         energy = []
@@ -280,3 +283,4 @@ class TightBindingModel():
             velocity.append(v)
 
         return np.array(energy), np.array(velocity)
+    

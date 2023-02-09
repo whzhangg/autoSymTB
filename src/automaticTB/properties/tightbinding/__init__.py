@@ -1,3 +1,2 @@
-from .tightbinding_model import *
-from .tightbinding_optimized import *
+from .tightbinding_optimized import TightBindingModel
 from .hij import *

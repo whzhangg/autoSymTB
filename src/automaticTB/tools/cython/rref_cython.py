@@ -1,7 +1,7 @@
 import numpy as np
 
-from .cpivoting import row_echelon_cp_cython_double, row_echelon_cp_cython_complex
-from .cpivoting import row_echelon_spp_cython_double, row_echelon_spp_cython_complex
+from .cython_functions import row_echelon_cp_cython_double, row_echelon_cp_cython_complex
+from .cython_functions import row_echelon_spp_cython_double, row_echelon_spp_cython_complex
 
 # cython 
 def cython_cp_wrapper(A: np.ndarray, tol: float, eliminate_above: bool = True) -> np.ndarray:

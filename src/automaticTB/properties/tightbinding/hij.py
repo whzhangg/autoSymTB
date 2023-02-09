@@ -1,18 +1,11 @@
-import typing, dataclasses
+import dataclasses
+
 import numpy as np
-from ...parameters import ztol
-
-"""
-this module defines the interface between the result of the code to create tight-binding model
-"""
-
-__all__ = [
-    "Pindex_lm", "HijR", "SijR"
-]
 
 @dataclasses.dataclass
 class Pindex_lm:
-    pindex: int  # index in primitive cell
+    """unique index of an orbit in solids"""
+    pindex: int  
     n: int
     l: int
     m: int
@@ -22,7 +15,7 @@ class Pindex_lm:
         return self.pindex == other.pindex and \
                self.n == other.n and \
                self.l == other.l and self.m == other.m and \
-               np.allclose(self.translation, other.translation, atol = ztol)
+               np.allclose(self.translation, other.translation)
 
 
 @dataclasses.dataclass

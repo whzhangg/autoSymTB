@@ -1,19 +1,18 @@
-import numpy as np, typing
-from scipy import constants, linalg as scipylinalg
-from .hij import Pindex_lm, HijR, SijR
-from ..kpoints import UnitCell
+import typing
+
+import numpy as np
+import scipy
 from collections import namedtuple
 
-__all__ = ["TightBindingModelOptimized"]
+from automaticTB.properties import kpoints
+from .hij import Pindex_lm, HijR, SijR
 
 HSijR = namedtuple('HSijR', "i j r H S")
 
-class TightBindingModelOptimized():
+class TightBindingModel:
     """faster version of the tightbinding model with some difference"""
     def __init__(self, 
-        cell: np.ndarray,
-        positions: np.ndarray,
-        types: typing.List[int],
+        cell: np.ndarray, positions: np.ndarray, types: typing.List[int],
         HijR_list: typing.List[HijR],
         SijR_list: typing.Optional[typing.List[SijR]] = None
     ) -> None:
@@ -90,7 +89,7 @@ class TightBindingModelOptimized():
 
     @property
     def reciprocal_cell(self) -> np.ndarray:
-        return UnitCell.find_RCL(self.cell)
+        return kpoints.find_RCL(self.cell)
 
 
     @property
@@ -113,10 +112,11 @@ class TightBindingModelOptimized():
         return self._types
 
 
-    def Hijk_Sijk_at_k(
-        self, k: np.ndarray
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def Hijk_Sijk_and_derivatives_at_k(
+            self, k: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """return H(k), S(k), dH(k)/dk and dS(k)/dk at a given k"""
         ks = np.array([k])
+
         hijk, sijk, hijk_derv, sijk_derv = \
             self.Hijk_SijK_and_derivatives(ks, True)
         
@@ -126,6 +126,7 @@ class TightBindingModelOptimized():
     def Hijk_SijK_and_derivatives(
         self, ks: np.ndarray, require_derivative: bool = True
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """return H(k), S(k), dH(k)/dk and dS(k)/dk at a list of k"""
         ks = np.array(ks)
         nk = len(ks)
         nbasis = len(self._basis)
@@ -175,46 +176,96 @@ class TightBindingModelOptimized():
             return hijk, sijk, (), ()
 
 
-    def solveE_at_k(self, k: np.ndarray) -> np.ndarray:
+    def solveE_V_at_k(self, k: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+        """provide energy and band derivative at k"""
         # it now wraps over solveE_at_ks version
         ks = np.array([k])
-        es = self.solveE_at_ks(ks)
-        return es[0]
+        es, vs = self.solveE_V_at_ks(ks)
+        return es[0], vs[0]
 
-
-    def solveE_at_ks(self, ks: np.ndarray) -> np.ndarray:
+            
+    def solveE_c2_at_ks(self, ks: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+        """provide energies and coefficients**2, for fat band plot"""
         hijk, sijk, _, _ = self.Hijk_SijK_and_derivatives(ks, require_derivative=False)
         result = []
+        coefficients = []
         for h, s in zip(hijk, sijk):
             #h = (h + np.conjugate(h.T)) / 2.0
             #s = (s + np.conjugate(s.T)) / 2.0  # should symmetrize hamiltonian
-            w, c = scipylinalg.eig(h, s)
+            w, c = scipy.linalg.eig(h, s)
+            # c is indexed by c[iorb, ibnd], 
+            # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.eig.html
+            cT = (np.abs(c)**2).T  # [ibnd, iorb]
+            coefficients.append(cT[np.newaxis,...])
             result.append(np.sort(w.real))
 
-        return np.array(result)
+        return np.array(result), np.vstack(coefficients)
+        
+    #@profile
+    # self.Hijk_SijK_and_derivatives took around 14%
+    # scipy.linalg.eig(h, s) toke ~ 85% of the time
+    def solveE_at_ks(self, ks: np.ndarray) -> np.ndarray:
+        """provide energies for a list of k points"""
+        hijk, sijk, _, _ = self.Hijk_SijK_and_derivatives(ks, require_derivative=False)
+        if len(ks) < 1000:
+            result = []
             
+            for h, s in zip(hijk, sijk):
+                #h = (h + np.conjugate(h.T)) / 2.0
+                #s = (s + np.conjugate(s.T)) / 2.0  # should symmetrize hamiltonian
+                w, c = scipy.linalg.eig(h, s)
+                result.append(np.sort(w.real))
+        else:
+            # parallel version, for the moment the same as serial version
+            result = []
+            for h, s in zip(hijk, sijk):
+                #h = (h + np.conjugate(h.T)) / 2.0
+                #s = (s + np.conjugate(s.T)) / 2.0  # should symmetrize hamiltonian
+                w, c = scipy.linalg.eig(h, s)
+                result.append(np.sort(w.real))
+        return np.array(result)
+    
 
     def solveE_V_at_ks(self, ks: np.ndarray) -> np.ndarray:
-        energy = []
-        velocity = []
+        """provide energy and derivative for a list of kpoints"""
         hijk, sijk, hijk_derv, sijk_derv \
             = self.Hijk_SijK_and_derivatives(ks, require_derivative=True)
 
-        for h, s, dh, ds in zip(hijk, sijk, hijk_derv, sijk_derv):
-            w, cT = scipylinalg.eig(h, s) # it has shape
-            cs = cT.T
+        if len(ks) < 1000:
+            energy = []
+            velocity = []
+            for h, s, dh, ds in zip(hijk, sijk, hijk_derv, sijk_derv):
+                w, cT = scipy.linalg.eig(h, s) # it has shape
+                cs = cT.T
 
-            derivative = []
-            for epsilon, c in zip(w, cs):
-                dhds = dh - epsilon * ds # (3, nbnd, nbnd)
-                derivative.append(
-                    np.einsum("i, kij, j -> k", np.conjugate(c), dhds, c)
-                )
+                derivative = []
+                for epsilon, c in zip(w, cs):
+                    dhds = dh - epsilon * ds # (3, nbnd, nbnd)
+                    derivative.append(
+                        np.einsum("i, kij, j -> k", np.conjugate(c), dhds, c)
+                    )
 
-            veloc = np.array(derivative) * 1e-10 * constants.elementary_charge  / constants.hbar
-            sort_index = np.argsort(w.real)
-            energy.append(w.real[sort_index])
-            velocity.append(veloc.real[sort_index])
+                veloc = np.array(derivative) * 1e-10 * scipy.constants.elementary_charge  / scipy.constants.hbar
+                sort_index = np.argsort(w.real)
+                energy.append(w.real[sort_index])
+                velocity.append(veloc.real[sort_index])
+        else:
+            # parallel version
+            energy = []
+            velocity = []
+            for h, s, dh, ds in zip(hijk, sijk, hijk_derv, sijk_derv):
+                w, cT = scipy.linalg.eig(h, s) # it has shape
+                cs = cT.T
 
+                derivative = []
+                for epsilon, c in zip(w, cs):
+                    dhds = dh - epsilon * ds # (3, nbnd, nbnd)
+                    derivative.append(
+                        np.einsum("i, kij, j -> k", np.conjugate(c), dhds, c)
+                    )
+
+                veloc = np.array(derivative) * 1e-10 * scipy.constants.elementary_charge  / scipy.constants.hbar
+                sort_index = np.argsort(w.real)
+                energy.append(w.real[sort_index])
+                velocity.append(veloc.real[sort_index])
         return np.array(energy), np.array(velocity)
-
