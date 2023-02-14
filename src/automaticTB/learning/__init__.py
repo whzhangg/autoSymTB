@@ -4,5 +4,3 @@ for demonstration purpose, it should provide a function that take interaction pa
 respective values as training inputs and return a function that provide rotation, permutation 
 invariant mapping of the interaction value
 """
-
-from .interaction_mapper import OrbitalNetwork

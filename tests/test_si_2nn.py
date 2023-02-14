@@ -50,8 +50,8 @@ def extract():
         prefix, cubic_band, quality = 1, make_folder=False
     )
     banddata.plot_data(f"{prefix}.pdf", (-4,6))
-    dos = model.get_dos(prefix, emin=-4.0, emax=6.0)
-    dosy = dos.dos
+    dos = model.get_dos(prefix, emin=-4.0, emax=6.0, gridsize=40, xdensity=200)
+    dos.plot_dos("si_2nn.dos.pdf")
     return
     print(f"Calculate effective mass at CBM (parabolic mode)")
     for k in np.linspace((0.3,0.0,0.3),(0.5,0.0,0.5),15):

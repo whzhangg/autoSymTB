@@ -1,8 +1,9 @@
 import typing
+from collections import namedtuple
 
 import numpy as np
 import scipy
-from collections import namedtuple
+import joblib
 
 from automaticTB.properties import kpoints
 from .hij import Pindex_lm, HijR, SijR
@@ -11,6 +12,8 @@ HSijR = namedtuple('HSijR', "i j r H S")
 
 class TightBindingModel:
     """faster version of the tightbinding model with some difference"""
+    nproc = joblib.cpu_count() // 2
+    parallel_threshold = 10000
     def __init__(self, 
         cell: np.ndarray, positions: np.ndarray, types: typing.List[int],
         HijR_list: typing.List[HijR],
@@ -207,23 +210,21 @@ class TightBindingModel:
     def solveE_at_ks(self, ks: np.ndarray) -> np.ndarray:
         """provide energies for a list of k points"""
         hijk, sijk, _, _ = self.Hijk_SijK_and_derivatives(ks, require_derivative=False)
-        if len(ks) < 1000:
-            result = []
-            
-            for h, s in zip(hijk, sijk):
-                #h = (h + np.conjugate(h.T)) / 2.0
-                #s = (s + np.conjugate(s.T)) / 2.0  # should symmetrize hamiltonian
-                w, c = scipy.linalg.eig(h, s)
-                result.append(np.sort(w.real))
+        if len(ks) < self.parallel_threshold:
+            return _solve_E(hijk, sijk)
         else:
+            print(f"calculate in parallel for {len(ks)} kpoints on {self.nproc} process")
+            njob_each = len(ks) // self.nproc + 1
+            divided_jobs = []
+            for iproc in range(self.nproc):
+                start = njob_each * iproc
+                end = min(njob_each * (iproc + 1), len(ks))
+                divided_jobs.append((hijk[start:end], sijk[start:end]))
             # parallel version, for the moment the same as serial version
-            result = []
-            for h, s in zip(hijk, sijk):
-                #h = (h + np.conjugate(h.T)) / 2.0
-                #s = (s + np.conjugate(s.T)) / 2.0  # should symmetrize hamiltonian
-                w, c = scipy.linalg.eig(h, s)
-                result.append(np.sort(w.real))
-        return np.array(result)
+            
+            results = joblib.Parallel(n_jobs=self.nproc)(
+                joblib.delayed(_solve_E)(hs, ss) for hs, ss in divided_jobs)
+            return np.vstack(results)
     
 
     def solveE_V_at_ks(self, ks: np.ndarray) -> np.ndarray:
@@ -231,7 +232,8 @@ class TightBindingModel:
         hijk, sijk, hijk_derv, sijk_derv \
             = self.Hijk_SijK_and_derivatives(ks, require_derivative=True)
 
-        if len(ks) < 1000:
+        if len(ks) < self.parallel_threshold:
+            return _solve_E_V(hijk, sijk, hijk_derv, sijk_derv)
             energy = []
             velocity = []
             for h, s, dh, ds in zip(hijk, sijk, hijk_derv, sijk_derv):
@@ -250,22 +252,54 @@ class TightBindingModel:
                 energy.append(w.real[sort_index])
                 velocity.append(veloc.real[sort_index])
         else:
-            # parallel version
-            energy = []
-            velocity = []
-            for h, s, dh, ds in zip(hijk, sijk, hijk_derv, sijk_derv):
-                w, cT = scipy.linalg.eig(h, s) # it has shape
-                cs = cT.T
+            njob_each = len(ks) // self.nproc + 1
+            divided_jobs = []
+            for iproc in range(self.nproc):
+                start = njob_each * iproc
+                end = min(njob_each * (iproc + 1), len(ks))
+                divided_jobs.append((hijk[start:end], sijk[start:end], hijk_derv[start:end], sijk_derv[start:end]))
+            # parallel version, for the moment the same as serial version
+            
+            results = joblib.Parallel(n_jobs=self.nproc)(
+                joblib.delayed(_solve_E_V)(hs, ss, dhs, dss) for hs, ss, dhs, dss in divided_jobs)
+            obtained_energy = np.vstack([e for e,_ in results])
+            obtained_velocity = np.vstack([v[np.newaxis,...] for _,v in results])
+            return obtained_energy, obtained_velocity
 
-                derivative = []
-                for epsilon, c in zip(w, cs):
-                    dhds = dh - epsilon * ds # (3, nbnd, nbnd)
-                    derivative.append(
-                        np.einsum("i, kij, j -> k", np.conjugate(c), dhds, c)
-                    )
 
-                veloc = np.array(derivative) * 1e-10 * scipy.constants.elementary_charge  / scipy.constants.hbar
-                sort_index = np.argsort(w.real)
-                energy.append(w.real[sort_index])
-                velocity.append(veloc.real[sort_index])
-        return np.array(energy), np.array(velocity)
+def _solve_E(hijks: np.ndarray, sijks: np.ndarray) -> np.ndarray:
+    """worker function"""
+    nk, nbasis, _ = hijks.shape
+    eigenvalues = np.zeros((nk, nbasis), dtype=np.double)
+    for ik in range(nk):
+        w, _ = scipy.linalg.eig(hijks[ik], sijks[ik])
+        eigenvalues[ik] = np.sort(w.real)
+    return eigenvalues
+
+
+def _solve_E_V(
+    hijks: np.ndarray, sijks: np.ndarray, hijk_dervs: np.ndarray, sijk_dervs: np.ndarray
+) -> np.ndarray:
+    """worker function for mpi"""
+    nk, nbasis, _ = hijks.shape
+    eigenvalues = np.zeros((nk, nbasis), dtype=np.double)
+    velocity = np.zeros((nk, nbasis, 3), dtype=np.double)
+    for ik in range(nk):
+                
+        w, cT = scipy.linalg.eig(hijks[ik], sijks[ik]) # it has shape
+        cs = cT.T
+
+        derivative = []
+        for epsilon, c in zip(w, cs):
+            dhds = hijk_dervs[ik] - epsilon * sijk_dervs[ik] # (3, nbnd, nbnd)
+            derivative.append(
+                np.einsum("i, kij, j -> k", np.conjugate(c), dhds, c))
+
+        veloc = (np.array(derivative) 
+                    * 1e-10 * scipy.constants.elementary_charge  / scipy.constants.hbar)
+        sort_index = np.argsort(w.real)
+        eigenvalues[ik] = w.real[sort_index]
+        velocity[ik] = veloc.real[sort_index]
+        
+    return eigenvalues, velocity
+    

@@ -1,5 +1,9 @@
 name: autotb
 channels:
+  - pytorch
+  - pyg
+  - anaconda
+  - conda-forge
   - defaults
 dependencies:
   - pymatgen
@@ -22,4 +26,5 @@ dependencies:
   - seaborn
   - line_profiler
   - cython
+  - custodian
 prefix: /Users/wenhao/Applications/miniconda3/envs/autotb

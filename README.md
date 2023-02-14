@@ -28,20 +28,20 @@ Body scout rule: **leave your play ground better than you found it.**
 
 1. Create an conda environment:
    
-   ```
+   ```bash
    conda create --name autoTB python=3.8
    conda activate autoTB
    ```
 
 2. We need to add necessary channels
    
-   ```
+   ```bash
    conda config --add channels pyg pytorch conda-forge
    ```
 
 3. Install necessary package by conda
    
-   ```
+   ```bash
    conda install ase matplotlib numpy pymatgen requests scipy beautifulsoup4 spglib prettytable jupyter
    conda install pytorch pyg
    ```
