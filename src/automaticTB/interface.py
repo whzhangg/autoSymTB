@@ -1,7 +1,7 @@
 import numpy as np, typing, dataclasses, copy
 
-from .parameters import ztol
-from .tools import atomic_numbers, chemical_symbols, parse_orbital, timefn, LinearEquation, solve_matrix
+from automaticTB import parameters as params
+from automaticTB import tools
 
 @dataclasses.dataclass(eq=True)
 class AtomicOrbital:
@@ -74,23 +74,163 @@ class OrbitalPair:
         )
 
 
-
 @dataclasses.dataclass
+class SolutionChain:
+    """store a direct numerical relationship for solving interactions"""
+    inv_m1: np.ndarray # square matrix
+    inv_m2: typing.Optional[np.ndarray]
+    extra_value_finder: typing.Optional[typing.Dict[int, bool]] # indices, 
+
+    def _create_b_vector(self, 
+            totalsize: int, list_of_values: typing.List[np.ndarray]) -> np.ndarray:
+        """append list of values to the end"""
+        b = np.zeros(totalsize, dtype = self.inv_m1.dtype)
+        end = totalsize
+        for values in list_of_values[::-1]:
+            start = end - len(values)
+            b[start:end] = values
+            end = start
+        return b
+
+    def solve(self, input_values: typing.List[float]) -> np.ndarray:
+        """go through the chain of action"""
+        b = self._create_b_vector(len(self.inv_m1), [np.array(input_values)])
+
+        x0 = self.inv_m1 @ b
+        if self.inv_m2 is None:
+            return x0
+        
+        additional_values = []
+        for i, do_conjugate in self.extra_value_finder.items():
+            _v = x0[i]
+            if do_conjugate:
+                _v = np.conjugate(_v)
+            additional_values.append(_v)
+        
+        fullb = self._create_b_vector(
+            len(self.inv_m2), [np.array(input_values), np.array(additional_values)])
+        
+        return self.inv_m2 @ fullb
+
+
+#@dataclasses.dataclass
+#class OrbitalPropertyRelationship:
+    """
+    it can be converted back and forth with the interactionSpace class, 
+    it support saving to file and reading from file, it calles the 
+    InteractionSpace to do real work and and provide the method 
+    `get_ElectronicModel_from_free_parameters()` which interface 
+    with the property module.
+    """
+    #cell: np.ndarray
+    #positions: np.ndarray
+    #types: np.ndarray
+    #all_pairs: typing.List[OrbitalPair]
+    #free_pair_indices: typing.List[int]
+    #homogeneous_equation: np.ndarray
+
 class OrbitalPropertyRelationship:
-    """
-    it can be converted back and forth with the interactionSpace class, it support saving to file and reading from file, it calles the InteractionSpace to do real work and and provide the method `get_ElectronicModel_from_free_parameters()` which interface with the property module.
-    """
-    cell: np.ndarray
-    positions: np.ndarray
-    types: np.ndarray
-    all_pairs: typing.List[OrbitalPair]
-    free_pair_indices: typing.List[int]
-    homogeneous_equation: np.ndarray
+    def __init__(self,
+        cell: np.ndarray,
+        positions: np.ndarray,
+        types: np.ndarray,
+        all_pairs: typing.List[OrbitalPair],
+        free_pair_indices: typing.List[int],
+        homogeneous_equation: np.ndarray,
+    ) -> None:
+        self.cell = cell
+        self.positions = positions
+        self.types = types
+        self.all_pairs = all_pairs
+        self.free_pair_indices = free_pair_indices
+        self.homogeneous_equation = homogeneous_equation
+
+        self._stored_solutionchain = None
+
+    def _extend_matrix(self, a: np.ndarray, indices: typing.List[int]) -> np.ndarray:
+        """extend matrix by index
+        
+        a: [1, 0, 1] and indices: [1, 0], will return
+            [1, 0, 1]
+            [0 ,1 ,0]
+            [1, 0, 0]
+        """
+        _, ncol = a.shape
+        additional = np.zeros((len(indices), ncol), dtype=a.dtype)
+        for irow, icol in enumerate(indices):
+            additional[irow, icol] = 1.0
+        return np.vstack([a, additional])
+        
+
+    def _create_solutionchain(self) -> SolutionChain:
+        # obtain additional_required_indices if any
+        tmp = tools.LinearEquation.from_equation(
+            self._extend_matrix(self.homogeneous_equation, self.free_pair_indices)
+        )
+        
+        additional_required_indices = tmp.free_variable_indices
+
+        if len(additional_required_indices) == 0:
+            solvable_inverse = np.linalg.inv(tmp.row_echelon_form)
+            return SolutionChain(solvable_inverse, None, None)
+        
+        # find the solvable matrix 
+        related_indices = set()
+        indices = np.array(additional_required_indices)
+        for row in self.homogeneous_equation:
+            if np.all(np.isclose(row[indices], 0.0, atol = params.ztol)):
+                # a row does not containing any of the no-solvable indices
+                continue
+            related_indices |= set(
+                np.argwhere(np.invert(np.isclose(row, 0.0, atol=params.ztol))).flatten()
+            )
+            
+            # AOs that depend on the selected additional_required_index
+
+        solvable_indices = sorted(list(set(range(len(self.all_pairs))) - related_indices))
+        for i in self.free_pair_indices:
+            if i not in solvable_indices:
+                raise ValueError("_create_solutionchain, solvable part is probably not correct!")
+
+        map_from_old_indices = {old: new for new, old in enumerate(solvable_indices)}
+
+        solvable_parts = tools.LinearEquation.from_equation(
+            self.homogeneous_equation[:, np.array(solvable_indices)]
+        )
+        free_indices_for_solvable_part = [
+            map_from_old_indices[i] for i in self.free_pair_indices]
+
+        stacked_left = self._extend_matrix(
+            solvable_parts.row_echelon_form, free_indices_for_solvable_part)
+        solvable_inverse = np.linalg.inv(stacked_left)
+
+        solved_aopair_values = {self.all_pairs[si]:i for i, si in enumerate(solvable_indices)} 
+
+        additional_values_index: typing.Dict[int, bool] = dict()
+        for additional_rquired_i in additional_required_indices:
+            pair = self.all_pairs[additional_rquired_i]
+            reverse_pair = pair.get_reverse_translated()
+            if pair in solved_aopair_values:
+                additional_values_index[solved_aopair_values[pair]] = False
+            elif reverse_pair in solved_aopair_values:
+                additional_values_index[solved_aopair_values[reverse_pair]] = True
+            else:
+                raise RuntimeError("interaction pair not found")
+        
+        stacked_left = self._extend_matrix(
+            self.homogeneous_equation, self.free_pair_indices + additional_required_indices
+        )
+        
+        full_inverse = np.linalg.inv(stacked_left)
+
+        return SolutionChain(
+                solvable_inverse, 
+                full_inverse,
+                additional_values_index,
+            )
+
 
     def _solve_all_values(self, values: typing.List[float]) -> np.ndarray:
-        """
-        similar to interaction 
-        """
         all_indices = range(len(self.all_pairs))
         dtype = self.homogeneous_equation.dtype
 
@@ -107,27 +247,53 @@ class OrbitalPropertyRelationship:
             indices_list = { f:i for i, f in enumerate(self.free_pair_indices)}
             return [values[indices_list[i]] for i in range(len(self.all_pairs))]
         
-        # obtain values for additional_required_indices
+        if self._stored_solutionchain is None:
+            self._stored_solutionchain = self._create_solutionchain()
+        return self._stored_solutionchain.solve(values)
+
+
+    def _solve_all_values_old(self, values: typing.List[float]) -> np.ndarray:
+        """solve all the required interaction in two step
+        """
+        all_indices = range(len(self.all_pairs))
+        dtype = self.homogeneous_equation.dtype
+
+        if len(values) != len(self.free_pair_indices):
+            raise RuntimeError(
+                "{:s}: number of input values of interaction {:d} != required {:d}".format(
+                    self.__name__, len(values), len(self.free_pair_indices)
+                )
+            )
+    
+        # treat two corner case: no free pair and all pairs are free
+        if not self.free_pair_indices:
+            return np.zeros(len(self.all_pairs), dtype=dtype)
+        elif set(self.free_pair_indices) == set(all_indices):
+            indices_list = { f:i for i, f in enumerate(self.free_pair_indices)}
+            return [values[indices_list[i]] for i in range(len(self.all_pairs))]
+        
+        # obtain additional_required_indices
         new_rows = np.zeros(
             (len(self.free_pair_indices), len(self.all_pairs)), dtype=dtype)
 
         for i, ipair in enumerate(self.free_pair_indices):
             new_rows[i, ipair] = 1.0
 
-        tmp = LinearEquation.from_equation(np.vstack([self.homogeneous_equation, new_rows]))
-        # additional required index
+        tmp = tools.LinearEquation.from_equation(
+            np.vstack([self.homogeneous_equation, new_rows]))
+        
         additional_required_indices = tmp.free_variable_indices
         
         if additional_required_indices:
-
+            # obtain values for the additional required index by solving 
             related_indices = set()
             indices = np.array(additional_required_indices)
             for row in self.homogeneous_equation:
-                if np.all(np.isclose(row[indices], 0.0, atol = ztol)):
+                if np.all(np.isclose(row[indices], 0.0, atol = params.ztol)):
                     # a row does not containing any of the no-solvable indices
                     continue
                 related_indices |= set(
-                    np.argwhere(np.invert(np.isclose(row, 0.0, atol=ztol))).flatten()
+                    np.argwhere(np.invert(np.isclose(row, 0.0, atol=params.ztol))).flatten()
                 )
             
             # AOs that depend on the selected additional_required_index
@@ -138,12 +304,12 @@ class OrbitalPropertyRelationship:
 
             map_from_old_indices = {old: new for new, old in enumerate(solvable_indices)}
 
-            solvable_parts = LinearEquation.from_equation(
+            solvable_parts = tools.LinearEquation.from_equation(
                 self.homogeneous_equation[:, np.array(solvable_indices)]
             )
             free_indices_for_solvable_part = [map_from_old_indices[i] for i in self.free_pair_indices]
 
-            solved_values = solve_matrix(solvable_parts.row_echelon_form, free_indices_for_solvable_part, values)
+            solved_values = tools.solve_matrix(solvable_parts.row_echelon_form, free_indices_for_solvable_part, values)
             solved_aopair_values = {
                 self.all_pairs[si]:solved_values[i] for i, si in enumerate(solvable_indices)
             } 
@@ -165,7 +331,7 @@ class OrbitalPropertyRelationship:
         all_required_indices = self.free_pair_indices + additional_required_indices
         all_required_values = np.hstack([values, np.array(additional_values)])
 
-        return solve_matrix(self.homogeneous_equation, all_required_indices, all_required_values)
+        return tools.solve_matrix(self.homogeneous_equation, all_required_indices, all_required_values)
 
 
     @classmethod
@@ -254,16 +420,16 @@ class OrbitalPropertyRelationship:
             left = self.all_pairs[index].l_orbital
             right = self.all_pairs[index].r_orbital
 
-            left_symbol = chemical_symbols[self.types[left.pindex]]
-            right_symbol = chemical_symbols[self.types[right.pindex]]
+            left_symbol = tools.chemical_symbols[self.types[left.pindex]]
+            right_symbol = tools.chemical_symbols[self.types[right.pindex]]
             left_position = np.dot(self.cell.T, self.positions[left.pindex] + left.translation)
             right_position = np.dot(self.cell.T, self.positions[right.pindex] + right.translation)
             result = f"  {i+1:>3d} > Pair: "
             rij = right_position - left_position
             result += f"{left_symbol:>2s}-{left.pindex:0>2d} " 
-            result += f"{parse_orbital(left.n, left.l, left.m):>7s} -> "
+            result += f"{tools.parse_orbital(left.n, left.l, left.m):>7s} -> "
             result += f"{right_symbol:>2s}-{right.pindex:0>2d} "
-            result += f"{parse_orbital(right.n, right.l, right.m):>7s} "
+            result += f"{tools.parse_orbital(right.n, right.l, right.m):>7s} "
             result += "r = ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
             print(result)
 
@@ -278,7 +444,7 @@ class OrbitalPropertyRelationship:
         lines.append("# Atomic Positions (frac.):")
         for t, p in zip(self.types, self.positions):
             lines.append(
-                "{:>3s} {:>20.8f}{:>20.8f}{:>20.8f}".format(chemical_symbols[t], *p)
+                "{:>3s} {:>20.8f}{:>20.8f}{:>20.8f}".format(tools.chemical_symbols[t], *p)
             )
         lines.append("")
         lines.append(f"# Number of free parameters = {len(self.free_pair_indices)}")
@@ -320,7 +486,7 @@ class OrbitalPropertyRelationship:
             pos = []
             for i in range(natom):
                 aline = f.readline().split()
-                types.append(atomic_numbers[aline[0]])
+                types.append(tools.atomic_numbers[aline[0]])
                 pos.append(np.array(aline[1:4], dtype=float))
             pos = np.vstack(pos)
             types = np.array(types, dtype=int)

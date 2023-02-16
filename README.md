@@ -119,6 +119,10 @@ As a result of profiling, `TightbindingModel` is re-written as `TightbindingMode
 
 It is found that implementation of multiprocess (using concurrent) does not speed up implementation of the mathematic process in `solve_secular`. It seems that the implementation of numpy and scipy already utilize all the parallel capability of multi-core (vie multi-threading, as discussed [here](https://stackoverflow.com/questions/6941459/is-it-possible-to-know-which-scipy-numpy-functions-run-on-multiple-cores)) so that any additional parallalization will not speed up the process. Therefore, in the implementation of transport property calculation, multiprocessing is not included. 
 
+## SISSO
+
+The current code is integrated with the SISSO code through a provided interface. It aim to train and provide a parameterized description of the feature in band structure with a set of initial values. 
+
 ## Appendix
 
 ### installation of libmsym (not needed)

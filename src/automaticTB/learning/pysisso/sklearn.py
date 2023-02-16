@@ -171,7 +171,7 @@ class SISSORunner:
         if target_unit is None:
             all_units = feature_units
         else:
-            all_units = np.vstack(target_unit, feature_units)
+            all_units = np.vstack([target_unit, feature_units])
         
         feature_ndim = all_units.shape[1]
         feature_rank = np.linalg.matrix_rank(all_units, tol=1e-6)

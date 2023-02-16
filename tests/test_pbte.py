@@ -66,6 +66,7 @@ def test_solved_values():
 
 if __name__ == "__main__":
     solve()
+    extract()
 
 """
 R = np.sqrt(2)

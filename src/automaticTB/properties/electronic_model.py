@@ -47,15 +47,21 @@ class ElectronicModel:
         return calculated
 
 
-    def get_effectivemass(self, kpoint: np.ndarray, ibnd: int, mode: str = "parabolic"):
-        mass = transport.BandEffectiveMass(self.tb)
-        if mode == "parabolic":
-            return mass.fit_parabolic_at_k(kpoint, ibnd)
-        elif mode == "taylor":
-            return mass.fit_taylor_expansion_at_k(kpoint, ibnd)
-        else:
-            raise RuntimeError(f"mode {mode} is not supported")
+    def get_effectivemass(
+            self, kpoint: np.ndarray, ibnd: int) -> transport.ParabolicBandFitting:
+        """fit effective mass
+        
+        When k point of the band maximum is not clear, it's necessary
+        to go along the kpoints and find the extreme. If the k point 
+        used is not near the maximum, the energy surface found could
+        fit to other parabolics instead of the parabolic of the 
+        band edge. It's always necessary to check if the obtained 
+        fitting kmax belong to the input energy surface.  
+        """
 
+        mass = transport.BandEffectiveMass(self.tb)
+        return mass.fit_parabolic_at_k(kpoint, ibnd)
+        
 
     @tools.timefn
     def get_bandstructure(

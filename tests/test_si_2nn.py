@@ -83,7 +83,7 @@ def test_solved_values():
 
 
 if __name__ == "__main__":
-    #solve()
+    solve()
     #debug()
     #test_solved_values()
     extract()
