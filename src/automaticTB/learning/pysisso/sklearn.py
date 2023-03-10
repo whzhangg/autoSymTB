@@ -81,7 +81,22 @@ class SISSORegressor(RegressorMixin, BaseEstimator):
         self._sisso_out = None
         self._columns = None
 
-    def fit(self, X, y, index=None, feature_names=None):
+
+    def fit(self, X, y, index=None, feature_names=None, dry_run=False, load=False):
+        """do fitting
+        
+        - dry_run: write the input files only
+        - load: we do not write the inputs, but read the results 
+        """
+        if load:
+            with montyos.cd(self.run_dir):
+                runner.run()
+                self._sisso_out = SISSOOut.from_file(filepath="SISSO.out")
+
+            if self.clean_run_dir:
+                shutil.rmtree(self.run_dir)
+
+
         if len(y) != X.shape[0]:
             raise ValueError("number of y not equal to number of X")
         if feature_names is not None and len(feature_names) != X.shape[1]:
@@ -104,7 +119,7 @@ class SISSORegressor(RegressorMixin, BaseEstimator):
             montyos.makedirs_p(self.run_dir)
 
         runner = SISSORunner(
-            data, self.feature_units, self.target_unit, 
+            data, self.feature_units, self.target_unit, dryrun=dry_run, 
             **{
                 "scmt": self.scmt, "desc_dim": self.desc_dim, "ops": self.ops, 
                 "fcomplexity": self.fcomplexity, "fmax_min": self.fmax_min, 
@@ -112,17 +127,20 @@ class SISSORegressor(RegressorMixin, BaseEstimator):
                 "method_so": self.method_so, "nl1l0": self.nl1l0, 
                 "L1_max_iter": self.L1_max_iter, "L1_dens": self.L1_dens, 
                 "L1_tole": self.L1_tole, "L1_minrmse": self.L1_minrmse, 
-                "L1_warm_start": self.L1_warm_start, 
-                "fit_intercept": self.fit_intercept, "metric": self.metric, 
-                "nmodels": self.nmodels, "isconvex": self.isconvex, "bwidth": self.bwidth
+                "L1_warm_start": self.L1_warm_start, "fit_intercept": self.fit_intercept, 
+                "metric": self.metric, "nmodels": self.nmodels, 
+                "isconvex": self.isconvex, "bwidth": self.bwidth
             }
         )
-        with montyos.cd(self.run_dir):
-            runner.run()
-            self._sisso_out = SISSOOut.from_file(filepath="SISSO.out")
 
-        if self.clean_run_dir:
-            shutil.rmtree(self.run_dir)
+        if not dry_run:
+            with montyos.cd(self.run_dir):
+                runner.run()
+                self._sisso_out = SISSOOut.from_file(filepath="SISSO.out")
+
+            if self.clean_run_dir:
+                shutil.rmtree(self.run_dir)
+
 
     def predict(self, X, index=None):
         X = np.array(X)
@@ -132,11 +150,12 @@ class SISSORegressor(RegressorMixin, BaseEstimator):
     
 
 class SISSORunner:
-    
+    """class to """
     def __init__(self, 
         yX: pd.DataFrame, 
         feature_units: typing.Optional[np.ndarray] = None, 
         target_unit: typing.Optional[np.ndarray] = None,
+        dryrun: bool = False,
         **addargs
     ) -> None:
         nsample = yX.shape[0]
@@ -150,6 +169,8 @@ class SISSORunner:
         self.input = SISSOIn(**args)
         self.train_data = SISSOSingleRegDat(yX)
         self.unit_data = SISSOUnitIn(feature_units, target_unit)
+        self.dryrun = dryrun
+
 
     def run(self, run_dir: typing.Optional[str] = None):
         """run the job"""
@@ -157,7 +178,8 @@ class SISSORunner:
             self.input.to_file(filename="SISSO.in")
             self.train_data.to_file(filename="train.dat")
             self.unit_data.to_file(filename="feature_units")
-            runSISSO()
+            if not self.dryrun:
+                runSISSO()
 
         if run_dir is None:
             _run()

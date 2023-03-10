@@ -52,11 +52,9 @@ def extract():
     banddata.plot_data(f"{prefix}.pdf", (-4,6))
     dos = model.get_dos(prefix, emin=-4.0, emax=6.0, gridsize=40, xdensity=200)
     dos.plot_dos("si_2nn.dos.pdf")
-    return
     print(f"Calculate effective mass at CBM (parabolic mode)")
     for k in np.linspace((0.3,0.0,0.3),(0.5,0.0,0.5),15):
-        parabolic_mass: ParabolicBandFitting = model.get_effectivemass(
-            k, ibnd = 4, mode="parabolic")
+        parabolic_mass: ParabolicBandFitting = model.get_effectivemass(k, ibnd = 4)
         print("selected k = {:>8.4f}{:>8.4f}{:>8.4f}".format(*k), end = " ")
         print("k(emin) = {:>8.4f}{:>8.4f}{:>8.4f}".format(*parabolic_mass.kmin), end = " ")
         print("EM = {:>8.4f}{:>8.4f}{:>8.4f}".format(*(1 / np.diag(parabolic_mass.inv_mass))))
@@ -83,7 +81,7 @@ def test_solved_values():
 
 
 if __name__ == "__main__":
-    solve()
+    #solve()
     #debug()
     #test_solved_values()
     extract()

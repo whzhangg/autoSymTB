@@ -192,6 +192,7 @@ class TightBindingModel:
         hijk, sijk, _, _ = self.Hijk_SijK_and_derivatives(ks, require_derivative=False)
         result = []
         coefficients = []
+        raise RuntimeError("for future..please check if the eigenvectors are sorted")
         for h, s in zip(hijk, sijk):
             #h = (h + np.conjugate(h.T)) / 2.0
             #s = (s + np.conjugate(s.T)) / 2.0  # should symmetrize hamiltonian

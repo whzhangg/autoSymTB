@@ -75,7 +75,8 @@ class BandStructureResult:
         self, filename: str, 
         yminymax: typing.Optional[typing.Tuple[float]] = None
     ):
-        # plot simple band structure
+        # plot simple band structure,
+        # if scalar is given, scatter plot with point size
         import matplotlib.pyplot as plt
         fig = plt.figure()
         axes = fig.subplots()
@@ -103,6 +104,63 @@ class BandStructureResult:
         axes.xaxis.set_major_locator(plt.FixedLocator(tick_x))
         axes.xaxis.set_major_formatter(plt.FixedFormatter(tick_s))
 
+        fig.savefig(filename)
+        
+    def plot_fatband(
+        self, filename: str,
+        coefficients: typing.Dict[str, np.ndarray],
+        yminymax: typing.Optional[typing.Tuple[float]] = None
+    ) -> None:
+        "fat band plot"
+        nk, nbnd = self.E.shape
+        ncoefficient = len(coefficients)
+        for k,c in coefficients.items():
+            if c.shape != self.E.shape:
+                print(f"coefficient {k} has a wrong shape")
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        axes = fig.subplots()
+
+        axes.set_ylabel("Energy (eV)")
+        #axes.set_xlabel("High Symmetry Point")
+        if yminymax is None:
+            ymin = np.min(self.E)
+            ymax = np.max(self.E)
+            ymin = ymin - (ymax - ymin) * 0.05
+            ymax = ymax + (ymax - ymin) * 0.05
+        else:
+            ymin, ymax = yminymax
+
+        axes.set_xlim(min(self.x), max(self.x))
+        axes.set_ylim(ymin, ymax)
+
+        nstates = int(nk * nbnd)
+        state_x = np.zeros(nstates, dtype = float)
+        state_y = np.zeros(nstates, dtype = float)
+        #state_cs = np.zeros((n_orbgroup, nstate), dtype = float)
+        state_c_dict = { key:np.zeros(nstates) for key in coefficients.keys() }
+
+        count = 0
+        for ix in range(nk):
+            for ibnd in range(nbnd):
+                state_x[count] = self.x[ix]
+                state_y[count] = self.E[ix, ibnd]
+                for key, c in coefficients.items():
+                    state_c_dict[key][count] = c[ix, ibnd]
+                count += 1
+
+        for key, c in state_c_dict.items():
+            axes.scatter(
+                state_x, state_y, 
+                s = c * 5, 
+                marker = 'o', label = f"{key}")
+
+        tick_x = [ x for _,x in self.ticks ]
+        tick_s = [ s for s,_ in self.ticks ]
+        axes.xaxis.set_major_locator(plt.FixedLocator(tick_x))
+        axes.xaxis.set_major_formatter(plt.FixedFormatter(tick_s))
+        axes.legend()
         fig.savefig(filename)
 
 

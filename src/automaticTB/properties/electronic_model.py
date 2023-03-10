@@ -122,9 +122,9 @@ class ElectronicModel:
             plotfile_lines.append(f"    axes.plot(x, band, '-', color = 'blue')")
             plotfile_lines.append(f"")
             plotfile_lines.append(
-                f"tick_x = [" + ", ".join([f"{tic.xpos:.8f}" for tic in ticks]) + "]")
+                f"tick_x = [" + ", ".join([f"{tic[1]:.8f}" for tic in ticks]) + "]")
             plotfile_lines.append(
-                f"tick_s = [" + ", ".join([f"'{tic.symbol}'" for tic in ticks])+ "]")
+                f"tick_s = [" + ", ".join([f"'{tic[0]}'" for tic in ticks])+ "]")
             plotfile_lines.append(f"")
             plotfile_lines.append(f"assert np.isclose(tick_x[-1], max(x), atol=1e-4)")
             plotfile_lines.append(f"tick_x[-1] = max(x)")

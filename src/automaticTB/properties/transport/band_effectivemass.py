@@ -1,5 +1,6 @@
 import typing
 import dataclasses
+import warnings
 
 import numpy as np
 import scipy
@@ -56,6 +57,24 @@ class ParabolicBandFitting:
         return (self.second_order_tensor
                 * scipy.constants.elementary_charge * (1e-10)**2 / scipy.constants.hbar**2
                 * scipy.constants.electron_mass)
+
+def create_small_delta_kmesh(
+    cell: np.ndarray, 
+    delta_frac: float = 0.05,
+    ngrid: int = 5
+) -> typing.Tuple[np.ndarray, np.ndarray]:
+    """return both kmesh_frac and kmesh_cart"""
+    rlv = kpoints.find_RCL(cell)
+    vr = np.average(np.linalg.norm(rlv * delta_frac, axis=1))
+    kgrid_cart = []
+    for x in np.linspace(-1 * vr, vr, ngrid):
+        for y in np.linspace(-1 * vr, vr, ngrid):
+            for z in np.linspace(-1 * vr, vr, ngrid):
+                kgrid_cart.append([x, y, z])
+    kgrid_cart = np.array(kgrid_cart)
+    inv_rlv_T = np.linalg.inv(rlv.T)
+    kgrid_frac = np.einsum("ij,kj -> ki", inv_rlv_T, kgrid_cart)
+    return kgrid_frac, kgrid_cart
 
 
 class BandEffectiveMass:
@@ -144,5 +163,16 @@ class BandEffectiveMass:
                 [dxy, dyy, dyz], 
                 [dxz, dyz, dzz]
             ])
+        
+        kmin_delta = np.dot(self.rlv.T, kmin_frac) - kin_cart
+        if (kmin_delta[0] <= np.min(self.kgrid_cart[:,0]) or
+            kmin_delta[0] >= np.max(self.kgrid_cart[:,0]) or
+            kmin_delta[1] <= np.min(self.kgrid_cart[:,1]) or
+            kmin_delta[1] >= np.max(self.kgrid_cart[:,1]) or
+            kmin_delta[2] <= np.min(self.kgrid_cart[:,2]) or
+            kmin_delta[2] >= np.max(self.kgrid_cart[:,2])
+        ):
+            warnings.warn(
+                "Parabolic fitting, kmin ({:4f},{:4f},{:4f}) is outside of the probed energy surface !".format(*kmin_frac))
         
         return ParabolicBandFitting(e0, kmin_frac, tensor)
