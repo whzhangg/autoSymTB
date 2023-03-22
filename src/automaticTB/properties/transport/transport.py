@@ -97,6 +97,49 @@ def _dfde(ei, u, T):
     return  -1.0 * np.exp(nu) / (1.0 + np.exp(nu))**2 / kbt
 
 
+def calculate_transport(
+    mu: float, 
+    temp: float, 
+    nele: float,
+    ek: np.ndarray, 
+    vk: np.ndarray, 
+    tau: np.ndarray, 
+    cell_volume: float, 
+    weight: float
+):
+    nk = len(ek)
+    summed_carrier = np.sum(_fd(ek, mu, temp)) * weight / nk 
+    #print(summed_carrier)
+    carrier_concentration = (summed_carrier - nele) / (cell_volume * 1e-30) # m^{-3}
+
+    vel_tensor = np.einsum("mni, mnj -> mnij", vk, vk)
+    dfde_factor = -1 * _dfde(ek, mu, temp)
+
+    sigma_sum = np.zeros((3,3))
+    sigmaSsum = np.zeros((3,3))
+    K_sum = np.zeros((3,3))
+    for i in range(3):
+        for j in range(3):
+            sigma_sum[i,j] = np.sum(dfde_factor * tau * vel_tensor[:,:,i,j])
+            sigmaSsum[i,j] = np.sum(dfde_factor * tau * vel_tensor[:,:,i,j] \
+                            * (ek - mu) * constants.elementary_charge)
+            K_sum[i,j] = np.sum(dfde_factor * tau * vel_tensor[:,:,i,j] * \
+                            ((ek - mu) * constants.elementary_charge) **2 )
+                
+    sigma_sum *= weight
+    sigmaSsum *= weight
+    K_sum *= weight
+
+    total_volumn = nk * cell_volume * 1e-30 # m3
+    sigma_ij = constants.elementary_charge ** 2 * sigma_sum / total_volumn
+    sigmaSij = -1 * constants.elementary_charge * sigmaSsum / total_volumn / temp
+    k_ij = K_sum / total_volumn / temp
+
+    Sij = np.linalg.inv(sigma_ij) @ sigmaSij
+
+    return carrier_concentration, sigma_ij, Sij, k_ij
+
+
 class _TransportCalculator:
     def __init__(
         self, tbmodel: tightbinding.TightBindingModel, approximate_k: int, weight: float = 2.0

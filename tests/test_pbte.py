@@ -44,11 +44,8 @@ def extract():
         free_Hijs=retrived_values)
     print(f"# Band structure will be plotted with prefix {prefix}")
     print("")
-    model.plot_bandstructure(
-        prefix = prefix,
-        kpaths_str = pbte_path,
-        yminymax=(8,12)
-    )
+    band = model.get_bandstructure(prefix, pbte_path, make_folder=False)
+    band.plot_data(f"{prefix}.pdf", yminymax=(8,12))
 
 
 def test_solved_values():

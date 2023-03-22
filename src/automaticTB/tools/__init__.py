@@ -4,3 +4,4 @@ from .pair import *
 from .utilities import *
 from .ase import *
 from .cython.dos_cython import *
+from .cython.kmesh_cython import *

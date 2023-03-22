@@ -2,6 +2,58 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
+# find rotation
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def get_rotations(
+    double[:,:,:] rotations,
+    Py_ssize_t[:] mapping,
+    double[:,:] grid,
+    double prec
+):
+    cdef double[:,:] candidate_shift = np.array([
+        [ 0.0,  0.0,  0.0], [ 0.0,  0.0, -1.0], [ 0.0, -1.0,  0.0], [ 0.0, -1.0, -1.0],
+        [-1.0,  0.0,  0.0], [-1.0,  0.0, -1.0], [-1.0, -1.0,  0.0], [-1.0, -1.0, -1.0]], dtype = np.double
+    )
+
+    cdef Py_ssize_t nsym = rotations.shape[0]
+    cdef Py_ssize_t nktot = grid.shape[0]
+    cdef Py_ssize_t[:] sym_indices = np.zeros(nktot, dtype = np.intp)
+    cdef Py_ssize_t mapped_ik, ik, ishift
+    cdef Py_ssize_t nshift = candidate_shift.shape[0]
+    cdef double[:] k_ir = np.zeros(3, dtype = np.double)
+    cdef double[:] k = np.zeros(3, dtype = np.double)
+    cdef double[:] rot_k = np.zeros(3, dtype = np.double)
+    cdef double[:] shift = np.zeros(3, dtype = np.double)
+    cdef bint found = False
+
+    for ik in range(nktot):
+        mapped_ik = mapping[ik]
+
+        k_ir = grid[mapped_ik]
+        k = grid[ik] - np.floor(grid[ik])
+        for ir in range(nsym):
+            rot_k[0] = rotations[ir,0,0]*k_ir[0] + rotations[ir,0,1]*k_ir[1] + rotations[ir,0,2]*k_ir[2]
+            rot_k[1] = rotations[ir,1,0]*k_ir[0] + rotations[ir,1,1]*k_ir[1] + rotations[ir,1,2]*k_ir[2]
+            rot_k[2] = rotations[ir,2,0]*k_ir[0] + rotations[ir,2,1]*k_ir[1] + rotations[ir,2,2]*k_ir[2]
+            found = False
+            for ishift in range(nshift):
+                shift = candidate_shift[ishift]
+                if ((rot_k[0] - k[0] - shift[0])**2 < prec and 
+                    (rot_k[1] - k[1] - shift[1])**2 < prec and 
+                    (rot_k[2] - k[2] - shift[2])**2 < prec
+                ):
+                    sym_indices[ik] = ir
+                    found = True
+                    break
+            if found: 
+                break
+        else:
+            raise "k point canot be found from the ibz"
+
+    return sym_indices
+    
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def create_tetras(

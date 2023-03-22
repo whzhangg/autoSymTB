@@ -264,7 +264,7 @@ class TightBindingModel:
             results = joblib.Parallel(n_jobs=self.nproc)(
                 joblib.delayed(_solve_E_V)(hs, ss, dhs, dss) for hs, ss, dhs, dss in divided_jobs)
             obtained_energy = np.vstack([e for e,_ in results])
-            obtained_velocity = np.vstack([v[np.newaxis,...] for _,v in results])
+            obtained_velocity = np.vstack([v for _,v in results])
             return obtained_energy, obtained_velocity
 
 
@@ -281,7 +281,7 @@ def _solve_E(hijks: np.ndarray, sijks: np.ndarray) -> np.ndarray:
 def _solve_E_V(
     hijks: np.ndarray, sijks: np.ndarray, hijk_dervs: np.ndarray, sijk_dervs: np.ndarray
 ) -> np.ndarray:
-    """worker function for mpi"""
+    """worker function for mpi, V is in SI"""
     nk, nbasis, _ = hijks.shape
     eigenvalues = np.zeros((nk, nbasis), dtype=np.double)
     velocity = np.zeros((nk, nbasis, 3), dtype=np.double)
@@ -296,8 +296,13 @@ def _solve_E_V(
             derivative.append(
                 np.einsum("i, kij, j -> k", np.conjugate(c), dhds, c))
 
+        #veloc_SI = (np.array(derivative) 
+        #            * 1e-10 * scipy.constants.elementary_charge  / scipy.constants.hbar)
+        # this velocity is in Ang/s
+        # derivative = hbar^2 k / m with unit eV*A, velocity = 1/hbar de/dk
+        # hbar in unit J/s. Therefore, velocity = 1/hbar de/dk in unit A/s if eV is converted to J
         veloc = (np.array(derivative) 
-                    * 1e-10 * scipy.constants.elementary_charge  / scipy.constants.hbar)
+                * 1e-10 * scipy.constants.elementary_charge  / scipy.constants.hbar)
         sort_index = np.argsort(w.real)
         eigenvalues[ik] = w.real[sort_index]
         velocity[ik] = veloc.real[sort_index]
