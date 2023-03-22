@@ -1,4 +1,5 @@
 import numpy as np
+import joblib
 
 from automaticTB import tools
 from .tetra_mesh import TetraKmesh
@@ -42,6 +43,7 @@ class TetraDOS:
         which should equal to the number of electrons per unit cell.
     """
     _dos_weight = 2.0
+    parallel_threshold = 8000
 
     def __init__(self, 
         kmesh: TetraKmesh, 
@@ -76,6 +78,9 @@ class TetraDOS:
         #for ie, e in enumerate(self._dos_energies):
         #    result[ie] = self.single_dos(e)
         for ibnd in range(self._nbnd):
+            if (np.min(self._mesh_energies[ibnd]) > np.max(self._dos_energies) or 
+                np.max(self._mesh_energies[ibnd]) < np.min(self._dos_energies)):
+                continue
             result += tools.cython_dos_contribution_multiple(
                 self._mesh_energies[ibnd], self._kmesh.tetras, self._dos_energies)
         
