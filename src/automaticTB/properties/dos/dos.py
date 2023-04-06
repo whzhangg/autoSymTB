@@ -72,7 +72,7 @@ class TetraDOS:
         return self._result["dos"]
 
 
-    @tools.timefn
+    #@tools.timefn
     def _calculate_dos(self):
         result = np.zeros_like(self._dos_energies)
         #for ie, e in enumerate(self._dos_energies):

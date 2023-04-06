@@ -7,11 +7,10 @@ docs/
 tmp/
 examples/
 
-tests/**/*.*
-!tests/test_*
-!tests/compare_values.py 
-!tests/compare_values/*.*
-!tests/stored_interactions/*.*
+#tests/**/*.*
+#tests/compare_values.py 
+#tests/compare_values/*.*
+#tests/stored_interactions/*.*
 
 src/*.egg-info
 src/automaticTB/solve/sitesymmetry/Bilbao/local

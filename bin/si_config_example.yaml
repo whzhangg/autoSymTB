@@ -1,0 +1,10 @@
+# an example for the input config file
+# contents are directly feed to the `solve_interaction` function
+# for the format, see https://docs.fileformat.com/programming/yaml/
+find_additional_symmetry: false
+orbitals_dict:
+  Si: 3s3p4s
+rcut: 3.9
+save_filename: si.result
+standardize: true
+structure: ../resources/Si_ICSD51688.cif

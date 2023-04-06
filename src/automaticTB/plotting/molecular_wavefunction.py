@@ -1,9 +1,11 @@
-import typing, dataclasses
-import numpy as np
-from ...parameters import ztol
-from ...tools import chemical_symbols
+import typing
+import dataclasses
 
-__all__ = ["Wavefunction", "WavefunctionsOnSite", "MolecularWavefunction"]
+import numpy as np
+
+from automaticTB import parameters
+from automaticTB import tools
+
 
 @dataclasses.dataclass
 class Wavefunction:
@@ -26,7 +28,7 @@ class WavefunctionsOnSite:
 
     @property
     def chemical_symbol(self) -> str:
-        return chemical_symbols[self.atomic_number]
+        return tools.chemical_symbols[self.atomic_number]
 
     def __str__(self) -> str:
         main = "{:s} @ {:>6.2f}{:>6.2f}{:>6.2f}\n".format(
@@ -34,7 +36,7 @@ class WavefunctionsOnSite:
                 )
         
         for wf in self.wfs:
-            if np.abs(wf.coeff) <= ztol: continue
+            if np.abs(wf.coeff) <= parameters.ztol: continue
             main += "n={:d} l={:d} m={:d} coeff = {:>6.2f}".format(
                     wf.n, wf.l,wf.m,wf.coeff.real
                 )

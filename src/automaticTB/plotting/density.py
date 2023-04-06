@@ -1,16 +1,13 @@
-import numpy as np
 import typing
-from .wavefunctions import wavefunction, xyz_to_r_theta_phi, radial_function, sh_functions
-from .molecular_wavefunction import \
-    (MolecularWavefunction, Wavefunction, WavefunctionsOnSite)
-from ...parameters import ztol
-from scipy.constants import physical_constants
 
+import numpy as np
+from scipy import constants
 
-__all__ = ["DensityCubePlot"]
+from automaticTB import parameters
+from .wavefunctions import xyz_to_r_theta_phi, radial_function, sh_functions
+from .molecular_wavefunction import MolecularWavefunction
 
-
-bohrSI = physical_constants["Bohr radius"]
+bohrSI = constants.physical_constants["Bohr radius"]
 Ang2Bohr = 1e-10 / bohrSI[0]  # take its value
 
 
@@ -113,34 +110,9 @@ class DensityCubePlot:
                     sph_part = np.zeros_like(theta)
                     for wf in aw.wfs:
                         if ( wf.n != n_comp or wf.l != l_comp ) or \
-                           ( np.abs(wf.coeff) <= ztol) : continue
+                           ( np.abs(wf.coeff) <= parameters.ztol) : continue
                         sph_part += wf.coeff.real * sh_functions(wf.l, wf.m, theta, phi)
 
                     result += radial_part * sph_part
         return result
 
-
-def test_plot_single_ws():
-    wf_sites = [
-        WavefunctionsOnSite(
-            np.array([ 1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 1,  "H", [Wavefunction(1,-1,1.0)] ), 
-        WavefunctionsOnSite(
-            np.array([ 1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 2, "He", [Wavefunction(1, 0,1.0)] ), 
-        WavefunctionsOnSite(
-            np.array([ 1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 3, "Li", [Wavefunction(1, 1,1.0)] ), 
-        WavefunctionsOnSite(
-            np.array([ 1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 4, "Be", [Wavefunction(2,-2,1.0)] ), 
-        WavefunctionsOnSite(
-            np.array([-1.0, 1.0, 1.0])*2 + np.array([5,5,5]), 5,  "B", [Wavefunction(2,-1,1.0)] ), 
-        WavefunctionsOnSite(
-            np.array([-1.0, 1.0,-1.0])*2 + np.array([5,5,5]), 6,  "C", [Wavefunction(2, 0,1.0)] ), 
-        WavefunctionsOnSite(
-            np.array([-1.0,-1.0, 1.0])*2 + np.array([5,5,5]), 7,  "N", [Wavefunction(2, 1,1.0)] ), 
-        WavefunctionsOnSite(
-            np.array([-1.0,-1.0,-1.0])*2 + np.array([5,5,5]), 8,  "O", [Wavefunction(2, 2,1.0)] ), 
-    ]
-    
-    cell = np.eye(3) * 10
-    molecular = MolecularWavefunction(cell, wf_sites)
-    plot = DensityCubePlot([molecular], quality="high")
-    plot.plot_to_file("single_wavefunctions.cube")

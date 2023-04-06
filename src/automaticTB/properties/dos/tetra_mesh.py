@@ -30,7 +30,7 @@ class TetraKmesh(kpoints.Kmesh):
         return self._tetras
 
 
-    @tools.timefn
+    #@tools.timefn
     def _make_tetrahedron(self) -> np.ndarray:
         # determine how to shuffle the index
         mesh_shape = copy.deepcopy(self._cell)
