@@ -1,8 +1,42 @@
+import dataclasses
+
 import numpy as np
-import joblib
 
 from automaticTB import tools
 from .tetra_mesh import TetraKmesh
+
+
+@dataclasses.dataclass
+class DosResult:
+    x: np.ndarray
+    dos: np.ndarray
+
+    def write_data_to_file(self, filename: str):
+        assert self.x.shape == self.dos.shape
+        with open(filename, 'w') as f:
+            f.write("#{:>19s}{:>20s}".format("Energy (eV)", "DOS (1/eV)"))
+            for x, y in zip(self.x, self.dos):
+                f.write("{:>20.12e}{:>20.12e}\n".format(x,y))
+
+
+    def plot_dos(self, filename: str):
+        # plot simple band structure
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        axes = fig.subplots()
+
+        axes.set_xlabel("Energy (eV)")
+        axes.set_ylabel("Density of States (1/eV)")
+
+        ymax = np.max(self.dos) * 1.2
+        ymin = 0
+        axes.set_xlim(min(self.x), max(self.x))
+        axes.set_ylim(ymin, ymax)
+
+        axes.plot(self.x, self.dos)
+
+        fig.savefig(filename)
+
 
 
 class TetraDOS:
@@ -47,44 +81,40 @@ class TetraDOS:
 
     def __init__(self, 
         kmesh: TetraKmesh, 
-        mesh_energies: np.ndarray, 
-        dos_energies: np.ndarray
+        mesh_energies: np.ndarray
     ):
+        """setup the dos calculation
+
+        Parameters
+        ----------
+        kmesh: TetraKmesh
+            the tetragonal kmesh for summation
+        mesh_energies
+            eigen-energies calculated for kmesh.kpoints
+        
+        """
         nk, self._nbnd = mesh_energies.shape
         if nk != kmesh.numk:
             raise "run energies with kmesh!"
 
         self._kmesh = kmesh
         self._mesh_energies = mesh_energies.T.copy()
-        self._dos_energies = dos_energies
-        self._result = {}
+        
 
-
-    @property
-    def x(self) -> np.ndarray:
-        return self._dos_energies
-
-
-    @property
-    def dos(self) -> np.ndarray:
-        if "dos" not in self._result:
-            self._result["dos"] = self._calculate_dos()
-        return self._result["dos"]
-
-
-    #@tools.timefn
-    def _calculate_dos(self):
-        result = np.zeros_like(self._dos_energies)
+    def calculate_dos(self, dos_energies: np.ndarray) -> DosResult:
+        """calculate dos for the input array of energies"""
+        result = np.zeros_like(dos_energies)
         #for ie, e in enumerate(self._dos_energies):
         #    result[ie] = self.single_dos(e)
         for ibnd in range(self._nbnd):
-            if (np.min(self._mesh_energies[ibnd]) > np.max(self._dos_energies) or 
-                np.max(self._mesh_energies[ibnd]) < np.min(self._dos_energies)):
+            if (np.min(self._mesh_energies[ibnd]) > np.max(dos_energies) or 
+                np.max(self._mesh_energies[ibnd]) < np.min(dos_energies)):
                 continue
             result += tools.cython_dos_contribution_multiple(
-                self._mesh_energies[ibnd], self._kmesh.tetras, self._dos_energies)
+                self._mesh_energies[ibnd], self._kmesh.tetras, dos_energies)
         
-        return result
+        return DosResult(dos_energies, result)
+
 
     def nsum(self, e: float) -> dict:
         # sum the number of states with energy below E
@@ -97,6 +127,7 @@ class TetraDOS:
         nsum *= self._dos_weight
         return nsum
 
+
     def single_dos(self, e: float) -> np.ndarray:
         # summed contribution from all bands at energy e
         dos = 0.0
@@ -108,8 +139,9 @@ class TetraDOS:
         dos *= self._dos_weight
         return dos
 
-    # not used
+
     def _dos_contribution(self, e: float, band_index: int) -> float:
+        """no longer used since we use cython version"""
         # return the density of state at energy E from ith band 
         # taken from tetra/dos.py/DosContrib()
 
@@ -151,8 +183,9 @@ class TetraDOS:
 
         return sum_dos
 
-    # not used
+
     def _sum_contribution(self, e: float, band_index: int) -> float:
+        """no longer used since we use cython version"""
         assert band_index < self._mesh_energies.shape[1]
 
         nsum = 0.0
@@ -190,28 +223,3 @@ class TetraDOS:
 
         return nsum
 
-
-    def write_data_to_file(self, filename: str):
-        assert self.x.shape == self.dos.shape
-        with open(filename, 'w') as f:
-            f.write("#{:>19s}{:>20s}".format("Energy (eV)", "DOS (1/eV)"))
-            for x, y in zip(self.x, self.dos):
-                f.write("{:>20.12e}{:>20.12e}\n".format(x,y))
-
-    def plot_dos(self, filename: str):
-        # plot simple band structure
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        axes = fig.subplots()
-
-        axes.set_xlabel("Energy (eV)")
-        axes.set_ylabel("Density of States (1/eV)")
-
-        ymax = np.max(self.dos) * 1.2
-        ymin = 0
-        axes.set_xlim(min(self.x), max(self.x))
-        axes.set_ylim(ymin, ymax)
-
-        axes.plot(self.x, self.dos)
-
-        fig.savefig(filename)

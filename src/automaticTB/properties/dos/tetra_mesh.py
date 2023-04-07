@@ -2,23 +2,25 @@ import typing
 import copy
 
 import numpy as np
-from automaticTB.properties import kpoints
+from automaticTB.properties import reciprocal
 from automaticTB import tools
 
 
-class TetraKmesh(kpoints.Kmesh):
+class TetraKmesh(reciprocal.Kmesh):
     """kmesh designed for tetrahedron methods
     
     It generate a set of kpoints as well as tetrahedrons
     """
-    MESH_SHIFT = ( (0, 0, 0),   # 1 0
-               (1, 0, 0),   # 2 1
-               (0, 1, 0),   # 3 2
-               (1, 1, 0),   # 4 3
-               (0, 0, 1),   # 5 4
-               (1, 0, 1),   # 6 5
-               (0, 1, 1),   # 7 6
-               (1, 1, 1) )  # 8 7
+    MESH_SHIFT = ( 
+        (0, 0, 0),   # 1 0
+        (1, 0, 0),   # 2 1
+        (0, 1, 0),   # 3 2
+        (1, 1, 0),   # 4 3
+        (0, 0, 1),   # 5 4
+        (1, 0, 1),   # 6 5
+        (0, 1, 1),   # 7 6
+        (1, 1, 1)    # 8 7
+    )
 
     def __init__(self, reciprocal_lattice: np.ndarray, nk: typing.List[int]):
         super().__init__(reciprocal_lattice, nk)
@@ -30,7 +32,6 @@ class TetraKmesh(kpoints.Kmesh):
         return self._tetras
 
 
-    #@tools.timefn
     def _make_tetrahedron(self) -> np.ndarray:
         # determine how to shuffle the index
         mesh_shape = copy.deepcopy(self._cell)

@@ -6,7 +6,7 @@ import numpy as np
 import scipy
 
 from automaticTB.properties import tightbinding
-from automaticTB.properties import kpoints
+from automaticTB.properties import reciprocal
 
 
 def fit_function(dks, e0, k0x, k0y, k0z, dxx, dxy, dxz, dyy, dyz, dzz):
@@ -58,13 +58,14 @@ class ParabolicBandFitting:
                 * scipy.constants.elementary_charge * (1e-10)**2 / scipy.constants.hbar**2
                 * scipy.constants.electron_mass)
 
+
 def create_small_delta_kmesh(
     cell: np.ndarray, 
     delta_frac: float = 0.05,
     ngrid: int = 5
 ) -> typing.Tuple[np.ndarray, np.ndarray]:
     """return both kmesh_frac and kmesh_cart"""
-    rlv = kpoints.find_RCL(cell)
+    rlv = reciprocal.find_RCL(cell)
     vr = np.average(np.linalg.norm(rlv * delta_frac, axis=1))
     kgrid_cart = []
     for x in np.linspace(-1 * vr, vr, ngrid):
@@ -88,7 +89,7 @@ class BandEffectiveMass:
 
     def __init__(self, tb: tightbinding.TightBindingModel) -> None:
         self.tb = tb
-        self.rlv = kpoints.find_RCL(tb.cell)
+        self.rlv = reciprocal.find_RCL(tb.cell)
 
         vr = np.average(np.linalg.norm(self.rlv * self.dkmax_frac, axis=1))
         kgrid_cart = []

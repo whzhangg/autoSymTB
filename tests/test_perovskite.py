@@ -2,7 +2,7 @@ import os, numpy as np
 
 from automaticTB.solve.functions.solve import solve_interaction
 from automaticTB.interface import OrbitalPropertyRelationship
-from automaticTB.properties import kpoints as kpt
+from automaticTB.properties import reciprocal
 from utilities import find_interaction_values
 
 prefix = "perovskite"
@@ -36,11 +36,12 @@ def test_solved_values():
         stored_interaction,
         [relationship.all_pairs[i] for i in relationship.free_pair_indices]
     )
-    model = relationship.get_ElectronicModel_from_free_parameters(
+    tb = relationship.get_tightbinding_from_free_parameters(
         free_Hijs=retrived_values)
-    unitcell = kpt.UnitCell(model.tb.cell)
-    kpath = unitcell.get_kpath_from_path_string(bandpath)
-    values = model.tb.solveE_at_ks(kpath.kpoints)
+    #unitcell = kpt.UnitCell(model.tb.cell)
+    #kpath = unitcell.get_kpath_from_path_string(bandpath)
+    kpath = reciprocal.Kpath.from_cell_pathstring(tb.cell, bandpath)
+    values, _ = tb.solveE_at_ks(kpath.kpoints)
     stacked = np.hstack([kpath.kpoints, values])
     # test
     compare = np.load(stored_result)
@@ -49,6 +50,7 @@ def test_solved_values():
 
 
 if __name__ == "__main__":
+    from automaticTB.properties import BandStructure
     solve_interaction(
         structure=structure_file,
         orbitals_dict=orbitals,
@@ -60,8 +62,9 @@ if __name__ == "__main__":
         stored_interaction,
         [relationship.all_pairs[i] for i in relationship.free_pair_indices]
     )
-    model = relationship.get_ElectronicModel_from_free_parameters(
+    tb = relationship.get_tightbinding_from_free_parameters(
         free_Hijs=retrived_values)
 
-    bandresult = model.get_bandstructure(prefix, bandpath, make_folder=False)
-    bandresult.plot_data(f"{prefix}.pdf")
+    kpath = reciprocal.Kpath.from_cell_pathstring(tb.cell, bandpath)
+    bs = BandStructure.from_tightbinding_and_kpath(tb, kpath, order_band=False)
+    bs.plot_band(f"{prefix}.pdf")

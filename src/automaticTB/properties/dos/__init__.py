@@ -1,2 +1,2 @@
 from .dos import *
-from .tetra_mesh import TetraKmesh
+from .tetra_mesh import *

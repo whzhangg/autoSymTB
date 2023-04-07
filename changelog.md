@@ -1,0 +1,33 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+Since the project is still in development, changes are logged without version number
+
+## 2023-04-07
+
+Major change to the properties subpackage.
+
+### Added
+
+- `TightBindingModel` now has `basis_name` and `nbasis` properties.
+- weighted_mobility and effectivemass calculation is added to the transport calculation package. 
+
+### Changed
+
+- `OrbitalPropertyRelationship` now directly return a tightbinding object. 
+- `TightBindingModel` is trimed to support only `solveE_at_ks` and `solveE_V_at_ks` method
+- `TightBindingModel` now return the eigenvector as additional parameter.
+- `TightBindingModel` now can average velocity at degenerate state as option (default is false).
+- `BandStructure` result is now include band coefficient by default.
+- `BandStructure`'s classmethod can order bands using eigenvectors
+- kpoints.py is now renamed to reciprocal.py
+- separate dos calculation (`TetraDOS`) and dos result (`DosResult`)
+- properties module's `__init__.py` now does not include anything
+
+### Removed
+
+- Class object defined in `transport.py` is removed. use `calculate_transport()` instead
+- `UnitCell` in kpoints.py (reciprocal.py) is now removed
+- `ElectronicModel` class is now removed

@@ -129,6 +129,7 @@ class SolutionChain:
     #free_pair_indices: typing.List[int]
     #homogeneous_equation: np.ndarray
 
+
 class OrbitalPropertyRelationship:
     def __init__(self,
         cell: np.ndarray,
@@ -359,11 +360,11 @@ class OrbitalPropertyRelationship:
         )
 
 
-    def get_ElectronicModel_from_free_parameters(self, 
+    def get_tightbinding_from_free_parameters(self, 
         free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None,
         write_solved_Hijs_filename: typing.Optional[str] = None 
     ):
-        from .properties import ElectronicModel
+        """return a tight-binding model from the input parameters"""
         from .properties.tightbinding import TightBindingModel
         from .properties.tightbinding import HijR, SijR, Pindex_lm
 
@@ -412,7 +413,7 @@ class OrbitalPropertyRelationship:
             
             tb = TightBindingModel(self.cell, self.positions, self.types, HijR_list, SijR_list)
 
-        return ElectronicModel(tbmodel = tb)
+        return tb
 
 
     def print_free_pairs(self) -> None:

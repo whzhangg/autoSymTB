@@ -4,6 +4,12 @@ import dataclasses
 import numpy as np
 
 
+def recommand_kgrid(rcell: np.ndarray, nk: int) -> typing.Tuple[int,int,int]:
+    norms = np.linalg.norm(rcell, axis=1)
+    ratio = nk / np.mean(norms)
+    return np.array(norms * ratio, dtype=int)
+
+
 def find_RCL(cell: np.ndarray) -> np.ndarray:
     """find the reciprocal lattice vectors"""
     a1 = cell[0]
@@ -112,6 +118,15 @@ class Kpath:
         self._xpos = np.hstack(self._xpos)
 
 
+    @classmethod
+    def from_cell_pathstring(
+        cls, cell: np.ndarray, kpath_string: typing.List[str], quality: int = 0
+    ) -> "Kpath":
+        kpaths = [Kline.from_str(s) for s in kpath_string]
+        rcell = find_RCL(cell)
+        return cls(rcell, kpaths, quality)
+
+
     @property
     def ticks(self) -> typing.List[typing.Tuple[str, float]]:
         return self._tics
@@ -128,6 +143,7 @@ class Kpath:
 
 
 class Kmesh:
+    """Mesh of k points starting from the origin"""
     def __init__(self, reciprocal_lattice: np.ndarray, nk: typing.List[int]):
         assert len(nk) == 3
         self._cell = np.array(reciprocal_lattice, dtype = float)
@@ -146,6 +162,32 @@ class Kmesh:
                     xk[ik,2] = k / nks[2]
         return xk
     
+    @classmethod
+    def from_cell_nk(
+        cls, cell: np.ndarray, nk: typing.Union[int, typing.Tuple[int,int,int]]
+    ) -> "Kmesh":
+        """get a mesh of k points
+        
+        Parameters
+        ----------
+        cell: np.ndarray(3,3)
+            the lattice in real space
+        nk: int or (int,int,int)
+            the kgrid parameter
+        
+        """
+        rcell = find_RCL(cell)
+        if isinstance(nk, int):
+            nks = recommand_kgrid(rcell, nk)
+        else:
+            nks = nk
+        
+        return cls(rcell, nks)
+    
+    @property
+    def reciprocal_lattice(self) -> np.ndarray:
+        return self._cell
+    
     @property
     def nks(self) -> typing.Tuple[int]:
         return self._nks[0], self._nks[1], self._nks[2]
@@ -157,9 +199,9 @@ class Kmesh:
     @property
     def numk(self) -> int:
         return self._nks[0] * self._nks[1] * self._nks[2]
+    
 
-
-class UnitCell:
+class _UnitCell:
     """a wrapper related to kpoints"""
     def __init__(self, cell: np.ndarray) -> None:
         self.cell = cell
@@ -199,7 +241,7 @@ class UnitCell:
         return get_volume(self.cell)
 
 
-def test_kpath():
+def _test_kpath():
     cubic_band = [
         "L   0.5   0.5  0.5  G  0.0   0.0  0.0",
         "G   0.0   0.0  0.0  X  0.5   0.0  0.5",
