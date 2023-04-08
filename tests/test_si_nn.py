@@ -52,7 +52,7 @@ def test_solved_values():
 
 
 if __name__ == "__main__":
-    from automaticTB.properties import BandStructure
+    from automaticTB.properties import bands
     solve_interaction(
         structure=structure_file,
         orbitals_dict=orbitals,
@@ -68,15 +68,19 @@ if __name__ == "__main__":
         free_Hijs=retrived_values)
 
     kpath = reciprocal.Kpath.from_cell_pathstring(tb.cell, bandpath)
-    bs = BandStructure.from_tightbinding_and_kpath(tb, kpath, order_band=True)
-    bs.plot_band(f"{prefix}.pdf")
-    bs.plot_fatband(f"{prefix}_fatband.pdf", {"Si s": ["Si(1) 4s", "Si(2) 4s"]})
+    bs = bands.BandStructure.from_tightbinding_and_kpath(tb, kpath, order_band=True)
+    bs.plot_band(f"{prefix}.pdf", interpolate=True)
+    bs.plot_fatband(f"{prefix}_fatband.pdf", {"Si s": ["Si(1) 4s", "Si(2) 4s"]}, interpolate=True)
 
-    kmesh = reciprocal.Kmesh.from_cell_nk(tb.cell, 20)
+    kmesh = reciprocal.Kmesh.from_cell_nk(tb.cell, 15)
     from automaticTB.properties import dos
     from automaticTB.properties import calc_mesh
     tkmesh = dos.TetraKmesh(kmesh.reciprocal_lattice, kmesh.nks)
     e, v = calc_mesh.calculate_e_v_using_ibz(tb, tkmesh.kpoints, tkmesh.nks)
-    doscal = dos.TetraDOS(tkmesh, e)
-    dos_r = doscal.calculate_dos(np.linspace(-5, 5, 100))
+    doscal = dos.TetraDOS(tkmesh, e, 2.0)
+
+    energy = np.linspace(-15, 0.1, 100)
+    dos_r = doscal.calculate_dos(energy)
+    
+    cellv = reciprocal.get_volume(tb.cell)
     dos_r.plot_dos(f"{prefix}_dos.pdf")

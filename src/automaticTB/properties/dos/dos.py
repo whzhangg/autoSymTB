@@ -6,10 +6,46 @@ from automaticTB import tools
 from .tetra_mesh import TetraKmesh
 
 
+def find_vbm_with_gap(doscalc: "TetraDOS", nele: float, resolution: float = 0.01) -> float:
+    """find the chemical potential from DOS at 0 K
+    
+    experimental, not reliable
+    """
+    emin = np.min(doscalc._mesh_energies) - 0.1
+    emax = np.max(doscalc._mesh_energies) + 0.1
+
+    dosresult_coarse = doscalc.calculate_dos(np.linspace(emin, emax, 200))
+    
+    for isum, csum in enumerate(dosresult_coarse.accumlatedos):
+        if csum > nele - 0.1: 
+            emin = dosresult_coarse.x[isum-1]
+            break
+    
+    e = emin
+    while True:
+        e += resolution
+        if e > emax: break
+        sumdos = doscalc.nsum(e)
+        print(e, sumdos)
+        if np.isclose(sumdos, nele, atol = 1e-4):
+            break
+
+    return e
+
+
 @dataclasses.dataclass
 class DosResult:
     x: np.ndarray
     dos: np.ndarray
+
+    @property
+    def accumlatedos(self) -> np.ndarray:
+        #https://numpy.org/doc/stable/reference/generated/numpy.ufunc.accumulate.html
+        x2 = np.roll(self.x, -1)
+        x2[-1] = x2[-2]*2 - x2[-3]
+        dx = x2 - self.x
+        return np.add.accumulate(self.dos * dx)
+
 
     def write_data_to_file(self, filename: str):
         assert self.x.shape == self.dos.shape
@@ -76,12 +112,12 @@ class TetraDOS:
             n = weight * [ 1/N \sum_{k; Ek < E} ] 
         which should equal to the number of electrons per unit cell.
     """
-    _dos_weight = 2.0
     parallel_threshold = 8000
 
     def __init__(self, 
         kmesh: TetraKmesh, 
-        mesh_energies: np.ndarray
+        mesh_energies: np.ndarray,
+        dos_weight: float
     ):
         """setup the dos calculation
 
@@ -99,10 +135,14 @@ class TetraDOS:
 
         self._kmesh = kmesh
         self._mesh_energies = mesh_energies.T.copy()
+        self._dos_weight = dos_weight
         
 
     def calculate_dos(self, dos_energies: np.ndarray) -> DosResult:
-        """calculate dos for the input array of energies"""
+        """calculate dos for the input array of energies
+        
+        result in unit 1/eV
+        """
         result = np.zeros_like(dos_energies)
         #for ie, e in enumerate(self._dos_energies):
         #    result[ie] = self.single_dos(e)
@@ -113,7 +153,7 @@ class TetraDOS:
             result += tools.cython_dos_contribution_multiple(
                 self._mesh_energies[ibnd], self._kmesh.tetras, dos_energies)
         
-        return DosResult(dos_energies, result)
+        return DosResult(dos_energies, result*self._dos_weight)
 
 
     def nsum(self, e: float) -> dict:

@@ -50,7 +50,7 @@ def test_solved_values():
 
 
 if __name__ == "__main__":
-    from automaticTB.properties import BandStructure
+    from automaticTB.properties import bands
     solve_interaction(
         structure=structure_file,
         orbitals_dict=orbitals,
@@ -66,5 +66,5 @@ if __name__ == "__main__":
         free_Hijs=retrived_values)
 
     kpath = reciprocal.Kpath.from_cell_pathstring(tb.cell, bandpath)
-    bs = BandStructure.from_tightbinding_and_kpath(tb, kpath, order_band=False)
+    bs = bands.BandStructure.from_tightbinding_and_kpath(tb, kpath, order_band=False)
     bs.plot_band(f"{prefix}.pdf")

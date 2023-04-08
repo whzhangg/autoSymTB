@@ -49,13 +49,13 @@ def test_solved_values():
 
 
 if __name__ == "__main__":
-    from automaticTB.properties import BandStructure
-    #solve_interaction(
-    #    structure=structure_file,
-    #    orbitals_dict=orbitals,
-    #    rcut=rcut,
-    #    save_filename=result_file
-    #)
+    from automaticTB.properties import bands
+    solve_interaction(
+        structure=structure_file,
+        orbitals_dict=orbitals,
+        rcut=rcut,
+        save_filename=result_file
+    )
     relationship = OrbitalPropertyRelationship.from_file(result_file)
     retrived_values = find_interaction_values(
         stored_interaction,
@@ -65,6 +65,6 @@ if __name__ == "__main__":
         free_Hijs=retrived_values)
 
     kpath = reciprocal.Kpath.from_cell_pathstring(tb.cell, bandpath)
-    bs = BandStructure.from_tightbinding_and_kpath(tb, kpath, order_band=False)
+    bs = bands.BandStructure.from_tightbinding_and_kpath(tb, kpath, order_band=False)
     bs.plot_band(f"{prefix}.pdf")
     bs.plot_fatband(f"{prefix}_fatband.pdf", {"Si s": ["Si(1) 4s", "Si(2) 4s"]})
