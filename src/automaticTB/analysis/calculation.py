@@ -356,7 +356,34 @@ class BandAnalyzer:
             tools.write_yaml(dataclasses.asdict(fs), filename)
         
         return fs
+    
 
+    def calculate_dos(
+        self, 
+        perturbation: np.ndarray,
+        kmesh: reciprocal.Kmesh,
+        dos_energies: np.ndarray,
+        filename: str = "",
+        dos_weight: float = 2.0,
+        use_ibz: bool = True
+    ) -> dos.DosResult:
+        tb = self.relationship.get_tightbinding_from_free_parameters(
+            free_Hijs=self.initial_values + perturbation
+        )
+        dosmesh = dos.TetraKmesh(kmesh.reciprocal_lattice, kmesh.nks)
+        if use_ibz:
+            from automaticTB.properties import calc_mesh
+            e, _ = calc_mesh.calculate_e_v_using_ibz(
+                tb, dosmesh.kpoints, dosmesh.nks, energy_only=True)
+        else:
+            e, _ = tb.solveE_at_ks(dosmesh.kpoints)
+
+        doscal = dos.TetraDOS(dosmesh, e, dos_weight)
+        dosr = doscal.calculate_dos(dos_energies)
+
+        if filename:
+            tools.write_yaml(dataclasses.asdict(dosr), filename)
+        return dosr
 
     def calculate_perturbed_transport_crt(
         self,
@@ -487,7 +514,7 @@ class BandAnalyzer:
         time_taken = time.time() - t0
         data = {
             "perturbation": perturbation.tolist(),
-            "nk": kmesh.nks,
+            "nk": kmesh.nks.tolist(),
             "temp": temp,
             "mus": mus.tolist(),
             "time": time_taken,

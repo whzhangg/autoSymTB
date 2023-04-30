@@ -19,6 +19,12 @@ def get_translated_AO(aopair: AOPair) -> AOPair:
     l_ao.translation = np.zeros(3)
     return AOPair(l_ao, r_ao)
 
+def get_reverse_AO(aopair: AOPair) -> AOPair:
+
+    l_ao = aopair.l_AO
+    r_ao = aopair.r_AO
+    rl_pair = get_translated_AO(AOPair(r_ao, l_ao))
+    return rl_pair
 
 def unordered_list_equivalent(array1: np.ndarray, array2: np.ndarray, eps: float) -> bool:
     """return True if the rows in two input array are the same"""

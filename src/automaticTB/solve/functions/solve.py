@@ -1,7 +1,7 @@
 import typing, time
 import numpy as np
 
-from automaticTB.tools import read_cif_to_cpt, format_lines_into_two_columns
+from automaticTB.tools import read_cif_to_cpt, format_lines_into_two_columns, LinearEquation
 from automaticTB.solve.structure import Structure
 from automaticTB.solve.interaction import (
     AOSubspace,
@@ -18,7 +18,8 @@ def solve_interaction(
     find_additional_symmetry: bool = False,
     save_filename: str = None, 
     return_type: typing.Literal["OrbitalPropertyRelationship", "CombinedInteraction"] \
-        = "CombinedInteraction"
+        = "CombinedInteraction",
+    experimental: bool = False
 ) -> OrbitalPropertyRelationship:
     """
     this function wraps the process of finding the unique interaction 
@@ -75,9 +76,15 @@ def solve_interaction(
     print(f"# Use it to generate other positions")
     print("")
 
-    combined_equivalent = InteractionSpace.from_solvedInteraction_and_symmetry(
-            gathered_solution, gathered_clusters, structure.cartesian_rotations, verbose=True
-    )
+    if experimental:
+        combined_equivalent = InteractionSpace.from_solvedInteraction_and_symmetry_new(
+                gathered_solution, gathered_clusters, structure.cartesian_rotations, verbose=True
+        )
+    else:
+        combined_equivalent = InteractionSpace.from_solvedInteraction_and_symmetry(
+                gathered_solution, gathered_clusters, structure.cartesian_rotations, verbose=True
+        )
+
     print("")
     print("# Interaction Treatment Finished ! @ ", 
             time.strftime(r"%Y/%m/%d %H:%M:%S", time.localtime()))

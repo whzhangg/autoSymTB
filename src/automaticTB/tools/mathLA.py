@@ -6,8 +6,8 @@ import numpy as np
 from automaticTB.parameters import ztol
 from .cython.rref_cython import cython_cp_wrapper, cython_spp_wrapper
 
-def get_distinct_nonzero_vector_from_coefficients(coeff_matrix: np.ndarray) \
--> np.ndarray:
+def get_distinct_nonzero_vector_from_coefficients(
+        coeff_matrix: np.ndarray) -> np.ndarray:
     """
     This function combines the following functions, since they are used together
     1. remove_zero_vector_from_coefficients()
@@ -130,11 +130,54 @@ def solve_matrix(
     return np.dot(np.linalg.inv(stacked_left), stacked_right)
 
 
+
 @dataclasses.dataclass
 class LinearEquation:
     input_equation: np.ndarray
     row_echelon_form: np.ndarray
     free_variable_indices: typing.List[int]  # could be empty
+
+    def find_solvable(
+        self, solved_indices: typing.List[int]
+    ) -> typing.Tuple[typing.List[int],typing.List[int]]:
+        """find a submatrix that is solvable
+
+        In row_echelon_form, given a set of indices that is a subset 
+        of the 'free_variable_indices', return the row and column number
+        so that all the columns can be solved knowing the index in 
+        solved_indices.
+
+        We have len(nrow) + len(solved_indices) == len(ncol)
+        """
+        for i in solved_indices:
+            if i not in self.free_variable_indices:
+                print("!! LinearEquation.find_solvable() require", 
+                      " the solvable index to be a sutset of free_variable_indices")
+                print("solved_indices: ", solved_indices)
+                print("free_variable: ", self.free_variable_indices)
+                raise ValueError
+        
+        other_indices = [li for li in self.free_variable_indices if li not in solved_indices]
+        not_zero = np.logical_not(np.isclose(self.row_echelon_form, 0.0, atol=ztol))
+
+        right_part_solved = not_zero[:, np.array(solved_indices)]
+        related_row = np.any(right_part_solved, axis = 1)
+
+        if len(other_indices) == 0:
+            row_can_be_solved = list(np.where(related_row)[0])
+        else:
+            right_part_unkownn = not_zero[:, np.array(other_indices)]
+            cannot_be_solved_row = np.any(right_part_unkownn, axis = 1)
+            row_can_be_solved = list(np.where(
+                np.logical_and(related_row, np.logical_not(cannot_be_solved_row)))[0])
+
+        if len(row_can_be_solved) == 0:
+            # no symmetry relationship
+            return [], solved_indices
+        
+        solvable_index = np.where(np.any(not_zero[np.array(row_can_be_solved)], axis=0))[0]
+
+        return row_can_be_solved, solvable_index
 
     @classmethod
     def from_equation(cls, equation: np.ndarray) -> "LinearEquation":

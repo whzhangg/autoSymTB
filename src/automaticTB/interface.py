@@ -253,6 +253,75 @@ class OrbitalPropertyRelationship:
         return self._stored_solutionchain.solve(values)
 
 
+    def _solve_all_values_iterative(self, values: typing.List[float]) -> np.ndarray:
+        
+        homo_eq = tools.LinearEquation.from_equation(
+            self.homogeneous_equation)
+        
+        non_leading_indices = homo_eq.free_variable_indices
+        
+        for i in self.free_pair_indices:
+            if i not in non_leading_indices:
+                print(non_leading_indices)
+                raise ValueError("we need free index to be parameter of the homogeneous")
+
+        solved_set = [non_leading_indices.index(i) for i in self.free_pair_indices]
+        # values corresponding to homo_eq.free_variable_indices
+        solved_values = np.zeros(len(non_leading_indices), dtype=homo_eq.row_echelon_form.dtype)
+        for ifree, v in zip(self.free_pair_indices, values):
+            solved_values[non_leading_indices.index(ifree)] = v
+
+        while len(solved_set) < len(non_leading_indices):
+            known_nonleading = [non_leading_indices[i] for i in solved_set]
+            solvable_row, solvable_index = homo_eq.find_solvable(known_nonleading)
+            indices_for_left = [i for i in solvable_index if i not in known_nonleading]
+            if len(solvable_row) != len(indices_for_left):
+                print(solvable_row, len(solvable_row))
+                A = homo_eq.row_echelon_form[np.array(solvable_row),:][:, np.array(indices_for_left)]
+                print(A.shape)
+                print(np.sum(A, axis = 0))
+                print(np.sum(A, axis = 1))
+                print(indices_for_left, len(indices_for_left))
+                raise ValueError
+
+            b = np.zeros(len(solvable_row), dtype = homo_eq.row_echelon_form.dtype)
+            for isolved in known_nonleading:
+                ipos = non_leading_indices.index(isolved)
+                b += -1 * solved_values[ipos] * homo_eq.row_echelon_form[solvable_row, isolved]
+
+            A = homo_eq.row_echelon_form[np.array(solvable_row),:][:, np.array(indices_for_left)]
+            solution = np.linalg.inv(A) @ b
+
+            all_solved_values = []
+            for si in solvable_index:
+                if si in known_nonleading:
+                    ipos = non_leading_indices.index(si)
+                    all_solved_values.append(solved_values[ipos])
+                if si in indices_for_left:
+                    all_solved_values.append(solution[indices_for_left.index(si)])
+
+            all_currently_solvable = {}
+            value_to_be_found = [nl for nl in non_leading_indices if nl not in known_nonleading]
+            for iaopair, v in zip(solvable_index, all_solved_values):
+                aopair = self.all_pairs[iaopair]
+                rev_aopair = aopair.get_reverse_translated()
+                rev_index = self.all_pairs.index(rev_aopair)
+
+                if iaopair in value_to_be_found and iaopair not in all_currently_solvable:
+                    all_currently_solvable[iaopair] = v
+                
+                if rev_index in value_to_be_found and rev_index not in all_currently_solvable:
+                    all_currently_solvable[rev_index] = np.conjugate(v)
+
+            for k, v in all_currently_solvable.items():
+                ipos = non_leading_indices.index(k)
+                solved_set.append(ipos)
+                solved_values[ipos] = v
+
+        all_values = homo_eq.solve_with_values(solved_values)
+
+        return all_values
+
     def _solve_all_values_old(self, values: typing.List[float]) -> np.ndarray:
         """solve all the required interaction in two step
         """
@@ -362,7 +431,8 @@ class OrbitalPropertyRelationship:
 
     def get_tightbinding_from_free_parameters(self, 
         free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None,
-        write_solved_Hijs_filename: typing.Optional[str] = None 
+        write_solved_Hijs_filename: typing.Optional[str] = None,
+        experimental: bool = False
     ):
         """return a tight-binding model from the input parameters"""
         from .properties.tightbinding import TightBindingModel
@@ -379,7 +449,11 @@ class OrbitalPropertyRelationship:
             print(f'input = {len(free_Hijs)}, required = {len(self.free_pair_indices)}')
             raise RuntimeError("the size of input Hijs/Sijs are different from free parameters")
 
-        all_hijs = self._solve_all_values(free_Hijs)
+        if experimental:
+            all_hijs = self._solve_all_values_iterative(free_Hijs)
+        else:
+            all_hijs = self._solve_all_values(free_Hijs)
+        
         HijR_list = []
         for ipair, v, pair in zip(range(len(self.all_pairs)), all_hijs, self.all_pairs):
             HijR_list.append(
@@ -400,7 +474,11 @@ class OrbitalPropertyRelationship:
         else:
             if len(free_Hijs) != len(free_Sijs):
                 raise RuntimeError("the size of input Hijs and Sijs are different")
-            all_sijs = self._solve_all_values(free_Sijs)
+            if experimental:
+                all_sijs = self._solve_all_values_iterative(free_Sijs)
+            else:
+                all_sijs = self._solve_all_values(free_Sijs)
+            
             SijR_list = []
             for v, pair in zip(all_sijs, self.all_pairs):
                 SijR_list.append(

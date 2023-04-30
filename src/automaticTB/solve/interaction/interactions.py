@@ -8,7 +8,7 @@ from automaticTB import parameters as params
 from automaticTB.solve import atomic_orbitals
 from automaticTB.solve import structure
 from automaticTB.solve import SALCs
-from .ao_rotation_tools import AOpairRotater, find_rotation_btw_clusters, get_translated_AO
+from .ao_rotation_tools import AOpairRotater, find_rotation_btw_clusters, get_translated_AO, get_reverse_AO
 from .interaction_pairs import (
     AOPair, AOSubspace, get_orbital_ln_from_string,
     generate_aopair_from_cluster, get_AO_from_CrystalSites_OrbitalList,
@@ -428,4 +428,173 @@ class InteractionSpace:
             all_aopairs, 
             equation_with_additional_relationship.free_variable_indices, 
             homogeneous_equation.row_echelon_form
+        )
+
+
+    @classmethod
+    def from_solvedInteraction_and_symmetry_new(cls, 
+        solved_interactions: typing.List["InteractionSpace"],
+        nonequivalent_clustersets: typing.List[typing.List[structure.CenteredCluster]],
+        possible_rotations: np.ndarray,
+        verbose: bool = False
+    ) -> "InteractionSpace":
+        """new solver for finding symmetry relationship for TB
+        
+        Parameters
+        ----------
+        solved_interactions: list[InteractionSpace]
+            a list of symmetry relationship between orbital pairs
+        nonequivalent_clustersets
+            a list of different equivalent clusters
+        possible_rotations: array(n,3,3)
+            a list of symmetry rotations
+        """
+        if len(solved_interactions) != len(nonequivalent_clustersets):
+            print("CombinedEquivalentInteraction ",
+                f"input number solution {len(solved_interactions)} is different from " ,
+                f"the number of non-equivalent clusters {len(nonequivalent_clustersets)} !!")
+            raise RuntimeError
+        
+        all_aopairs = []
+        for equivalent_clusters in nonequivalent_clustersets:
+            for cluster in equivalent_clusters:
+                related_pairs = generate_aopair_from_cluster(cluster)
+                all_aopairs += related_pairs
+
+        num_aopairs = len(all_aopairs)        
+        aopair_index: typing.Dict[AOPair, int] = {
+            ao: iao for iao, ao in enumerate(all_aopairs)
+        }
+
+        homogeneous_relationship: typing.List[np.ndarray] = []
+        for interaction in solved_interactions:
+            _block = np.zeros(
+                (len(interaction.homogeneous_equation), num_aopairs), 
+                dtype=params.COMPLEX_TYPE
+            )
+            for ip, pair in enumerate(interaction.all_AOPairs):
+                new_index = aopair_index[pair]
+                _block[:, new_index] = interaction.homogeneous_equation[:, ip]
+            homogeneous_relationship.append(np.array(_block))
+        
+        # generate the rotational equivalence inside the unitcell
+        symmetry_operations = []
+        symmetry_relationships: typing.List[np.ndarray] = []
+        rotator = AOpairRotater(all_aopairs)
+
+        for aointeractions, eq_clusters in zip(solved_interactions, nonequivalent_clustersets):
+            # each of the cluster in the unit cell
+            operations = []
+            for cluster in eq_clusters:
+                rotation = find_rotation_btw_clusters(
+                    eq_clusters[0], cluster, possible_rotations
+                )
+                frac_translation = cluster.center_site.absolute_position \
+                                - eq_clusters[0].center_site.absolute_position
+                operations.append((rotation, frac_translation))
+                
+                for aopair in aointeractions.all_AOPairs:
+                    sym_relation, sym_rev_relation = rotator.rotate(
+                        aopair, rotation, frac_translation, print_debug=False
+                    )
+                    if not np.all(np.isclose(sym_relation, 0.0, atol=params.ztol)):
+                        symmetry_relationships.append(sym_relation)
+            
+            symmetry_operations.append(operations)
+                
+        homogeneous_equation = tools.LinearEquation.from_equation(np.vstack(
+                homogeneous_relationship + \
+                symmetry_relationships
+            ))
+
+        non_leading_indices = np.array(homogeneous_equation.free_variable_indices)
+        
+        """
+        left matrix only have entry = 0 or 1, full rank. Can be brought to a identity matrix by row exchange
+        right matrix correspond to the unknown variables
+        """
+
+        #def find_solvable(homo: np.ndarray, left_indices: np.ndarray, indices: typing.List[int]):
+        #    """find the rows that contain non-zero numbers for left[:,i] 
+        #       but zero for other left[:,j]
+        #    """
+        #    _, ncol = homo.shape
+        #
+        #    other_indices = [li for li in left_indices if li not in indices]
+        #
+        #
+        #    abs_left_related = np.sum(np.abs(homo[:,np.array(indices)]), axis = 1)
+        #    related_row = np.where(abs_left_related > params.ztol)[0]
+        #
+        #    if len(other_indices) == 0:
+        #        return list(related_row)
+        #    
+        #    abs_left_other = np.sum(np.abs(homo[:, np.array(other_indices)]), axis = 1)
+        #    return [i for i in related_row if abs_left_other[i] < params.ztol]
+
+
+        free_set = []
+        solved_set = []
+        can_be_solved = set()
+
+        for i in non_leading_indices:
+            solved_set.append(i)
+            if i not in can_be_solved:
+                free_set.append(i)
+            
+            _, solvable_index = homogeneous_equation.find_solvable(solved_set)
+            #solvable_row = find_solvable(
+            #    homogeneous_equation.row_echelon_form, non_leading_indices, solved_set)
+            #solvable_index = np.where(
+            #    np.sum(np.abs(
+            # homogeneous_equation.row_echelon_form[solvable_row]), axis = 0) > params.ztol)[0]
+            
+            all_currently_solvable = set()
+            for iaopair in solvable_index:
+                aopair = all_aopairs[iaopair]
+                rev_aopair = get_reverse_AO(aopair)
+                rev_index = all_aopairs.index(rev_aopair)
+                all_currently_solvable.add(iaopair)
+                all_currently_solvable.add(rev_index)
+
+            can_be_additionally_be_solved = [
+                nl for nl in non_leading_indices if nl in all_currently_solvable and nl not in solved_set]
+
+            for cbabs in can_be_additionally_be_solved:
+                can_be_solved.add(cbabs)
+
+        if verbose:
+            print("## Orbital relationship of the whole structure are generated using symmetry...")
+            print(f"  there are {len(symmetry_operations)} unique positions in the unit cell")
+            for operations, eq_clusters in zip(symmetry_operations, nonequivalent_clustersets):
+                first_pindex = eq_clusters[0].center_site.index_pcell + 1
+                element = eq_clusters[0].center_site.site.chemical_symbol
+                print("")
+                print(f"### sites generated from atom with pindex = {first_pindex} ({element:>2s})")
+                for op, cluster in zip(operations, eq_clusters):
+                    rot, trans = op
+                    pindex = cluster.center_site.index_pcell + 1
+                    element = cluster.center_site.site.chemical_symbol
+                    print(f"    pindex = {pindex:>2d} ({element:>2s})     rot:", end = "  ")
+                    print(("{:>8.3f}"*3).format(*rot[0]))
+                    print((" "*31 + "{:>8.3f}"*3).format(*rot[1]))
+                    print((" "*31 + "{:>8.3f}"*3).format(*rot[2]))
+                    print("                 translation: ({:>8.3f}{:>8.3f}{:>8.3f})".format(*trans))
+            print("")
+            nconstrains = 0
+            for hr in homogeneous_relationship:
+                nconstrains += len(hr)
+            print("  num. of constrains posed by point group symmetry              : ",
+                    nconstrains)
+            print("  num. of equivalent relationship generated from symmetry op.   : ", 
+                    len(symmetry_relationships))
+            print("  num. of the required parameters to solve all values           : ",
+                    len(homogeneous_equation.free_variable_indices))
+            print("  num. of the free parameters with conjugate relationships      : ",
+                    len(free_set))
+                    
+        return cls(
+            all_aopairs, 
+            free_set,
+            homogeneous_equation.input_equation
         )
