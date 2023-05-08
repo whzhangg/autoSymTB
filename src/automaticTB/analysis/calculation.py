@@ -11,6 +11,7 @@ import typing
 import os
 import dataclasses
 import time
+from collections import abc
 
 import numpy as np
 import tqdm
@@ -448,7 +449,7 @@ class BandAnalyzer:
         perturbation: np.ndarray,
         kmesh: reciprocal.Kmesh,
         nvb: int,
-        temp: float,
+        temp: typing.Union[float, typing.List[float]],
         relative_mu: np.ndarray,
         window_range: float = 2.0, 
         window_density: float = 250,
@@ -496,36 +497,70 @@ class BandAnalyzer:
         mus = mu0 + relative_mu
         n_mus = len(mus)
 
-        ncarrier = np.zeros(n_mus)
-        sigma = np.zeros((n_mus, 3))
-        seebeck = np.zeros((n_mus, 3))
-        kappa = np.zeros((n_mus, 3))
+        if isinstance(temp, abc.Iterable):
+            temp = np.array(temp)
+            ntemp = len(temp)
+            ncarrier = np.zeros((ntemp, n_mus))
+            sigma = np.zeros((ntemp, n_mus, 3))
+            seebeck = np.zeros((ntemp, n_mus, 3))
+            kappa = np.zeros((ntemp, n_mus, 3))
 
-        for i, mu in enumerate(mus):
-            nc, sigma_ij, Sij, k_ij = transport.calculate_transport(
-                mu=mu, temp=temp, nele=10, ek=e, vk=v, 
-                tau=tau, cell_volume=reciprocal.get_volume(tb.cell), weight=2.0
-            )
-            ncarrier[i] = nc / 1e6
-            sigma[i] = np.diag(sigma_ij)
-            seebeck[i] = np.diag(Sij)
-            kappa[i] = np.diag(k_ij)
+            for itemp in range(ntemp):
+                for i, mu in enumerate(mus):
+                    nc, sigma_ij, Sij, k_ij = transport.calculate_transport(
+                        mu=mu, temp=temp[itemp], nele=10, ek=e, vk=v, 
+                        tau=tau, cell_volume=reciprocal.get_volume(tb.cell), weight=2.0
+                    )
+                    ncarrier[itemp, i] = nc / 1e6
+                    sigma[itemp, i] = np.diag(sigma_ij)
+                    seebeck[itemp, i] = np.diag(Sij)
+                    kappa[itemp, i] = np.diag(k_ij)
 
-        time_taken = time.time() - t0
-        data = {
-            "perturbation": perturbation.tolist(),
-            "nk": kmesh.nks.tolist(),
-            "temp": temp,
-            "mus": mus.tolist(),
-            "time": time_taken,
-            "ncarrier": ncarrier.tolist(),
-            "sigma": sigma.tolist(),
-            "seebeck": seebeck.tolist(),
-            "kappa": kappa.tolist(),
-            "dosx": dos_x.tolist(),
-            "dosy": dos_y.tolist()
-        }
-    
+            time_taken = time.time() - t0
+            data = {
+                "perturbation": perturbation.tolist(),
+                "nk": list(kmesh.nks),
+                "temp": temp.tolist(),
+                "mus": mus.tolist(),
+                "time": time_taken,
+                "ncarrier": ncarrier.tolist(),
+                "sigma": sigma.tolist(),
+                "seebeck": seebeck.tolist(),
+                "kappa": kappa.tolist(),
+                "dosx": dos_x.tolist(),
+                "dosy": dos_y.tolist()
+            }
+        else:
+            ncarrier = np.zeros(n_mus)
+            sigma = np.zeros((n_mus, 3))
+            seebeck = np.zeros((n_mus, 3))
+            kappa = np.zeros((n_mus, 3))
+
+            for i, mu in enumerate(mus):
+                nc, sigma_ij, Sij, k_ij = transport.calculate_transport(
+                    mu=mu, temp=temp, nele=10, ek=e, vk=v, 
+                    tau=tau, cell_volume=reciprocal.get_volume(tb.cell), weight=2.0
+                )
+                ncarrier[i] = nc / 1e6
+                sigma[i] = np.diag(sigma_ij)
+                seebeck[i] = np.diag(Sij)
+                kappa[i] = np.diag(k_ij)
+
+            time_taken = time.time() - t0
+            data = {
+                "perturbation": perturbation.tolist(),
+                "nk": list(kmesh.nks),
+                "temp": temp,
+                "mus": mus.tolist(),
+                "time": time_taken,
+                "ncarrier": ncarrier.tolist(),
+                "sigma": sigma.tolist(),
+                "seebeck": seebeck.tolist(),
+                "kappa": kappa.tolist(),
+                "dosx": dos_x.tolist(),
+                "dosy": dos_y.tolist()
+            }
+        
         if filename:
             tools.write_yaml(data, filename)
         return data

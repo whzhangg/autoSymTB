@@ -432,7 +432,7 @@ class OrbitalPropertyRelationship:
     def get_tightbinding_from_free_parameters(self, 
         free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None,
         write_solved_Hijs_filename: typing.Optional[str] = None,
-        experimental: bool = False
+        experimental: bool = True
     ):
         """return a tight-binding model from the input parameters"""
         from .properties.tightbinding import TightBindingModel
@@ -494,7 +494,11 @@ class OrbitalPropertyRelationship:
         return tb
 
 
-    def print_free_pairs(self) -> None:
+    def print_free_pairs(self, values: typing.Optional[typing.List[float]] = None) -> None:
+        if values is not None and len(values) != len(self.free_pair_indices):
+            print(f"inputed {len(values)} values...", 
+                "but has {len(self.free_pair_indices)} free parameters")
+
         for i, index in enumerate(self.free_pair_indices):
             left = self.all_pairs[index].l_orbital
             right = self.all_pairs[index].r_orbital
@@ -510,6 +514,8 @@ class OrbitalPropertyRelationship:
             result += f"{right_symbol:>2s}-{right.pindex:0>2d} "
             result += f"{tools.parse_orbital(right.n, right.l, right.m):>7s} "
             result += "r = ({:>6.2f},{:>6.2f},{:>6.2f})".format(*rij)
+            if values is not None:
+                result += f"  v = {values[i]:>8.4f}"
             print(result)
 
 

@@ -19,7 +19,7 @@ def solve_interaction(
     save_filename: str = None, 
     return_type: typing.Literal["OrbitalPropertyRelationship", "CombinedInteraction"] \
         = "CombinedInteraction",
-    experimental: bool = False
+    experimental: bool = True
 ) -> OrbitalPropertyRelationship:
     """
     this function wraps the process of finding the unique interaction 

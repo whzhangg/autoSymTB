@@ -190,7 +190,7 @@ class Kmesh:
     
     @property
     def nks(self) -> typing.Tuple[int]:
-        return self._nks[0], self._nks[1], self._nks[2]
+        return int(self._nks[0]), int(self._nks[1]), int(self._nks[2])
 
     @property
     def kpoints(self) -> np.ndarray:
