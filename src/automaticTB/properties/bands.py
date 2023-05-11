@@ -101,6 +101,7 @@ class BandStructure:
         self, 
         filename: str, 
         orbitalgroups: typing.Dict[str, typing.List[str]],
+        factor: float = 10.0,
         take_norm: bool = True,
         interpolate: bool = False,
         yminymax: typing.Optional[typing.Tuple[float,float]] = None
@@ -158,7 +159,7 @@ class BandStructure:
         axes.set_ylim(ymin, ymax)
 
         for key, state_c in state_c_dict.items():
-            axes.scatter(state_x, state_y, s = state_c * 5, marker = 'o', label = f"{key}")
+            axes.scatter(state_x, state_y, s = state_c * factor, marker = 'o', label = f"{key}")
         
         for _,x in self.ticks:
             axes.plot([x,x], [ymin,ymax], color='gray')

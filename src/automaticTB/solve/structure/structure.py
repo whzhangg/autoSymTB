@@ -429,15 +429,19 @@ class CenteredEquivalentCluster:
         tools.write_cif_file(filename, atom)
 
 
-    def set_symmetry(self, find_additional_symmetry: bool = False) -> None:
+    def set_symmetry(self, 
+        find_additional_symmetry: bool = False,
+        degenerate_atomic_orbital: bool = True
+    ) -> None:
         """
         first it checks if the atom is an isolated atom with full spherical symmetry
         if we require to find additional symmetry, it will call the pymatgen method
         """
         from .pymatgen_sym import symOperations_from_pos_types
         vectors = np.vstack([ns.site.pos for ns in self.neighbor_sites])
-        if len(vectors) == 1 and np.allclose(
-            vectors[0], np.zeros_like(vectors[0]), atol=params.ztol
+        if (degenerate_atomic_orbital and 
+            len(vectors) == 1 and 
+            np.allclose(vectors[0], np.zeros_like(vectors[0]), atol=params.ztol)
         ):
             self.sitesymmetrygroup = ssym.SiteSymmetryGroup.get_spherical_symmetry_group()
             return

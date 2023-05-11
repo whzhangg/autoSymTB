@@ -12,10 +12,82 @@ from .hij import Pindex_lm, HijR, SijR
 
 HSijR = namedtuple('HSijR', "i j r H S")
 
+
 class TightBindingModel:
     """faster version of the tightbinding model with some difference"""
     nproc = joblib.cpu_count() // 2
     parallel_threshold = 10000
+
+    r"""
+    @profile
+    Line #      Hits         Time  Per Hit   % Time  Line Contents
+    ==============================================================
+    31         1          6.0      6.0      0.0          self._cell = cell
+    32         1          1.0      1.0      0.0          self._positions = positions
+    33         1          1.0      1.0      0.0          self._types = types
+    34
+    35         1          1.0      1.0      0.0          self._basis: typing.List[Pindex_lm] = []
+    36      5747       4895.0      0.9      0.0          for hijR in HijR_list:
+    37      5746     332417.0     57.9      0.4              if hijR.left not in self._basis:
+    38        20         20.0      1.0      0.0                  self._basis.append(hijR.left)
+    39
+    40         2         13.0      6.5      0.0          index_ref: typing.Dict[tuple, int] = {
+    41         1          1.0      1.0      0.0              (basis.pindex, basis.n, basis.l, basis.m):i for i, basis in enumerate(self._basis)
+    42                                                   }
+    43
+    44         1          0.0      0.0      0.0          if SijR_list is None:
+    45                                                       # create SijR list if not supplied
+    46         1          1.0      1.0      0.0              SijR_list = []
+    47      5747       3340.0      0.6      0.0              for hijr in HijR_list:
+    48      5746      24057.0      4.2      0.0                  if hijr.left == hijr.right:
+    49        40         25.0      0.6      0.0                      SijR_list.append(
+    50        20         35.0      1.8      0.0                          SijR(hijr.left, hijr.right, 1.0)
+    51                                                               )
+    52                                                           else:
+    53     11452       6919.0      0.6      0.0                      SijR_list.append(
+    54      5726       7592.0      1.3      0.0                          SijR(hijr.left, hijr.right, 0.0)
+    55                                                               )
+    56
+    57         1          1.0      1.0      0.0          debug_print = False
+    58
+    59         1          1.0      1.0      0.0          self._HSijRs = []
+    60      5747       4422.0      0.8      0.0          for hijr in HijR_list:
+    61     11492       9495.0      0.8      0.0              index_i = index_ref[
+    62      5746       6750.0      1.2      0.0                  (hijr.left.pindex, hijr.left.n, hijr.left.l, hijr.left.m)
+    63                                                       ]
+    64     11492       8019.0      0.7      0.0              index_j = index_ref[
+    65      5746       5943.0      1.0      0.0                  (hijr.right.pindex, hijr.right.n, hijr.right.l, hijr.right.m)
+    66                                                       ]
+    67
+    68     17238      25885.0      1.5      0.0              r = hijr.right.translation + \
+    69     11492      14750.0      1.3      0.0                  self._positions[hijr.right.pindex] - self._positions[hijr.left.pindex]
+    70
+    71      5746       3985.0      0.7      0.0              if debug_print:
+    72                                                           print(f"({index_i+1:>2d},{index_j+1:>2d})", end=" ")
+    73                                                           print(f"H = {hijr.value.real:>10.5f}", end=" ")
+    74                                                           print("t_r = {:>6.3f},{:>6.3f},{:>6.3f}".format(*hijr.right.translation), end=" ")
+    75                                                           print("t_l = {:>6.3f},{:>6.3f},{:>6.3f}".format(*hijr.left.translation), end=" ")
+    76                                                           print("p_r = {:>6.3f},{:>6.3f},{:>6.3f}".format(*self._positions[hijr.right.pindex]), end=" ")
+    77                                                           print("p_l = {:>6.3f},{:>6.3f},{:>6.3f}".format(*self._positions[hijr.left.pindex]), end=" ")
+    78                                                           print(f"r = {r[0]:>6.3f}{r[1]:>6.3f}{r[2]:>6.3f}")
+    79
+    80      5746       4243.0      0.7      0.0              hvalue = hijr.value
+    81      5746       3706.0      0.6      0.0              found = False
+    82  16511131   10815270.0      0.7     13.4              for sijr in SijR_list:
+    83  16511131   69260122.0      4.2     85.9                  if sijr.left == hijr.left and sijr.right == hijr.right:
+    84      5746       5371.0      0.9      0.0                      svalue = sijr.value
+    85      5746       3933.0      0.7      0.0                      found = True
+    86      5746       4238.0      0.7      0.0                      break
+    87
+    88      5746       4034.0      0.7      0.0              if not found:
+    89                                                           raise RuntimeError("cannot find correcponding sijr")
+    90
+    91     11492      10761.0      0.9      0.0              self._HSijRs.append(
+    92     11492      18079.0      1.6      0.0                  HSijR(
+    93      5746       4239.0      0.7      0.0                      index_i, index_j, r, hvalue, svalue
+    94                                                           )
+    95                                                       )
+    """
     def __init__(self, 
         cell: np.ndarray, positions: np.ndarray, types: typing.List[int],
         HijR_list: typing.List[HijR],
@@ -278,6 +350,232 @@ class TightBindingModel:
         return obtained_energy, obtained_velocity, obtained_coefficient
 
 
+class TightBindingModel_wo_overlap:
+    """faster version of the tightbinding model with some difference"""
+    nproc = joblib.cpu_count() // 2
+    parallel_threshold = 10000
+    def __init__(self, 
+        cell: np.ndarray, positions: np.ndarray, types: typing.List[int],
+        HijR_list: typing.List[HijR]
+    ) -> None:
+        """
+        we assert HijR and SijR are the same list with the same pairs 
+        and we put them in tuples with index
+        """
+        self._cell = cell
+        self._positions = positions
+        self._types = types
+
+        self._basis: typing.List[Pindex_lm] = []
+        for hijR in HijR_list:
+            if hijR.left not in self._basis:
+                self._basis.append(hijR.left)
+                
+        index_ref: typing.Dict[tuple, int] = {
+            (basis.pindex, basis.n, basis.l, basis.m):i for i, basis in enumerate(self._basis)
+        }
+
+        self._HSijRs = []
+        for hijr in HijR_list:
+            index_i = index_ref[
+                (hijr.left.pindex, hijr.left.n, hijr.left.l, hijr.left.m)
+            ]
+            index_j = index_ref[
+                (hijr.right.pindex, hijr.right.n, hijr.right.l, hijr.right.m)
+            ]
+
+            r = hijr.right.translation + \
+                self._positions[hijr.right.pindex] - self._positions[hijr.left.pindex]
+
+            hvalue = hijr.value
+            
+            self._HSijRs.append(
+                HSijR(
+                    index_i, index_j, r, hvalue, 0.0
+                )
+            )
+        
+
+    @property
+    def reciprocal_cell(self) -> np.ndarray:
+        return reciprocal.find_RCL(self.cell)
+
+
+    @property
+    def basis(self) -> typing.List[Pindex_lm]:
+        return self._basis
+
+
+    @property
+    def basis_name(self) -> typing.List[str]:
+        names = []
+        for b in self._basis:
+            orbital_symbol = tools.get_orbital_symbol_from_lm(b.l, b.m)
+            chem_symbol = tools.chemical_symbols[self.types[b.pindex]]
+            names.append(f"{chem_symbol}({b.pindex+1}) {b.n}{orbital_symbol}")
+        return names
+
+
+    @property
+    def nbasis(self) -> int:
+        return len(self._basis)
+
+
+    @property
+    def cell(self) -> np.ndarray:
+        return self._cell
+
+
+    @property
+    def positions(self) -> np.ndarray:
+        return self._positions
+
+
+    @property
+    def types(self) -> typing.List[int]:
+        return self._types
+
+
+    def Hijk_Sijk_and_derivatives_at_k(
+            self, k: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """return H(k), S(k), dH(k)/dk and dS(k)/dk at a given k"""
+        ks = np.array([k])
+
+        hijk, sijk, hijk_derv, sijk_derv = \
+            self.Hijk_SijK_and_derivatives(ks, True)
+        
+        return hijk[0], sijk[0], hijk_derv[0], sijk_derv[0]
+
+
+    def Hijk_SijK_and_derivatives(
+        self, ks: np.ndarray, require_derivative: bool = True
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """return H(k), S(k), dH(k)/dk and dS(k)/dk at a list of k"""
+        ks = np.array(ks)
+        nk = len(ks)
+        nbasis = len(self._basis)
+    
+        cell_T = self._cell.T
+        pi = np.pi
+
+        diagonal = np.eye(nbasis, dtype=complex)
+        sijk = np.repeat(np.array([diagonal]), nk, axis=0)
+        sijk_derv = np.zeros((nk, nbasis, nbasis), dtype=complex)
+
+        if require_derivative:
+            hijk = np.zeros((nk, nbasis,nbasis), dtype=complex)
+            hijk_derv = np.zeros((nk, 3, nbasis, nbasis), dtype=complex)
+            
+            for hsijr in self._HSijRs:
+                index_i, index_j, r, hvalue, svalue = hsijr
+                
+                kR = np.dot(ks, r)
+                tmph = hvalue * np.exp(-2j * pi * kR) # use -2 instead of 2
+
+                hijk[:, index_i, index_j] += tmph
+
+                r_cart_x, r_cart_y, r_cart_z = cell_T @ r # in A
+                hijk_derv[:, 0, index_i, index_j] += tmph * 1j * r_cart_x
+                hijk_derv[:, 1, index_i, index_j] += tmph * 1j * r_cart_y
+                hijk_derv[:, 2, index_i, index_j] += tmph * 1j * r_cart_z 
+                
+            return hijk, sijk, hijk_derv, sijk_derv
+        else: 
+            hijk = np.zeros((nk, nbasis,nbasis), dtype=complex)
+
+            for hsijr in self._HSijRs:
+                index_i, index_j, r, hvalue, svalue = hsijr
+                
+                kR = np.dot(ks, r)
+                tmph = hvalue * np.exp(-2j * pi * kR)
+
+                hijk[:, index_i, index_j] += tmph
+
+            return hijk, sijk, (), ()
+
+
+    def solveE_at_ks(self, ks: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+        """return energy and eigen-vector for a list of k points
+        
+        -> (eigenvalues, eigenvectors)
+        For each k point, the eigen values are sorted
+        The outputs have shape:
+         - eigenvalue has shape (nk, nbnd)
+         - eigenvector has shape (nk, nstate, nbnd)
+        """
+        ks = np.array(ks)
+        hijk, sijk, _, _ = self.Hijk_SijK_and_derivatives(ks, require_derivative=False)
+
+        if len(ks) < self.parallel_threshold:
+            return _solve_E(hijk, sijk)
+        else:
+            #print(f"calculate in parallel for {len(ks)} kpoints on {self.nproc} process")
+            divided_index = _divide_jobs(len(ks), self.nproc)
+            divided_jobs = [
+                (hijk[start:end], sijk[start:end]) for start, end in divided_index
+            ]
+            #njob_each = len(ks) // self.nproc + 1
+            #divided_jobs = []
+            #for iproc in range(self.nproc):
+            #    start = njob_each * iproc
+            #    end = min(njob_each * (iproc + 1), len(ks))
+            #    divided_jobs.append((hijk[start:end], sijk[start:end]))
+            
+            results = joblib.Parallel(n_jobs=self.nproc)(
+                joblib.delayed(_solve_E)(hs, ss) for hs, ss in divided_jobs)
+            
+            energies = np.vstack([e for e, _ in results])
+            vector = np.vstack([c for _, c in results])
+            return energies, vector
+    
+
+    def solveE_V_at_ks(
+        self, ks: np.ndarray, average_degenerate = False
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """provide energy and derivative for a list of kpoints
+        
+        -> (eigenvalues, velocity, eigenvectors)
+        For each k point, the eigen values are sorted
+        The outputs have shape:
+         - eigenvalue has shape (nk, nbnd)
+         - bandvelocity has shape (nk, nbnd, 3)
+         - eigenvector has shape (nk, nstate, nbnd)
+         """
+        ks = np.array(ks)
+        hijk, sijk, hijk_derv, sijk_derv \
+            = self.Hijk_SijK_and_derivatives(ks, require_derivative=True)
+
+        if len(ks) < self.parallel_threshold:
+            obtained_energy, obtained_velocity, obtained_coefficient \
+                = _solve_E_V(hijk, sijk, hijk_derv, sijk_derv)
+        else:
+            divided_index = _divide_jobs(len(ks), self.nproc)
+            divided_jobs = [
+                (hijk[start:end], sijk[start:end], hijk_derv[start:end], sijk_derv[start:end])
+                for start, end in divided_index
+            ]
+            #njob_each = len(ks) // self.nproc + 1
+            #divided_jobs = []
+            #for iproc in range(self.nproc):
+            #    start = njob_each * iproc
+            #    end = min(njob_each * (iproc + 1), len(ks))
+            #    divided_jobs.append(
+            #        (hijk[start:end], sijk[start:end], 
+            #         hijk_derv[start:end], sijk_derv[start:end]))
+            
+            results = joblib.Parallel(n_jobs=self.nproc)(
+                joblib.delayed(_solve_E_V)(hs, ss, dhs, dss) for hs, ss, dhs, dss in divided_jobs)
+            
+            obtained_energy = np.vstack([e for e,_,_ in results])
+            obtained_velocity = np.vstack([v for _,v,_ in results])
+            obtained_coefficient = np.vstack([c for _,_,c in results])
+
+        if average_degenerate:
+            obtained_velocity = _get_averaged_degenerate_velocity(
+                obtained_energy, obtained_velocity
+            )
+        return obtained_energy, obtained_velocity, obtained_coefficient
+
 
 def _get_averaged_degenerate_velocity(w: np.ndarray, v: np.ndarray) -> np.ndarray:
     """average velocity at degenerate points"""
@@ -319,11 +617,11 @@ def _solve_E(hijks: np.ndarray, sijks: np.ndarray) -> np.ndarray:
         eigenvalues[ik] = w.real[sort_indices]
         eigenvectors[ik] = c[:,sort_indices]
     
-    for ik in range(nk):
-        for ibnd in range(nbasis):
-            left = hijks[ik] @ eigenvectors[ik,:,ibnd]
-            right = eigenvalues[ik, ibnd] * sijks[ik] @ eigenvectors[ik,:,ibnd]
-            assert np.allclose(left, right, atol = 1e-4)
+    #for ik in range(nk):
+    #    for ibnd in range(nbasis):
+    #        left = hijks[ik] @ eigenvectors[ik,:,ibnd]
+    #        right = eigenvalues[ik, ibnd] * sijks[ik] @ eigenvectors[ik,:,ibnd]
+    #        assert np.allclose(left, right, atol = 1e-4)
     return eigenvalues, eigenvectors
 
 

@@ -1,3 +1,3 @@
-from .tightbinding_optimized import TightBindingModel
+from .tightbinding_optimized import TightBindingModel, TightBindingModel_wo_overlap
 from .hij import *
 from .models.singleband_inputs import get_singleband_tightbinding_with_overlap

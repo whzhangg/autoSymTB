@@ -16,6 +16,7 @@ def solve_interaction(
     rcut: typing.Optional[float] = None,
     standardize: bool = True,
     find_additional_symmetry: bool = False,
+    degenerate_atomic_orbitals: bool = True,
     save_filename: str = None, 
     return_type: typing.Literal["OrbitalPropertyRelationship", "CombinedInteraction"] \
         = "CombinedInteraction",
@@ -54,7 +55,10 @@ def solve_interaction(
         print("")
         blocks = []
         for ceq_cluster in selected.centered_equivalent_clusters:
-            ceq_cluster.set_symmetry(find_additional_symmetry = find_additional_symmetry)
+            ceq_cluster.set_symmetry(
+                find_additional_symmetry = find_additional_symmetry,
+                degenerate_atomic_orbital=degenerate_atomic_orbitals
+            )
             subspace_pairs = get_InteractingAOSubspaces_from_cluster(ceq_cluster)
             print_log_for_InteractingAOSubspaces(subspace_pairs)
             print("")

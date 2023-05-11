@@ -44,3 +44,17 @@ Major change to the properties subpackage.
 
 - added an experimental solver that should treat the conjugate relationship correctly.
 - `LinearEquation` has a method now to return the solvable part of the homogeneous matrix.
+
+## 2023-05-11
+
+### Added
+
+- `get_tightbinding_hijrs()` method in the interface class to obtain hijrs to constructure TB
+- `degenerate_atomic_orbitals` tag in `solve()` to prevent enforcing degenerate on-site values
+- corresponding changes are made to the `structure.py` file
+- `plot_fatband()` now accept a enlargement factor for mark size
+- a faster tightbinding `TightBindingModel_wo_overlap` to eliminate the need to create `SijR`s
+
+### Changed
+
+- remove the eigen-value checking in `solveE()`

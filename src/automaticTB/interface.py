@@ -429,6 +429,38 @@ class OrbitalPropertyRelationship:
         )
 
 
+    def get_tightbinding_hijrs(self, free_Hijs: typing.List[float], experimental: bool = True):
+        from .properties.tightbinding import HijR, Pindex_lm
+
+        def _convert_AtomicOrbital_to_Pindex_lm(ao: AtomicOrbital) -> Pindex_lm:
+            return Pindex_lm(
+                pindex = ao.pindex, 
+                n = ao.n, l = ao.l, m = ao.m,
+                translation = ao.translation
+            )
+
+        if len(free_Hijs) != len(self.free_pair_indices):
+            print(f'input = {len(free_Hijs)}, required = {len(self.free_pair_indices)}')
+            raise RuntimeError("the size of input Hijs/Sijs are different from free parameters")
+
+        if experimental:
+            all_hijs = self._solve_all_values_iterative(free_Hijs)
+        else:
+            all_hijs = self._solve_all_values(free_Hijs)
+        
+        HijR_list = []
+        for v, pair in zip(all_hijs, self.all_pairs):
+            HijR_list.append(
+                HijR(
+                    left = _convert_AtomicOrbital_to_Pindex_lm(pair.l_orbital), 
+                    right = _convert_AtomicOrbital_to_Pindex_lm(pair.r_orbital),
+                    value = v
+                )
+            )
+            
+        return HijR_list
+        
+
     def get_tightbinding_from_free_parameters(self, 
         free_Hijs: typing.List[float], free_Sijs: typing.Optional[typing.List[float]] = None,
         write_solved_Hijs_filename: typing.Optional[str] = None,
