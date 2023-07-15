@@ -59,6 +59,7 @@ def solve_interaction(
                 find_additional_symmetry = find_additional_symmetry,
                 degenerate_atomic_orbital=degenerate_atomic_orbitals
             )
+            print(f"## site symmetry: {ceq_cluster.sitesymmetrygroup.groupname}")
             subspace_pairs = get_InteractingAOSubspaces_from_cluster(ceq_cluster)
             print_log_for_InteractingAOSubspaces(subspace_pairs)
             print("")

@@ -165,6 +165,97 @@ def c_calc_dos_contribution_multie(double[:] bandenergy, Py_ssize_t[:,:] tetras,
 
 
 # for DOS calculation
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def c_calc_projdos_contribution_multie(double[:] bandenergy, double[:,:] bandc, Py_ssize_t[:,:] tetras, double[:] e, Py_ssize_t norb):
+    cdef Py_ssize_t num_tetra = len(tetras)
+    cdef Py_ssize_t nenergy = len(e)
+    cdef Py_ssize_t itetra, ienergy, iorb
+    cdef double e1, e2, e3, e4, esingle
+    cdef double a, b, c, d
+
+    cdef double[:] weights = np.zeros(norb, dtype = np.double)
+    cdef double[:,:] sum_projdos = np.zeros((nenergy, norb), dtype = np.double)
+    cdef double sum_dos
+    
+    for itetra in range(num_tetra):
+        a = bandenergy[tetras[itetra, 0]]
+        b = bandenergy[tetras[itetra, 1]]
+        c = bandenergy[tetras[itetra, 2]]
+        d = bandenergy[tetras[itetra, 3]]
+        
+        if a < b:
+            part1_min = a; part1_max = b
+        else:
+            part1_min = b; part1_max = a
+        if c < d:
+            part2_min = c; part2_max = d
+        else:
+            part2_min = d; part2_max = c
+
+        if part1_min < part2_min:
+            e1 = part1_min
+            left1 = part2_min
+        else:
+            e1 = part2_min
+            left1 = part1_min
+        
+        if part1_max > part2_max:
+            e4 = part1_max
+            left2 = part2_max
+        else:
+            e4 = part2_max
+            left2 = part1_max
+
+        if left1 < left2:
+            e2 = left1
+            e3 = left2
+        else:
+            e2 = left2
+            e3 = left1
+        
+        for iorb in range(norb):
+            weights[iorb] = (
+                bandc[tetras[itetra, 0], iorb] + bandc[tetras[itetra, 1], iorb] + bandc[tetras[itetra, 2], iorb] + bandc[tetras[itetra, 3], iorb]
+            ) / 4.0
+
+        for ienergy in range(nenergy):
+            esingle = e[ienergy]
+            sum_dos = 0.0
+            if esingle <= e1:
+                pass
+
+            elif e1 <= esingle <= e2:
+                if e1 == e2:
+                    pass
+                else:
+                    sum_dos = 3*(esingle - e1)**2/((e2 - e1)*(e3 - e1)*(e4 - e1)) / num_tetra
+
+            elif e2 <= esingle <= e3:
+                if e2 == e3:
+                    sum_dos = 3.0 * (e2 - e1) / ((e3 - e1) * (e4 - e1)) / num_tetra
+                else:
+                    fac = 1.0 / ((e3 - e1)*(e4 - e1))
+                    elin = 3*(e2 - e1) + 6*(esingle - e2)
+                    esq = -3*(((e3 - e1) + (e4 - e2))/((e3 - e2)*(e4 - e2))) * (esingle - e2)**2
+                    sum_dos = fac * (elin + esq) / num_tetra
+
+            elif e3 <= esingle <= e4:
+                if e3 == e4:
+                    pass
+                else:
+                    sum_dos = 3 *(e4 - esingle)**2/((e4 - e1)*(e4 - e2)*(e4 - e3)) / num_tetra
+
+            else:
+                # E >= E4
+                pass
+
+            for iorb in range(norb):
+                sum_projdos[ienergy, iorb] += sum_dos * weights[iorb]
+
+    return sum_projdos
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def c_calc_dos_contribution(double[:] bandenergy, Py_ssize_t[:,:] tetras, double e):

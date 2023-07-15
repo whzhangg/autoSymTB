@@ -2,7 +2,7 @@ import dataclasses
 import numpy as np
 
 from automaticTB import tools
-
+from automaticTB import parameters as param
 
 @dataclasses.dataclass
 class LocalSite:
@@ -13,8 +13,11 @@ class LocalSite:
     def chemical_symbol(self) -> str:
         return tools.chemical_symbols[self.atomic_number]
 
-    def __eq__(self, other) -> bool:
-        return self.atomic_number == other.atomic_number and np.allclose(self.pos, other.pos)
+    def __eq__(self, other: "LocalSite") -> bool:
+        return (
+            self.atomic_number == other.atomic_number and 
+            np.allclose(self.pos, other.pos, atol=param.stol)
+        )
 
     def rotate(self, matrix:np.ndarray):
         newpos = matrix.dot(self.pos)

@@ -15,29 +15,45 @@ class SobolBand:
     energies: np.ndarray
     problem: dict
 
-    def calculate_sobol(self, with_variance: bool = False) -> np.ndarray:
+    def calculate_sobol(
+        self, 
+        with_variance: bool = False, 
+        bands_to_do: typing.Optional[typing.List[int]] = None
+    ) -> np.ndarray:
         """return sobol indices [nk, nbnd, nfeature]"""
         
         _, nk, nbnd = self.energies.shape
         nfeature = self.problem["num_vars"]
 
+        if not bands_to_do:
+            bands_to_do = range(nbnd)
+
+        nbnd = len(bands_to_do)
+
         sT_band = np.zeros((nk, nbnd, nfeature), dtype=float)
+
         for ik in tqdm.tqdm(range(nk)):
-            for ibnd in range(nbnd):
+            for ibnd, band_index in enumerate(bands_to_do):
                 res = sobol.analyze(
-                    self.problem, self.energies[:,ik,ibnd], calc_second_order=calc_2order)
+                    self.problem, self.energies[:,ik,band_index], calc_second_order=calc_2order)
                 sT = res[which_sobol]
                 factor = 1.0
                 if with_variance:
-                    factor = np.var(self.energies[:,ik, ibnd])
+                    factor = np.var(self.energies[:,ik, band_index])
                 sT_band[ik, ibnd, :] = np.array(sT) * factor
         
         return sT_band
     
 
     def calculate_relative_sobol(
-            self, ref_k: np.ndarray, ref_ibnd: int, with_variance: bool = False) -> np.ndarray:
+        self, 
+        ref_k: np.ndarray, 
+        ref_ibnd: int, 
+        with_variance: bool = False,
+        bands_to_do: typing.Optional[typing.List[int]] = None
+    ) -> np.ndarray:
         """return relative sobol sensitivity relative to a k point"""
+        
         kp = np.array(ref_k)
         dk = np.linalg.norm(self.kpath.kpoints - kp, axis=1)
         kid = np.argmin(dk)
@@ -45,17 +61,22 @@ class SobolBand:
         _, nk, nbnd = self.energies.shape
         nfeature = self.problem["num_vars"]
 
+        if not bands_to_do:
+            bands_to_do = range(nbnd)
+
+        nbnd = len(bands_to_do)
+
         sT_band = np.zeros((nk, nbnd, nfeature), dtype=float)
         for ik in tqdm.tqdm(range(nk)):
-            for ibnd in range(nbnd):
+            for ibnd, band_index in enumerate(bands_to_do):
                 res = sobol.analyze(
                     self.problem, 
-                    self.energies[:,ik,ibnd] - self.energies[:,kid, ref_ibnd], 
+                    self.energies[:,ik,band_index] - self.energies[:,kid, ref_ibnd], 
                     calc_second_order=calc_2order
                 )
                 factor = 1.0
                 if with_variance:
-                    factor = np.var(self.energies[:,ik,ibnd] - self.energies[:,kid, ref_ibnd])
+                    factor = np.var(self.energies[:,ik,band_index] - self.energies[:,kid, ref_ibnd])
                 sT = res[which_sobol]
                 sT_band[ik, ibnd, :] = np.array(sT) * factor
         return sT_band

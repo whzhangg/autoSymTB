@@ -40,7 +40,7 @@ class Structure:
             c, p, t = pcell
         else:
             c, p, t = cell, positions, types
-        round_decimal = int(-1 * np.log10(params.stol))
+        round_decimal = int(-1 * np.log10(params.stol*1e-2))
         rounded = np.around(p, decimals=round_decimal)
         shifted = rounded - np.floor(rounded)
         return c, shifted, np.array(t, dtype = int)

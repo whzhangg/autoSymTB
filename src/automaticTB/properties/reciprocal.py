@@ -87,10 +87,10 @@ class Kpath:
         _distances = [ kl.get_distance_given_cell(reciprocal_lattice) for kl in klines ]
         _total_distance = sum(_distances)
 
-        nks = [ round(_ktotal * (d / _total_distance)) for d in _distances ]
+        self._nks = [ round(_ktotal * (d / _total_distance)) for d in _distances ]
         
         start = 0
-        for kl, nk in zip(klines, nks):
+        for kl, nk in zip(klines, self._nks):
             cartesian_delta = latticeT.dot(kl.end_k - kl.start_k)
             cartesian_distance = np.linalg.norm(cartesian_delta)
             end = start + cartesian_distance
@@ -141,6 +141,9 @@ class Kpath:
     def xpos(self) -> np.ndarray:
         return self._xpos
 
+    @property
+    def nk_each_line(self) -> typing.List[int]:
+        return self._nks
 
 class Kmesh:
     """Mesh of k points starting from the origin"""

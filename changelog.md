@@ -58,3 +58,17 @@ Major change to the properties subpackage.
 ### Changed
 
 - remove the eigen-value checking in `solveE()`
+
+## 2023-05-25
+
+### Added
+
+- `calc_mesh/calculate_e_c2_using_ibz()` method
+- for `reciprocal/Kpath`, added property to get the number of k points for each path.
+- `find_band_minimum()` for discovering min/max $k$ position of the cond/valence band.
+
+## 2023-06-27
+
+### Changed 
+
+- improve the effective mass calculation (not tested yet, PRB 99,085207,2019)

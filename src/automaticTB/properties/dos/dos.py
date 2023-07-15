@@ -1,4 +1,5 @@
 import dataclasses
+import typing
 
 import numpy as np
 
@@ -73,6 +74,12 @@ class DosResult:
 
         fig.savefig(filename)
 
+
+@dataclasses.dataclass
+class ProjDosResult:
+    x: np.ndarray
+    orbname: typing.List[str]
+    projdos: np.ndarray
 
 
 class TetraDOS:
@@ -263,3 +270,109 @@ class TetraDOS:
 
         return nsum
 
+
+class TetraProjectDOS:
+    """Tetrahedron DOS
+
+    it is almost the same to normal TetraDOS but for each tetrahedron, 
+    the calculated DOS is multiplied by the average DOS weight
+    """
+    parallel_threshold = 8000
+
+    def __init__(self, 
+        kmesh: TetraKmesh, 
+        mesh_energies: np.ndarray,
+        mesh_components: np.ndarray,
+        orbital_names: typing.List[str],
+        dos_weight: float
+    ):
+        """setup the dos calculation
+
+        Parameters
+        ----------
+        kmesh: TetraKmesh
+            the tetragonal kmesh for summation
+        mesh_energies: array(nk, nbnd)
+            eigen-energies calculated for kmesh.kpoints
+        mesh_component: array(nk, norb, nbnd)
+            the orbital character
+        dos_weight: float
+            number of electrons occupying the orbital
+        component_names: list[str]
+            the name of the orbital components
+        """
+        nk, self._nbnd = mesh_energies.shape
+        if nk != kmesh.numk:
+            raise "run energies with kmesh!"
+
+        self._kmesh = kmesh
+        self._mesh_energies = mesh_energies.T.copy()
+        self._dos_weight = dos_weight
+        self._orbital_names = orbital_names
+        self._mesh_components = mesh_components
+        
+
+    def calculate_projdos(self, dos_energies: np.ndarray) -> ProjDosResult:
+        """calculate dos for the input array of energies
+        
+        result in unit 1/eV
+        """
+        nenergy = len(dos_energies)
+        norb = self._mesh_components.shape[1]
+        result = np.zeros((nenergy, norb))
+        
+        for ibnd in range(self._nbnd):
+            if (np.min(self._mesh_energies[ibnd]) > np.max(dos_energies) or 
+                np.max(self._mesh_energies[ibnd]) < np.min(dos_energies)):
+                continue
+            result += tools.cython_projdos_contribution_multiple(
+                self._mesh_energies[ibnd], self._mesh_components[:,:,ibnd], 
+                self._kmesh.tetras, dos_energies)
+            
+        return ProjDosResult(dos_energies, self._orbital_names, result*self._dos_weight)
+
+
+
+def test_custom_argsort():
+    """testing argsort for cython, but not used"""
+    import numpy as np
+    def argsort(e4):
+
+        if e4[0] < e4[1]:
+            part1_min = 0; part1_max = 1
+        else:
+            part1_min = 1; part1_max = 0
+        if e4[2] < e4[3]:
+            part2_min = 2; part2_max = 3
+        else:
+            part2_min = 3; part2_max = 2
+
+        if e4[part1_min] < e4[part2_min]:
+            ie1 = part1_min
+            left1 = part2_min
+        else:
+            ie1 = part2_min
+            left1 = part1_min
+                
+        if e4[part1_max] > e4[part2_max]:
+            ie4 = part1_max
+            left2 = part2_max
+        else:
+            ie4 = part2_max
+            left2 = part1_max
+
+        if e4[left1] < e4[left2]:
+            ie2 = left1
+            ie3 = left2
+        else:
+            ie2 = left2
+            ie3 = left1
+
+        return ie1, ie2, ie3, ie4
+    
+    for _ in range(1000):
+        test_data = np.random.choice(1000, 4)
+        i1,i2,i3,i4 = argsort(test_data)
+        assert test_data[i1] <= test_data[i2]
+        assert test_data[i2] <= test_data[i3]
+        assert test_data[i3] <= test_data[i4]
