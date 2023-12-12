@@ -6,7 +6,7 @@
 docs/
 tmp/
 examples/
-
+experimental/
 #tests/**/*.*
 #tests/compare_values.py 
 #tests/compare_values/*.*

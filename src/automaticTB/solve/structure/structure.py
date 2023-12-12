@@ -23,7 +23,7 @@ class Structure:
     """
     [Structure] -> CenteredCluster -> CenteredEquivalentCluster
     """
-    voronoi_rcut: float = 5.0
+    voronoi_rcut: float = 4.0
     voronoi_weight_cutoff: float = 1e-1
 
     @staticmethod

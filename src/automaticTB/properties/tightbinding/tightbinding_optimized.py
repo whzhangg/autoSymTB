@@ -356,7 +356,8 @@ class TightBindingModel_wo_overlap:
     parallel_threshold = 10000
     def __init__(self, 
         cell: np.ndarray, positions: np.ndarray, types: typing.List[int],
-        HijR_list: typing.List[HijR]
+        HijR_list: typing.List[HijR],
+        basis: typing.Optional[typing.List[Pindex_lm]] = None
     ) -> None:
         """
         we assert HijR and SijR are the same list with the same pairs 
@@ -366,11 +367,14 @@ class TightBindingModel_wo_overlap:
         self._positions = positions
         self._types = types
 
-        self._basis: typing.List[Pindex_lm] = []
-        for hijR in HijR_list:
-            if hijR.left not in self._basis:
-                self._basis.append(hijR.left)
-                
+        if not basis:
+            self._basis: typing.List[Pindex_lm] = []
+            for hijR in HijR_list:
+                if hijR.left not in self._basis:
+                    self._basis.append(hijR.left)
+        else:
+            self._basis = basis
+                            
         index_ref: typing.Dict[tuple, int] = {
             (basis.pindex, basis.n, basis.l, basis.m):i for i, basis in enumerate(self._basis)
         }

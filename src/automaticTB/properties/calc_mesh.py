@@ -13,9 +13,9 @@ from automaticTB import parameters
 from automaticTB.properties import reciprocal
 
 def _get_k_index(xk: np.ndarray, kgrid: np.ndarray):
-    i = (xk[0]*kgrid[0] + 5 * kgrid[0]) % kgrid[0] 
-    j = (xk[1]*kgrid[1] + 5 * kgrid[1]) % kgrid[1] 
-    k = (xk[2]*kgrid[2] + 5 * kgrid[2]) % kgrid[2] 
+    i = np.rint(xk[0]*kgrid[0] + 5 * kgrid[0]) % kgrid[0] 
+    j = np.rint(xk[1]*kgrid[1] + 5 * kgrid[1]) % kgrid[1] 
+    k = np.rint(xk[2]*kgrid[2] + 5 * kgrid[2]) % kgrid[2] 
     return int( k + j * kgrid[2] + i * kgrid[1] * kgrid[2] )
 
 
@@ -25,7 +25,7 @@ def calculate_e_v_using_ibz(
     nks: typing.Tuple[int,int,int],
     energy_only: bool = False
 ) -> typing.Tuple[np.ndarray, np.ndarray]:
-    """calculates the kpoint energy using irreducible grid"""
+    """calculates the kpoint energy using irreducible grid (nk,nbnd)"""
     cell = (tb.cell, tb.positions, tb.types)
     sym_data = spglib.get_symmetry_dataset(cell, symprec=parameters.spgtol)
 

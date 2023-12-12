@@ -32,4 +32,6 @@ dependencies:
   - lmfit
   - boltztrap2
   - ifermi
+  - bayesian-optimization
+  - umap-learn
 prefix: /Users/wenhao/Applications/miniconda3/envs/autotb

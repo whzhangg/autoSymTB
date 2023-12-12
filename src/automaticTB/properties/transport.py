@@ -54,6 +54,8 @@ def calculate_transport(
 ) -> typing.Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
     """calculates transport properties
     
+    Notice: kappa = K - T sigma S^2
+
     Parameters
     ----------
     mu
@@ -113,8 +115,9 @@ def calculate_transport(
     k_ij = K_sum / total_volumn / temp
 
     Sij = np.linalg.inv(sigma_ij) @ sigmaSij
+    kappa_ij = k_ij - temp * Sij @ sigma_ij @ Sij
 
-    return carrier_concentration, sigma_ij, Sij, k_ij
+    return carrier_concentration, sigma_ij, Sij, kappa_ij
 
 
 def _fd(ei,u,T):
@@ -123,6 +126,8 @@ def _fd(ei,u,T):
     units of input: ei and u in eV, T in K
     """
     nu = (ei-u) * constants.elementary_charge / (constants.Boltzmann*T)
+    nu[np.where(nu > 500)] = 500
+    # exp(-) will be zero without overflow
     return 1/( 1+np.exp( nu ) )
 
 
@@ -131,6 +136,7 @@ def _dfde(ei, u, T):
     SI units
     """
     kbt = constants.Boltzmann * T
-    nu = (ei-u)* constants.elementary_charge / kbt
+    nu = -1 * np.abs(ei-u)* constants.elementary_charge / kbt
+    
     return  -1.0 * np.exp(nu) / (1.0 + np.exp(nu))**2 / kbt
 
